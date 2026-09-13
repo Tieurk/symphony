@@ -120,6 +120,10 @@ garder, et si un kit se marie avec le violon et le tuba.</p>
   programmees une fois pour toutes et qui tournent en permanence, et un interrupteur par
   instrument qui ouvre ou ferme son gain en 8 ms. Poser ou retirer un instrument ne demarre
   et n'arrete jamais rien.</p>
+  <p class="note">Mesure : le gain atteint zero en 11 ms, mais le son s'arrete 125 ms apres
+  l'appui, parce que Tone.js programme tout 100 ms a l'avance. <strong>Dis-moi si les
+  interrupteurs te paraissent mous</strong>, ca se descend a 20 ms au prix d'un risque
+  d'accrocs sur les appareils faibles.</p>
   <fieldset id="bloc3" disabled>
     <div class="rangee" style="margin-bottom:12px">
       <button id="btnTransport">Lancer la boucle</button>
@@ -335,6 +339,26 @@ const PARTIE_BATTERIE = (function () {
   return evts;
 })();
 
+// Tone.Part exige que la cle du temps s'appelle « time ». Le format de morceau du
+// projet utilise « t » (docs/format-morceau.md). La conversion se fait ici, a la
+// frontiere, exactement ce que le moteur devra faire en phase 1. Sans elle, Part
+// programme tout au tick 0 avec une valeur indefinie, et le rappel plante en silence.
+function versTone(evenements) {
+  return evenements.map((ev) => Object.assign({}, ev, { time: ev.t }));
+}
+
+// Un rappel qui plante dans une partie ne remonte nulle part : l'erreur se perd dans
+// l'horloge audio et on n'entend rien, sans rien voir. On l'ecrit au journal.
+function garde(nomPartie, rappel) {
+  return (temps, ev) => {
+    try {
+      rappel(temps, ev);
+    } catch (e) {
+      note("ERREUR dans la partie " + nomPartie + " : " + (e && e.message ? e.message : e));
+    }
+  };
+}
+
 function programmeLaBoucle() {
   Tone.Transport.bpm.value = 100;
   Tone.Transport.timeSignature = [4, 4];
@@ -342,19 +366,19 @@ function programmeLaBoucle() {
   Tone.Transport.loopStart = "0:0";
   Tone.Transport.loopEnd = "4:0";
 
-  new Tone.Part((temps, ev) => {
+  new Tone.Part(garde("violon", (temps, ev) => {
     violon.triggerAttackRelease(ev.note, ev.duree, temps, 0.85);
-  }, PARTIE_VIOLON).start(0);
+  }), versTone(PARTIE_VIOLON)).start(0);
 
-  new Tone.Part((temps, ev) => {
+  new Tone.Part(garde("tuba", (temps, ev) => {
     tuba.triggerAttackRelease(ev.note, ev.duree, temps, 0.8);
-  }, PARTIE_TUBA).start(0);
+  }), versTone(PARTIE_TUBA)).start(0);
 
   // Une seule partie de batterie. Changer de kit ne la reprogramme pas, elle lit
   // simplement kitCourant au moment de jouer.
-  new Tone.Part((temps, ev) => {
+  new Tone.Part(garde("batterie", (temps, ev) => {
     frappe(kitCourant, ev.frappe, temps, voies.batterie.mute, ev.vel);
-  }, PARTIE_BATTERIE).start(0);
+  }), versTone(PARTIE_BATTERIE)).start(0);
 }
 
 // --- Interface ---------------------------------------------------------------
@@ -490,6 +514,8 @@ function rafraichisDiag() {
   lignes.push("echantillonnage    " + ctx.sampleRate + " Hz");
   lignes.push("latence de base    " + lisible(brut && brut.baseLatency));
   lignes.push("latence de sortie  " + lisible(brut && brut.outputLatency));
+  lignes.push("anticipation       " + lisible(ctx.lookAhead) +
+              "   reaction a un appui environ " + Math.round((ctx.lookAhead + 0.008) * 1000) + " ms");
   lignes.push("horloge            " + Tone.Transport.state + "   position " + Tone.Transport.position);
   lignes.push("kit de la boucle   " + kitCourant);
 

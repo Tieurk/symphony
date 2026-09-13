@@ -48,6 +48,10 @@ Scène vide, aucun son : les 13 canaux sont fermés, l'horloge continue de tourn
 
 Transition de mute : une rampe très courte (5 à 10 ms) pour éviter le clic, pas un saut brutal ni un fondu long qui ferait rater l'attaque.
 
+**Mesuré en phase 0 :** la rampe de 8 ms fait son travail, le gain atteint zéro en 11 ms. Mais le son ne s'arrête que 125 ms après l'appui, parce que `Tone.getContext().lookAhead` vaut 0,1 s par défaut en mode `interactive`. La réaction perçue à un geste est donc d'environ 110 ms, pas de 8. Descendre `lookAhead` accélère la réaction au prix d'un risque d'accrocs audio sur les appareils faibles. À trancher à la main sur l'iPad, pas à l'aveugle.
+
+**Piège de programmation :** `Tone.Part` exige que la clé du temps d'un événement s'appelle `time`. Le format de morceau du projet utilise `t`. La conversion se fait à la frontière, dans le moteur. Sans elle, `Part` programme tout au tick 0 avec une valeur indéfinie, le rappel plante, et on n'entend rien sans voir aucune erreur : l'exception se perd dans l'horloge audio. Entourer les rappels de partie d'un garde-fou qui remonte l'erreur.
+
 ## Banques de sons
 
 Source principale : `midi-js-soundfonts`, rendu MP3 du soundfont FluidR3_GM, qui couvre les 128 programmes General MIDI. Vérifié : les 11 instruments mélodiques de la scène y sont, koto, sitar et accordéon compris. La batterie et les cymbales n'y sont pas, voir plus bas. Une seule source, donc des timbres cohérents entre eux.
