@@ -1,0 +1,520 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="icon" href="data:,">
+<title>Symphony, test audio phase 0</title>
+<style>
+  :root {
+    --fond: #141b2e;
+    --carte: #1e2740;
+    --bord: #33405e;
+    --texte: #f5e9d7;
+    --doux: #9fb0d0;
+    --accent: #f2a65a;
+    --vert: #6fcf97;
+    --rouge: #eb5757;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0; padding: 16px calc(16px + env(safe-area-inset-left)) 48px;
+    background: var(--fond); color: var(--texte);
+    font: 16px/1.5 -apple-system, system-ui, sans-serif;
+  }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  h2 { font-size: 17px; margin: 0 0 12px; color: var(--accent); }
+  p  { margin: 0 0 12px; color: var(--doux); font-size: 14px; }
+  code { background: #0d1222; padding: 1px 5px; border-radius: 4px; font-size: 13px; }
+
+  section {
+    background: var(--carte); border: 1px solid var(--bord); border-radius: 12px;
+    padding: 16px; margin: 0 0 16px; max-width: 1100px;
+  }
+  fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+  fieldset[disabled] { opacity: .4; pointer-events: none; }
+
+  button {
+    min-height: 64px; min-width: 64px; padding: 10px 16px;
+    background: #2b3654; color: var(--texte);
+    border: 1px solid var(--bord); border-radius: 10px;
+    font: inherit; font-size: 15px; cursor: pointer; touch-action: manipulation;
+  }
+  button:active { background: var(--accent); color: #1a1200; }
+  button.principal {
+    background: var(--accent); color: #1a1200; font-weight: 600;
+    font-size: 18px; width: 100%; min-height: 72px;
+  }
+  button.actif { background: var(--vert); color: #04200f; font-weight: 600; }
+
+  .rangee { display: flex; flex-wrap: wrap; gap: 10px; }
+  .kits { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+  .kit h3 { font-size: 15px; margin: 0 0 2px; }
+  .kit .licence { font-size: 12px; color: var(--doux); margin: 0 0 10px; }
+  .pads { display: grid; grid-template-columns: repeat(3, 1fr); grid-auto-rows: 1fr; gap: 8px; }
+  .pads button { font-size: 13px; padding: 6px 4px; line-height: 1.25; }
+  .pads button small { display: block; color: var(--rouge); font-size: 10px; margin-top: 3px; }
+  .pads button:active small { color: #6b1a1a; }
+
+  #diag {
+    background: #0d1222; border: 1px solid var(--bord); border-radius: 10px;
+    padding: 12px; margin-top: 12px; font-family: ui-monospace, Menlo, monospace;
+    font-size: 12px; line-height: 1.6; white-space: pre-wrap; word-break: break-word;
+    color: var(--doux);
+  }
+  .ok { color: var(--vert); } .ko { color: var(--rouge); }
+  .note { border-left: 3px solid var(--accent); padding-left: 12px; font-size: 13px; color: var(--doux); }
+</style>
+</head>
+<body>
+
+<h1>Symphony, test audio phase 0</h1>
+<p>Trois choses a verifier, dans cet ordre : que le son sort sur iOS, quel kit de percussion
+garder, et si un kit se marie avec le violon et le tuba.</p>
+
+<section>
+  <button id="amorce" class="principal">Demarrer l'audio</button>
+  <div id="diag">en attente du premier appui</div>
+  <p class="note" style="margin-top:12px">Le contexte audio d'iOS ne demarre qu'apres un
+  appui. Ce bouton lance aussi un fichier silencieux qui fait basculer la session audio, le
+  contournement du bouton silencieux. <strong>A refaire sur l'iPhone</strong> : l'iPad n'a pas
+  d'interrupteur physique, le test n'y est pas concluant.</p>
+</section>
+
+<section>
+  <h2>1. La gamme de violon</h2>
+  <p>Do majeur, une octave montante puis descendante. Six notes reelles echantillonnees
+  (<code>G3 C4 E4 A4 C5 E5</code>), le reste est transpose par le sampler.</p>
+  <fieldset id="bloc1" disabled>
+    <div class="rangee">
+      <button id="btnGamme">Jouer la gamme</button>
+      <button id="btnNoteSeule">Une note tenue 5 s (A4)</button>
+    </div>
+  </fieldset>
+  <p class="note" style="margin-top:12px">Chaque echantillon de la banque dure 3,16 s et
+  sonne jusqu'au bout. Une note tenue plus longue sera coupee : le second bouton demande
+  5 s sur un echantillon qui n'en a que 3,16. A 100 a la noire, une ronde tient sans
+  probleme, c'est donc une contrainte theorique, mais autant l'entendre une fois.</p>
+</section>
+
+<section>
+  <h2>2. Les trois kits, frappe par frappe</h2>
+  <p>Les 27 echantillons sont ramenes au meme format et au meme niveau de crete, mono
+  44 100 Hz, pic a -1 dBFS. La comparaison porte donc sur le timbre, pas sur le volume.</p>
+  <fieldset id="bloc2" disabled>
+    <div class="kits" id="zoneKits"></div>
+    <h3 style="font-size:15px;margin:20px 0 8px">La meme frappe sur les trois kits</h3>
+    <p>Joue Virtuosity, puis VCSL, puis FluidR3, espaces d'une seconde.</p>
+    <div class="rangee" id="zoneEnchaine"></div>
+  </fieldset>
+</section>
+
+<section>
+  <h2>3. Violon, tuba, batterie</h2>
+  <p>Quatre mesures d'<em>Ah ! vous dirai-je, maman</em> (traditionnel, domaine public), a
+  100 a la noire. C'est le test de reference : le violon seul doit etre ecoutable, le tuba
+  seul doit etre ecoutable, et les trois ensemble doivent sonner comme un vrai petit
+  arrangement.</p>
+  <p class="note">Monte sur l'architecture prevue : une seule horloge, les trois parties
+  programmees une fois pour toutes et qui tournent en permanence, et un interrupteur par
+  instrument qui ouvre ou ferme son gain en 8 ms. Poser ou retirer un instrument ne demarre
+  et n'arrete jamais rien.</p>
+  <fieldset id="bloc3" disabled>
+    <div class="rangee" style="margin-bottom:12px">
+      <button id="btnTransport">Lancer la boucle</button>
+      <button id="btnViolon" data-voie="violon">Violon</button>
+      <button id="btnTuba" data-voie="tuba">Tuba</button>
+      <button id="btnBatterie" data-voie="batterie">Batterie</button>
+    </div>
+    <div class="rangee" id="zoneChoixKit"></div>
+  </fieldset>
+</section>
+
+<script src="../src/vendor/tone.js"></script>
+<script>
+"use strict";
+
+// --- Ce que la page connait ---------------------------------------------------
+
+const KITS = [
+  { id: "virtuosity", nom: "Virtuosity Drums", licence: "CC0 1.0, vrai kit acoustique" },
+  { id: "vcsl",       nom: "VCSL",             licence: "CC0 1.0, percussion d'orchestre" },
+  { id: "fluidr3",    nom: "FluidR3_GM",       licence: "CC-BY 3.0, meme banque que l'orchestre" }
+];
+
+const FRAPPES = [
+  "kick", "snare", "tom_bas", "tom_med", "tom_haut",
+  "charley", "charley_ouvert", "crash", "ride"
+];
+
+const ETIQUETTES = {
+  kick: "Grosse caisse", snare: "Caisse claire", tom_bas: "Tom bas",
+  tom_med: "Tom medium", tom_haut: "Tom haut", charley: "Charley",
+  charley_ouvert: "Charley ouvert", crash: "Crash", ride: "Ride"
+};
+
+// Substitutions a afficher sous le pad concerne, pour ne rien cacher.
+const RESERVES = {
+  virtuosity: { tom_med: "tom haut transpose, le kit n'a que deux toms" },
+  vcsl: {
+    tom_med: "tom haut transpose",
+    ride: "cymbale suspendue, VCSL n'a pas de ride",
+    crash: "cymbales frappees par paire",
+    kick: "grosse caisse d'orchestre",
+    snare: "caisse claire d'orchestre"
+  },
+  fluidr3: { charley_ouvert: "l'echantillon est un charley a demi ouvert" }
+};
+
+const NOTES_VIOLON = ["G3", "C4", "E4", "A4", "C5", "E5"];
+const NOTES_TUBA   = ["E1", "A1", "D2", "G2", "C3", "F3"];
+
+// Niveaux de mixage de l'exemple de CLAUDE.md.
+const MIX = { violon: -3, tuba: -6, batterie: -8 };
+
+// --- Etat --------------------------------------------------------------------
+
+let bus, violonSolo, violon, tuba;
+const tampons = {};      // id de kit -> ToneAudioBuffers
+const voies = {};        // nom d'instrument -> { mute, mixage }
+const kitsDirects = {};  // id de kit -> Gain, pour les pads de la zone 2
+const etouffement = {};  // groupe -> source en cours
+let kitCourant = KITS[0].id;
+let amorce = false;
+const journal = [];
+
+function note(texte) {
+  journal.unshift(texte);
+  if (journal.length > 6) journal.pop();
+}
+
+// --- Amorcage ----------------------------------------------------------------
+
+const silencieux = new Audio("silence.mp3");
+silencieux.loop = true;
+silencieux.setAttribute("playsinline", "");
+
+document.getElementById("amorce").addEventListener("click", async (ev) => {
+  const bouton = ev.currentTarget;
+  if (amorce) return;
+  bouton.disabled = true;
+  bouton.textContent = "Chargement...";
+
+  // 1. La bascule de session iOS. Doit partir dans le geste, sans await avant.
+  let sessionOk = true;
+  silencieux.play().catch((e) => { sessionOk = false; note("session audio refusee : " + e.name); });
+
+  try {
+    // 2. Le contexte audio. Idem, dans le geste.
+    await Tone.start();
+    note("Tone.start() resolu");
+
+    // 3. Les instruments, puis l'attente du chargement.
+    construis();
+    await Tone.loaded();
+    note("tous les echantillons charges");
+
+    amorce = true;
+    for (const id of ["bloc1", "bloc2", "bloc3"]) {
+      document.getElementById(id).disabled = false;
+    }
+    bouton.textContent = sessionOk ? "Audio pret" : "Audio pret, session iOS a verifier";
+    bouton.classList.remove("principal");
+    bouton.classList.add("actif");
+  } catch (e) {
+    note("ECHEC a l'amorcage : " + (e && e.message ? e.message : e));
+    bouton.disabled = false;
+    bouton.textContent = "Reessayer";
+  }
+  rafraichisDiag();
+});
+
+// --- Construction du graphe audio -------------------------------------------
+
+function urlsDeNotes(notes) {
+  const o = {};
+  for (const n of notes) o[n] = n + ".mp3";
+  return o;
+}
+
+function voie(nom) {
+  const mixage = new Tone.Gain(Tone.dbToGain(MIX[nom])).connect(bus);
+  const mute = new Tone.Gain(0).connect(mixage);   // ferme au depart
+  voies[nom] = { mute, mixage, ouvert: false };
+  return mute;
+}
+
+function construis() {
+  bus = new Tone.Gain(1).toDestination();
+
+  // Zone 1 : chemin direct, sans interrupteur. On teste le son, pas l'architecture.
+  violonSolo = new Tone.Sampler({
+    urls: urlsDeNotes(NOTES_VIOLON),
+    baseUrl: "../assets/samples/violon/",
+    release: 0.4
+  }).connect(bus);
+
+  // Zone 3 : chaine complete. Sampler -> gain de mute -> gain de mixage -> bus.
+  violon = new Tone.Sampler({
+    urls: urlsDeNotes(NOTES_VIOLON),
+    baseUrl: "../assets/samples/violon/",
+    release: 0.4
+  }).connect(voie("violon"));
+
+  tuba = new Tone.Sampler({
+    urls: urlsDeNotes(NOTES_TUBA),
+    baseUrl: "../assets/samples/tuba/",
+    release: 0.4
+  }).connect(voie("tuba"));
+
+  voie("batterie");
+
+  for (const kit of KITS) {
+    const urls = {};
+    for (const f of FRAPPES) urls[f] = f + ".wav";
+    tampons[kit.id] = new Tone.ToneAudioBuffers({ urls, baseUrl: "kits/" + kit.id + "/" });
+    // Chemin des pads de la zone 2 : direct, a niveau brut, pour un A/B honnete.
+    kitsDirects[kit.id] = new Tone.Gain(1).connect(bus);
+  }
+
+  programmeLaBoucle();
+}
+
+// --- Frappes ------------------------------------------------------------------
+
+// Une source jetable par frappe, donc vraie polyphonie et pas d'erreur de
+// redemarrage quand la meme frappe revient vite.
+function frappe(kitId, nom, temps, destination, velocite) {
+  const tampon = tampons[kitId].get(nom);
+  const src = new Tone.ToneBufferSource({ url: tampon, fadeOut: 0.02 }).connect(destination);
+
+  // Le charley s'etouffe lui-meme et etouffe le charley ouvert, comme un vrai.
+  if (nom === "charley" || nom === "charley_ouvert") {
+    const cle = kitId + "/charley";
+    const ancien = etouffement[cle];
+    if (ancien) { try { ancien.stop(temps + 0.02); } catch (e) { /* deja fini */ } }
+    etouffement[cle] = src;
+  }
+
+  src.onended = () => src.dispose();
+  src.start(temps, 0, undefined, velocite === undefined ? 1 : velocite);
+  return src;
+}
+
+// --- La boucle de la zone 3 --------------------------------------------------
+
+// « Ah ! vous dirai-je, maman », quatre premieres mesures. Fragment de test jetable.
+const PARTIE_VIOLON = [
+  { t: "0:0", note: "C4", duree: "4n" }, { t: "0:1", note: "C4", duree: "4n" },
+  { t: "0:2", note: "G4", duree: "4n" }, { t: "0:3", note: "G4", duree: "4n" },
+  { t: "1:0", note: "A4", duree: "4n" }, { t: "1:1", note: "A4", duree: "4n" },
+  { t: "1:2", note: "G4", duree: "2n" },
+  { t: "2:0", note: "F4", duree: "4n" }, { t: "2:1", note: "F4", duree: "4n" },
+  { t: "2:2", note: "E4", duree: "4n" }, { t: "2:3", note: "E4", duree: "4n" },
+  { t: "3:0", note: "D4", duree: "4n" }, { t: "3:1", note: "D4", duree: "4n" },
+  { t: "3:2", note: "C4", duree: "2n" }
+];
+
+const PARTIE_TUBA = [
+  { t: "0:0", note: "C2", duree: "4n" }, { t: "0:2", note: "G2", duree: "4n" },
+  { t: "1:0", note: "F2", duree: "4n" }, { t: "1:2", note: "C2", duree: "4n" },
+  { t: "2:0", note: "F2", duree: "4n" }, { t: "2:2", note: "C2", duree: "4n" },
+  { t: "3:0", note: "G2", duree: "4n" }, { t: "3:2", note: "C2", duree: "4n" }
+];
+
+const PARTIE_BATTERIE = (function () {
+  const evts = [{ t: "0:0", frappe: "crash", vel: 0.8 }];
+  for (let m = 0; m < 4; m++) {
+    evts.push({ t: m + ":0", frappe: "kick", vel: 0.95 });
+    evts.push({ t: m + ":1", frappe: "snare", vel: 0.7 });
+    evts.push({ t: m + ":2", frappe: "kick", vel: 0.85 });
+    evts.push({ t: m + ":3", frappe: "snare", vel: 0.8 });
+    for (let b = 0; b < 4; b++) evts.push({ t: m + ":" + b + ":2", frappe: "charley", vel: 0.5 });
+  }
+  return evts;
+})();
+
+function programmeLaBoucle() {
+  Tone.Transport.bpm.value = 100;
+  Tone.Transport.timeSignature = [4, 4];
+  Tone.Transport.loop = true;
+  Tone.Transport.loopStart = "0:0";
+  Tone.Transport.loopEnd = "4:0";
+
+  new Tone.Part((temps, ev) => {
+    violon.triggerAttackRelease(ev.note, ev.duree, temps, 0.85);
+  }, PARTIE_VIOLON).start(0);
+
+  new Tone.Part((temps, ev) => {
+    tuba.triggerAttackRelease(ev.note, ev.duree, temps, 0.8);
+  }, PARTIE_TUBA).start(0);
+
+  // Une seule partie de batterie. Changer de kit ne la reprogramme pas, elle lit
+  // simplement kitCourant au moment de jouer.
+  new Tone.Part((temps, ev) => {
+    frappe(kitCourant, ev.frappe, temps, voies.batterie.mute, ev.vel);
+  }, PARTIE_BATTERIE).start(0);
+}
+
+// --- Interface ---------------------------------------------------------------
+
+function construisZoneKits() {
+  const hote = document.getElementById("zoneKits");
+  for (const kit of KITS) {
+    const bloc = document.createElement("div");
+    bloc.className = "kit";
+    const titre = document.createElement("h3");
+    titre.textContent = kit.nom;
+    const lic = document.createElement("p");
+    lic.className = "licence";
+    lic.textContent = kit.licence;
+    const pads = document.createElement("div");
+    pads.className = "pads";
+    for (const f of FRAPPES) {
+      const b = document.createElement("button");
+      b.textContent = ETIQUETTES[f];
+      const reserve = (RESERVES[kit.id] || {})[f];
+      if (reserve) {
+        const s = document.createElement("small");
+        s.textContent = reserve;
+        b.appendChild(s);
+      }
+      b.addEventListener("click", () => {
+        frappe(kit.id, f, Tone.now() + 0.02, kitsDirects[kit.id], 1);
+      });
+      pads.appendChild(b);
+    }
+    bloc.append(titre, lic, pads);
+    hote.appendChild(bloc);
+  }
+
+  const enchaine = document.getElementById("zoneEnchaine");
+  for (const f of FRAPPES) {
+    const b = document.createElement("button");
+    b.textContent = ETIQUETTES[f];
+    b.addEventListener("click", () => {
+      let t = Tone.now() + 0.05;
+      for (const kit of KITS) {
+        frappe(kit.id, f, t, kitsDirects[kit.id], 1);
+        t += 1.0;
+      }
+      note("enchaine " + f + " : Virtuosity, VCSL, FluidR3");
+      rafraichisDiag();
+    });
+    enchaine.appendChild(b);
+  }
+
+  const choix = document.getElementById("zoneChoixKit");
+  for (const kit of KITS) {
+    const b = document.createElement("button");
+    b.textContent = kit.nom;
+    b.dataset.kit = kit.id;
+    if (kit.id === kitCourant) b.classList.add("actif");
+    b.addEventListener("click", () => {
+      kitCourant = kit.id;
+      for (const autre of choix.children) autre.classList.toggle("actif", autre.dataset.kit === kitCourant);
+      note("kit de la boucle : " + kit.nom);
+      rafraichisDiag();
+    });
+    choix.appendChild(b);
+  }
+}
+
+document.getElementById("btnGamme").addEventListener("click", () => {
+  const gamme = ["C4","D4","E4","F4","G4","A4","B4","C5","B4","A4","G4","F4","E4","D4","C4"];
+  let t = Tone.now() + 0.05;
+  for (const n of gamme) {
+    violonSolo.triggerAttackRelease(n, 0.3, t, 0.85);
+    t += 0.36;
+  }
+  note("gamme de violon lancee");
+  rafraichisDiag();
+});
+
+document.getElementById("btnNoteSeule").addEventListener("click", () => {
+  violonSolo.triggerAttackRelease("A4", 5, Tone.now() + 0.05, 0.85);
+  note("A4 tenue 5 s, l'echantillon n'en fait que 3,16");
+  rafraichisDiag();
+});
+
+document.getElementById("btnTransport").addEventListener("click", (ev) => {
+  const b = ev.currentTarget;
+  if (Tone.Transport.state === "started") {
+    Tone.Transport.stop();
+    b.textContent = "Lancer la boucle";
+    b.classList.remove("actif");
+  } else {
+    Tone.Transport.start();
+    b.textContent = "Arreter la boucle";
+    b.classList.add("actif");
+  }
+  rafraichisDiag();
+});
+
+for (const id of ["btnViolon", "btnTuba", "btnBatterie"]) {
+  document.getElementById(id).addEventListener("click", (ev) => {
+    const b = ev.currentTarget;
+    const v = voies[b.dataset.voie];
+    v.ouvert = !v.ouvert;
+    v.mute.gain.rampTo(v.ouvert ? 1 : 0, 0.008);   // rampe de 8 ms
+    b.classList.toggle("actif", v.ouvert);
+    rafraichisDiag();
+  });
+}
+
+// --- Diagnostic ---------------------------------------------------------------
+
+function lisible(v) {
+  if (v === undefined || v === null) return "non expose";
+  if (typeof v === "number") return Math.round(v * 1000) + " ms";
+  return String(v);
+}
+
+function rafraichisDiag() {
+  const el = document.getElementById("diag");
+  const test = document.createElement("audio");
+  const lignes = [];
+
+  if (!amorce && !Tone.context) {
+    el.textContent = "en attente du premier appui";
+    return;
+  }
+
+  const ctx = Tone.getContext();
+  const brut = ctx.rawContext;
+  const etat = ctx.state;
+
+  lignes.push("Tone.js            " + Tone.version);
+  lignes.push("contexte           " + etat + (etat === "running" ? "   OK" : "   BLOQUE"));
+  lignes.push("echantillonnage    " + ctx.sampleRate + " Hz");
+  lignes.push("latence de base    " + lisible(brut && brut.baseLatency));
+  lignes.push("latence de sortie  " + lisible(brut && brut.outputLatency));
+  lignes.push("horloge            " + Tone.Transport.state + "   position " + Tone.Transport.position);
+  lignes.push("kit de la boucle   " + kitCourant);
+
+  const ouverts = Object.keys(voies).filter((n) => voies[n].ouvert);
+  lignes.push("voies ouvertes     " + (ouverts.length ? ouverts.join(", ") : "aucune"));
+
+  lignes.push("");
+  lignes.push("formats    mp3 " + (test.canPlayType("audio/mpeg") || "non") +
+              "   wav " + (test.canPlayType("audio/wav") || "non") +
+              "   flac " + (test.canPlayType("audio/flac") || "non"));
+  lignes.push("appareil   " + navigator.userAgent);
+  lignes.push("autonome   " + (window.navigator.standalone === true ? "oui, PWA installee" : "non, onglet Safari"));
+
+  if (journal.length) {
+    lignes.push("");
+    lignes.push("journal");
+    for (const j of journal) lignes.push("  " + j);
+  }
+
+  el.textContent = lignes.join("\n");
+}
+
+construisZoneKits();
+rafraichisDiag();
+setInterval(() => { if (amorce) rafraichisDiag(); }, 500);
+</script>
+</body>
+</html>

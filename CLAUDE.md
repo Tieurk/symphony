@@ -50,10 +50,13 @@ Transition de mute : une rampe très courte (5 à 10 ms) pour éviter le clic, p
 
 ## Banques de sons
 
-Source principale : `midi-js-soundfonts`, rendu MP3 du soundfont FluidR3_GM, qui couvre les 128 programmes General MIDI. Vérifié : les 13 instruments de la scène y sont, koto, sitar et accordéon compris. Une seule source, donc des timbres cohérents entre eux.
+Source principale : `midi-js-soundfonts`, rendu MP3 du soundfont FluidR3_GM, qui couvre les 128 programmes General MIDI. Vérifié : les 11 instruments mélodiques de la scène y sont, koto, sitar et accordéon compris. La batterie et les cymbales n'y sont pas, voir plus bas. Une seule source, donc des timbres cohérents entre eux.
 
 Base : `https://gleitz.github.io/midi-js-soundfonts/FluidR3_GM/<instrument>-mp3/`
 Liste des noms : `https://gleitz.github.io/midi-js-soundfonts/FluidR3_GM/names.json`
+
+Miroir équivalent, à utiliser dans les scripts parce qu'il traverse davantage de réseaux :
+`https://raw.githubusercontent.com/gleitz/midi-js-soundfonts/gh-pages/FluidR3_GM/<instrument>-mp3/<note>.mp3`
 
 Correspondance à utiliser :
 
@@ -71,9 +74,15 @@ Correspondance à utiliser :
 | Xylophone | `xylophone` |
 | Piano | `acoustic_grand_piano` |
 
-**Point ouvert : la percussion.** Ce dépôt ne rend que les 128 programmes mélodiques, pas le kit de batterie General MIDI. Batterie et cymbales ont besoin d'une source séparée, un kit CC0, à choisir en phase 0. Ne pas se rabattre sur `taiko_drum` ou `synth_drum` comme substituts, ce ne sont pas des kits.
+**La percussion vient d'ailleurs.** Ce dépôt ne rend que les 128 programmes mélodiques : vérifié le 13 septembre 2026, `percussion-mp3/`, `drums-mp3/` et `standard_kit-mp3/` renvoient 404. Batterie et cymbales ont donc besoin d'une source séparée, un kit en CC0 ou en CC-BY (`docs/cadrage.md` section 10 admet les deux). Ne pas se rabattre sur `taiko_drum` ou `synth_drum` comme substituts, ce ne sont pas des kits.
 
-Confirme la convention de nommage des fichiers de notes au premier téléchargement, puis écris `scripts/fetch-samples.sh` qui rapatrie uniquement les notes retenues dans `assets/samples/<instrument>/`. Ne prends pas toutes les notes : 4 à 6 par instrument suffisent au `Tone.Sampler`, qui transpose le reste. C'est ce qui garde le poids total sous 10 Mo.
+Trois candidats sont rapatriés dans `test/kits/` et comparés à l'écoute sur `test/phase0.html`. Le tableau et les réserves de chacun sont dans `docs/points-ouverts.md`. Décision en attente de l'oreille de Mathieu.
+
+**Convention de nommage, confirmée fichier par fichier le 13 septembre 2026.** Lettre majuscule, bémol en `b` minuscule, numéro d'octave, extension `.mp3` : `C4.mp3`, `Db4.mp3`, `Bb3.mp3`. Les dièses n'existent pas, `Cs4.mp3` et `C#4.mp3` renvoient 404. 88 notes par instrument, de `A0` à `C8`, chromatique. MP3 stéréo 44 100 Hz à débit variable, 3,16 s par note quel que soit l'instrument, 25 Ko au maximum.
+
+`scripts/fetch-samples.sh` rapatrie uniquement les notes retenues dans `assets/samples/<instrument>/`. Ne prends pas toutes les notes : 4 à 6 par instrument suffisent au `Tone.Sampler`, qui transpose le reste. C'est ce qui garde le poids total sous 10 Mo.
+
+**Contrainte à garder en tête en écrivant les arrangements :** l'échantillon s'arrête à 3,16 s, et il sonne jusqu'au bout (aucun silence de queue, mesuré à -60 dB). À 100 à la noire, une ronde tient (2,4 s), une note de plus de cinq temps est coupée. Sans conséquence pour les comptines, mais à vérifier si un morceau lent arrive.
 
 ## Format d'un morceau
 
