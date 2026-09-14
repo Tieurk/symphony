@@ -168,6 +168,33 @@ Côté DNS, un enregistrement CNAME `symphony` vers `<utilisateur>.github.io`. L
 
 Une fois le certificat émis, cocher « Enforce HTTPS » dans les réglages Pages.
 
+**Conséquence de méthode :** Pages ne sert que `main`. Le développement se fait sur une
+branche, et toute mise en ligne passe par une fusion vers `main`. Ne jamais fusionner sans
+que Mathieu l'ait demandé explicitement.
+
+**État constaté le 14 septembre 2026.** DNS correct, domaine bien enregistré côté Pages, le
+site répond en `http://`. Mais le certificat TLS n'est pas émis : la poignée de main réussit
+et GitHub présente son joker `*.github.io`, qui ne couvre pas le domaine (`curl` erreur 60).
+Signe croisé : `tieurk.github.io/symphony/` redirige vers `http://` et non `https://`, donc
+« Enforce HTTPS » est inactive faute de certificat. Cloudflare est écarté, `dig` renvoie
+directement les adresses de GitHub.
+
+Deux causes à écarter dans cet ordre, la première rendant la seconde inopérante :
+
+1. **Écarté.** Un enregistrement CAA qui interdirait Let's Encrypt, l'autorité de Pages.
+   `dig +short CAA kinefitlabs.com` ne renvoie rien, donc aucune restriction d'émission.
+   Attention au piège de lecture : `dig +short CAA symphony.kinefitlabs.com` renvoie six
+   enregistrements, mais ce sont ceux de `github.io`, retournés parce que dig suit le CNAME.
+   Ils autorisent Let's Encrypt de toute façon.
+2. **Cause retenue.** GitHub n'a pas revérifié le DNS depuis que l'enregistrement existe.
+   Déblocage manuel dans les réglages Pages : retirer le domaine personnalisé, enregistrer,
+   le ressaisir, enregistrer. Attention, retirer le domaine supprime le fichier `CNAME` du
+   dépôt, et le ressaisir le recrée. Vérifier qu'il est bien revenu.
+
+Web Audio n'exige pas de contexte sécurisé, donc l'absence de certificat ne bloque pas
+l'écoute. Elle bloque la phase 2 : pas d'installation sur l'écran d'accueil sans HTTPS, donc
+pas de persistance des données (voir piège iOS n° 4).
+
 ## Phases
 
 - **Phase 0** : choix du kit de percussion, écoute comparée des timbres, maquette fixe des deux mises en page, chaîne de déploiement vérifiée de bout en bout.

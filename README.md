@@ -31,25 +31,41 @@ docs/      cadrage et spécifications
 
 ## Tester sur l'iPad
 
-Rien n'est joignable depuis l'iPad sans un serveur lancé sur le Mac, sur le même wifi.
-Trois commandes, à coller dans le Terminal depuis la racine du dépôt :
+Le plus court, rien à lancer, ouvrir directement sur l'iPad :
+
+```
+http://symphony.kinefitlabs.com/test/phase0.html
+```
+
+En `http://` et pas en `https://` pour l'instant : le certificat du domaine n'est pas
+encore émis, voir la section Déploiement. Web Audio n'a pas besoin d'un contexte sécurisé,
+donc le son sort quand même.
+
+Le serveur local reste utile pour écouter une modification qui n'est pas encore poussée.
+Sur le Mac, à la racine du dépôt :
 
 ```bash
-git fetch origin && git checkout claude/inspiring-hopper-qs9ops
+git checkout main && git pull
 ipconfig getifaddr en0
 python3 -m http.server 8080 --bind 0.0.0.0
 ```
 
-La deuxième affiche l'adresse du Mac sur le wifi (`en0` c'est le wifi, `en1` si c'est du
-câble). Sur l'iPad, ouvrir :
+La deuxième commande affiche l'adresse du Mac sur le wifi. Si elle ne renvoie rien, le wifi
+n'est pas sur `en0`, et celle-ci trouve la bonne interface toute seule :
 
-```
-http://<adresse-affichee>:8080/test/phase0.html
+```bash
+ipconfig getifaddr "$(route -n get default | awk '/interface:/{print $2}')"
 ```
 
-La page ne fait aucun bruit avant l'appui sur « Demarrer l'audio » : le contexte audio
-d'iOS ne démarre qu'après un geste. Un bandeau de diagnostic est affiché en permanence,
-c'est lui qu'il faut recopier si le son ne sort pas.
+Sur l'iPad, même wifi : `http://<adresse-affichee>:8080/test/phase0.html`
+
+Dans les deux cas, la page ne fait aucun bruit avant l'appui sur « Demarrer l'audio » : le
+contexte audio d'iOS ne démarre qu'après un geste. Un bandeau de diagnostic est affiché en
+permanence, c'est lui qu'il faut recopier si le son ne sort pas.
+
+Le dossier `test/` est temporaire. Il disparaît quand le kit de percussion est choisi : le
+kit retenu migre vers `assets/samples/`, les deux autres et la page de test sont
+supprimés.
 
 ## Outillage
 
@@ -60,6 +76,19 @@ bash scripts/fetch-kits.sh      # les trois kits candidats, demande ffmpeg
 
 Le premier est relançable sans rien installer. Le second n'a pas à être relancé : ses 27
 fichiers sont déjà dans le dépôt, il est là pour documenter leur provenance.
+
+## Déploiement
+
+GitHub Pages sert la branche `main` à la racine. Toute mise en ligne passe donc par une
+fusion vers `main`, le développement se fait sur une branche.
+
+État au 14 septembre 2026 :
+
+- DNS correct, `symphony` pointe sur `tieurk.github.io`
+- domaine bien enregistré côté Pages, le site répond en `http://`
+- **certificat TLS pas encore émis**, donc `https://` échoue et « Enforce HTTPS » est
+  inactive. Sans conséquence pour l'écoute, mais bloquant avant la phase 2 : l'installation
+  sur l'écran d'accueil et le service worker exigent HTTPS
 
 ## Licences
 

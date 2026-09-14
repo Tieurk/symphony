@@ -82,3 +82,12 @@ tranche verticale avec des visuels provisoires.
   que le surpoids soit négligeable.
 - **Licence des banques de percussion.** CC0 ou CC-BY, conformément à `docs/cadrage.md`
   section 10. `CLAUDE.md` disait CC0 seul, la contradiction est levée.
+- **Chaîne de déploiement, mesurée le 14 septembre 2026.** DNS correct (`symphony` vers
+  `tieurk.github.io`, quatre adresses anycast de Pages). Pages activé, publication depuis
+  `main` en `success`. Le site répond en `http://`, donc le domaine est bien enregistré.
+  Cloudflare écarté, aucun proxy devant le domaine. CAA écarté aussi, `kinefitlabs.com` n'a
+  aucun enregistrement CAA. **Reste ouvert : le certificat TLS n'est pas émis**, `curl`
+  renvoie l'erreur 60, et « Enforce HTTPS » est donc inactive. Cause identifiée, GitHub n'a
+  pas revérifié le DNS. Marche à suivre dans `CLAUDE.md`, section Déploiement, elle passe
+  par l'interface web donc elle est à Mathieu. Sans conséquence pour l'écoute, bloquant
+  avant la phase 2.
