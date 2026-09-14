@@ -65,6 +65,12 @@
   }
   .ok { color: var(--vert); } .ko { color: var(--rouge); }
   .note { border-left: 3px solid var(--accent); padding-left: 12px; font-size: 13px; color: var(--doux); }
+  #bandeauKit {
+    margin: 14px 0; padding: 14px 16px; border-radius: 10px;
+    background: #0d1222; border: 1px solid var(--bord);
+    font-size: 22px; font-weight: 600; color: var(--accent); text-align: center;
+  }
+  #bandeauKit .cycle { display: block; font-size: 14px; font-weight: 400; color: var(--doux); margin-top: 4px; }
 </style>
 </head>
 <body>
@@ -132,6 +138,15 @@ garder, et si un kit se marie avec le violon et le tuba.</p>
       <button id="btnBatterie" data-voie="batterie">Batterie</button>
     </div>
     <div class="rangee" id="zoneChoixKit"></div>
+
+    <div id="bandeauKit">appuie sur « Lancer la boucle »</div>
+
+    <div class="rangee" style="margin-bottom:8px">
+      <button id="btnEnchaine">Enchainer les trois kits</button>
+    </div>
+    <p style="margin:0 0 8px">Cycles par kit avant la bascule. Un cycle fait 9,6 s, donc
+    quatre cycles font 38 s : la memoire auditive tient mal 38 secondes. Essaie les deux.</p>
+    <div class="rangee" id="zoneCycles"></div>
   </fieldset>
 </section>
 
@@ -186,6 +201,12 @@ const kitsDirects = {};  // id de kit -> Gain, pour les pads de la zone 2
 const etouffement = {};  // groupe -> source en cours
 let kitCourant = KITS[0].id;
 let amorce = false;
+
+// Enchainement automatique des trois kits.
+let enchaineArme = false;
+let cyclesParKit = 4;     // ce que Mathieu a demande
+let cycleDansKit = 0;
+let indexKit = 0;
 const journal = [];
 
 function note(texte) {
@@ -327,17 +348,64 @@ const PARTIE_TUBA = [
   { t: "3:0", note: "G2", duree: "4n" }, { t: "3:2", note: "C2", duree: "4n" }
 ];
 
-const PARTIE_BATTERIE = (function () {
-  const evts = [{ t: "0:0", frappe: "crash", vel: 0.8 }];
-  for (let m = 0; m < 4; m++) {
-    evts.push({ t: m + ":0", frappe: "kick", vel: 0.95 });
-    evts.push({ t: m + ":1", frappe: "snare", vel: 0.7 });
-    evts.push({ t: m + ":2", frappe: "kick", vel: 0.85 });
-    evts.push({ t: m + ":3", frappe: "snare", vel: 0.8 });
-    for (let b = 0; b < 4; b++) evts.push({ t: m + ":" + b + ":2", frappe: "charley", vel: 0.5 });
-  }
-  return evts;
-})();
+// Motif de comparaison, quatre mesures, les NEUF frappes exposees.
+// Conçu apres mesure des temps de chute a -30 dB : c'est la duree de resonance
+// qui separe les trois kits, pas leur spectre. Les frappes les plus
+// discriminantes sont tom_bas (3,2 x d'ecart entre kits), ride (2,6 x) et
+// tom_haut (1,9 x). L'ancien motif ne les jouait jamais, et 24 de ses 36
+// frappes etaient les deux moins discriminantes, snare (1,2 x) et charley
+// (1,5 x). D'ou l'impression que les trois kits sonnaient pareil.
+//
+//   mesure 0 : l'assise, charley sur les croches
+//   mesure 1 : la meme au ride, sept frappes de ride pour bien l'exposer
+//   mesure 2 : LES TOMS, degagee. Un tom par temps, 600 ms d'air derriere
+//              chacun, rien pour le masquer. C'est le coeur du dispositif.
+//   mesure 3 : la relance, charley puis roulement de toms et charley ouvert
+const PARTIE_BATTERIE = [
+  // mesure 0
+  { t: "0:0:0", frappe: "crash",          vel: 0.80 },
+  { t: "0:0:0", frappe: "kick",           vel: 0.95 },
+  { t: "0:0:0", frappe: "charley",        vel: 0.45 },
+  { t: "0:0:2", frappe: "charley",        vel: 0.40 },
+  { t: "0:1:0", frappe: "snare",          vel: 0.70 },
+  { t: "0:1:0", frappe: "charley",        vel: 0.45 },
+  { t: "0:1:2", frappe: "charley",        vel: 0.40 },
+  { t: "0:2:0", frappe: "kick",           vel: 0.85 },
+  { t: "0:2:0", frappe: "charley",        vel: 0.45 },
+  { t: "0:2:2", frappe: "charley",        vel: 0.40 },
+  { t: "0:3:0", frappe: "snare",          vel: 0.80 },
+  { t: "0:3:0", frappe: "charley",        vel: 0.45 },
+  { t: "0:3:2", frappe: "charley",        vel: 0.40 },
+  // mesure 1, au ride
+  { t: "1:0:0", frappe: "kick",           vel: 0.90 },
+  { t: "1:0:0", frappe: "ride",           vel: 0.50 },
+  { t: "1:0:2", frappe: "ride",           vel: 0.45 },
+  { t: "1:1:0", frappe: "snare",          vel: 0.70 },
+  { t: "1:1:0", frappe: "ride",           vel: 0.50 },
+  { t: "1:1:2", frappe: "ride",           vel: 0.45 },
+  { t: "1:2:0", frappe: "kick",           vel: 0.85 },
+  { t: "1:2:0", frappe: "ride",           vel: 0.50 },
+  { t: "1:2:2", frappe: "ride",           vel: 0.45 },
+  { t: "1:3:0", frappe: "snare",          vel: 0.80 },
+  { t: "1:3:0", frappe: "ride",           vel: 0.50 },
+  { t: "1:3:2", frappe: "charley_ouvert", vel: 0.60 },
+  // mesure 2, les toms a nu
+  { t: "2:0:0", frappe: "kick",           vel: 0.90 },
+  { t: "2:1:0", frappe: "tom_haut",       vel: 0.85 },
+  { t: "2:2:0", frappe: "tom_med",        vel: 0.85 },
+  { t: "2:3:0", frappe: "tom_bas",        vel: 0.90 },
+  // mesure 3, la relance
+  { t: "3:0:0", frappe: "kick",           vel: 0.95 },
+  { t: "3:0:0", frappe: "charley",        vel: 0.45 },
+  { t: "3:0:2", frappe: "charley",        vel: 0.40 },
+  { t: "3:1:0", frappe: "snare",          vel: 0.80 },
+  { t: "3:1:0", frappe: "charley",        vel: 0.45 },
+  { t: "3:1:2", frappe: "charley",        vel: 0.40 },
+  { t: "3:2:0", frappe: "tom_haut",       vel: 0.80 },
+  { t: "3:2:2", frappe: "tom_med",        vel: 0.80 },
+  { t: "3:3:0", frappe: "tom_bas",        vel: 0.90 },
+  { t: "3:3:2", frappe: "charley_ouvert", vel: 0.60 }
+];
 
 // Tone.Part exige que la cle du temps s'appelle « time ». Le format de morceau du
 // projet utilise « t » (docs/format-morceau.md). La conversion se fait ici, a la
@@ -379,6 +447,26 @@ function programmeLaBoucle() {
   new Tone.Part(garde("batterie", (temps, ev) => {
     frappe(kitCourant, ev.frappe, temps, voies.batterie.mute, ev.vel);
   }), versTone(PARTIE_BATTERIE)).start(0);
+
+  // La bascule de kit est programmee sur la DERNIERE double-croche du cycle, et
+  // non sur l'evenement « loop » du Transport. Raison : sur « loop », la bascule
+  // et les evenements au tick 0 du cycle suivant tombent au meme instant, donc
+  // l'ordre n'est pas garanti et le premier temps pourrait jouer l'ancien kit.
+  // A 3:3:3 il reste 150 ms d'avance, et toutes les frappes du cycle sont passees.
+  Tone.Transport.schedule((temps) => {
+    if (!enchaineArme) return;
+
+    cycleDansKit += 1;
+    if (cycleDansKit >= cyclesParKit) {
+      cycleDansKit = 0;
+      indexKit = (indexKit + 1) % KITS.length;
+      kitCourant = KITS[indexKit].id;
+      note("bascule vers " + KITS[indexKit].nom);
+    }
+    // Tone.Draw synchronise l'affichage sur l'horloge audio. Sans lui, le
+    // bandeau changerait 100 ms avant le son, a cause de l'anticipation.
+    Tone.Draw.schedule(majAffichageKit, temps);
+  }, "3:3:3");
 }
 
 // --- Interface ---------------------------------------------------------------
@@ -434,16 +522,97 @@ function construisZoneKits() {
     const b = document.createElement("button");
     b.textContent = kit.nom;
     b.dataset.kit = kit.id;
-    if (kit.id === kitCourant) b.classList.add("actif");
     b.addEventListener("click", () => {
-      kitCourant = kit.id;
-      for (const autre of choix.children) autre.classList.toggle("actif", autre.dataset.kit === kitCourant);
+      // Un choix a la main desarme l'enchainement, sinon les deux se battent.
+      if (enchaineArme) {
+        enchaineArme = false;
+        document.getElementById("btnEnchaine").classList.remove("actif");
+        note("enchainement desarme, choix a la main");
+      }
+      choisisKit(kit.id);
       note("kit de la boucle : " + kit.nom);
-      rafraichisDiag();
     });
     choix.appendChild(b);
   }
+
+  const cycles = document.getElementById("zoneCycles");
+  for (const n of [1, 2, 4]) {
+    const b = document.createElement("button");
+    b.textContent = n === 1 ? "1 cycle" : n + " cycles";
+    b.dataset.cycles = String(n);
+    b.addEventListener("click", () => {
+      cyclesParKit = n;
+      cycleDansKit = 0;
+      majBoutonsCycles();
+      majAffichageKit();
+      note("bascule tous les " + n + " cycle(s), soit " + (n * 9.6).toFixed(1) + " s");
+      rafraichisDiag();
+    });
+    cycles.appendChild(b);
+  }
+
+  majBoutonsCycles();
+  majAffichageKit();
 }
+
+// Une seule porte d'entree pour changer de kit, utilisee par les boutons comme
+// par l'enchainement automatique. Evite deux etats qui divergent.
+function choisisKit(id) {
+  kitCourant = id;
+  indexKit = KITS.findIndex((k) => k.id === id);
+  majAffichageKit();
+  rafraichisDiag();
+}
+
+// Bandeau et boutons ensemble, jamais l'un sans l'autre : sinon l'enchainement
+// annonce un kit pendant qu'un bouton en surligne un autre.
+function majAffichageKit() {
+  majBandeau();
+  majBoutonsKit();
+}
+
+function majBoutonsKit() {
+  const choix = document.getElementById("zoneChoixKit");
+  for (const b of choix.children) b.classList.toggle("actif", b.dataset.kit === kitCourant);
+}
+
+function majBoutonsCycles() {
+  const cycles = document.getElementById("zoneCycles");
+  for (const b of cycles.children) {
+    b.classList.toggle("actif", Number(b.dataset.cycles) === cyclesParKit);
+  }
+}
+
+function majBandeau() {
+  const el = document.getElementById("bandeauKit");
+  const kit = KITS[indexKit] || KITS[0];
+  el.textContent = kit.nom;
+  if (enchaineArme) {
+    const sp = document.createElement("span");
+    sp.className = "cycle";
+    sp.textContent = "cycle " + (cycleDansKit + 1) + " sur " + cyclesParKit +
+                     ", puis " + KITS[(indexKit + 1) % KITS.length].nom;
+    el.appendChild(sp);
+  }
+}
+
+document.getElementById("btnEnchaine").addEventListener("click", (ev) => {
+  const b = ev.currentTarget;
+  enchaineArme = !enchaineArme;
+  b.classList.toggle("actif", enchaineArme);
+  b.textContent = enchaineArme ? "Arreter l'enchainement" : "Enchainer les trois kits";
+  if (enchaineArme) {
+    // On part du kit affiche, sans redemarrer l'horloge : pas de rupture si
+    // l'ecoute est en cours.
+    cycleDansKit = 0;
+    indexKit = KITS.findIndex((k) => k.id === kitCourant);
+    note("enchainement arme, depart sur " + KITS[indexKit].nom);
+  } else {
+    note("enchainement arrete");
+  }
+  majAffichageKit();
+  rafraichisDiag();
+});
 
 document.getElementById("btnGamme").addEventListener("click", () => {
   const gamme = ["C4","D4","E4","F4","G4","A4","B4","C5","B4","A4","G4","F4","E4","D4","C4"];
@@ -472,6 +641,7 @@ document.getElementById("btnTransport").addEventListener("click", (ev) => {
     Tone.Transport.start();
     b.textContent = "Arreter la boucle";
     b.classList.add("actif");
+    majAffichageKit();
   }
   rafraichisDiag();
 });
@@ -517,7 +687,10 @@ function rafraichisDiag() {
   lignes.push("anticipation       " + lisible(ctx.lookAhead) +
               "   reaction a un appui environ " + Math.round((ctx.lookAhead + 0.008) * 1000) + " ms");
   lignes.push("horloge            " + Tone.Transport.state + "   position " + Tone.Transport.position);
-  lignes.push("kit de la boucle   " + kitCourant);
+  lignes.push("kit de la boucle   " + kitCourant +
+              (enchaineArme
+                ? "   enchainement actif, cycle " + (cycleDansKit + 1) + "/" + cyclesParKit
+                : "   enchainement arrete"));
 
   const ouverts = Object.keys(voies).filter((n) => voies[n].ouvert);
   lignes.push("voies ouvertes     " + (ouverts.length ? ouverts.join(", ") : "aucune"));
