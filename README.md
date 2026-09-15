@@ -9,16 +9,22 @@ En ligne : https://symphony.kinefitlabs.com
 
 ## État
 
-Phase 0 en cours. Pas encore d'app : ce qui existe est de l'outillage et un banc d'essai du
-moteur audio, `test/phase0.html`.
+Phase 0 en cours. Pas encore d'app fonctionnelle : ce qui existe est de l'outillage, un banc
+d'essai du moteur audio (`test/phase0.html`) et les deux maquettes fixes.
 
 Tranché : le son sort sur iOS, la percussion est choisie (FluidR3_GM), la chaîne de
 déploiement fonctionne en HTTPS, le nom est choisi, et l'ordre de travail est fixé (maquette
 fixe des deux mises en page avant la tranche verticale).
 
-Reste le style des illustrations. Un test est livré, `test/svg.html`, quatre instruments
-dessinés en SVG à la main, à juger avant de dessiner les neuf autres. Voir
-`docs/points-ouverts.md`.
+Livré, en attente du jugement de Mathieu :
+
+- **les 13 instruments en SVG**, source unique `src/instruments.js`, à juger sur
+  `test/svg.html`. Le vrai critère est la section 2 de la page, les six paires à risque de
+  confusion côte à côte à 64 px
+- **les deux mises en page en fixe**, `test/maquette.html` en plein écran et
+  `test/maquettes.html` pour les voir côte à côte
+
+Les questions posées et les choix à valider sont dans `docs/points-ouverts.md`.
 
 ## Où regarder
 
@@ -31,6 +37,7 @@ dessinés en SVG à la main, à juger avant de dessiner les neuf autres. Voir
 
 ```
 src/       le code de l'app (modules ES natifs, pas de build)
+src/instruments.js  les 13 instruments : palette, table, sprite SVG
 src/vendor/  Tone.js 15.1.22, copié tel quel, plus sa licence MIT
 songs/     un fichier JSON par morceau
 assets/    samples/ les sons, img/ les illustrations
@@ -44,9 +51,14 @@ docs/      cadrage et spécifications
 Le plus court, rien à lancer, ouvrir directement sur l'iPad :
 
 ```
-https://symphony.kinefitlabs.com/test/phase0.html     le banc d'essai audio
-https://symphony.kinefitlabs.com/test/svg.html        le test des illustrations
+https://symphony.kinefitlabs.com/test/maquette.html    la maquette, en plein ecran
+https://symphony.kinefitlabs.com/test/maquettes.html   les deux mises en page cote a cote
+https://symphony.kinefitlabs.com/test/svg.html         les 13 instruments en SVG
+https://symphony.kinefitlabs.com/test/phase0.html      le banc d'essai audio
 ```
+
+`maquette.html` s'ouvre sur l'iPad **puis** sur l'iPhone : c'est la même page, elle bascule
+de mise en page au point de rupture de 900 px.
 
 En `https://`, le certificat est émis depuis le 15 septembre 2026.
 
@@ -68,9 +80,10 @@ ipconfig getifaddr "$(route -n get default | awk '/interface:/{print $2}')"
 
 Sur l'iPad, même wifi : `http://<adresse-affichee>:8080/test/phase0.html`
 
-Dans les deux cas, la page ne fait aucun bruit avant l'appui sur « Demarrer l'audio » : le
-contexte audio d'iOS ne démarre qu'après un geste. Un bandeau de diagnostic est affiché en
-permanence, c'est lui qu'il faut recopier si le son ne sort pas.
+`phase0.html` ne fait aucun bruit avant l'appui sur « Demarrer l'audio » : le contexte audio
+d'iOS ne démarre qu'après un geste. Un bandeau de diagnostic est affiché en permanence, c'est
+lui qu'il faut recopier si le son ne sort pas. Les maquettes et le test SVG, eux, ne font
+jamais de son : ils n'ont pas d'audio du tout.
 
 Le dossier `test/` est temporaire. Il disparaîtra quand l'app aura sa propre interface, en
 phase 1 ou 2.

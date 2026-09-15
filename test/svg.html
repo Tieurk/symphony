@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="icon" href="data:,">
-<title>Mon premier orchestre, test SVG</title>
+<title>Mon premier orchestre, les 13 instruments en SVG</title>
 <style>
   :root {
     --nuit: #141b2e;
@@ -16,24 +16,19 @@
     --bois-scene: #d9b382;
     --bois-ombre: #bd9260;
     --rideau: #a63d40;
-
-    /* Une couleur par famille. Six familles, voir la note en bas de page. */
-    --cordes: #e2724a;
-    --bois: #63c88a;
-    --cuivres: #f4c844;
-    --claviers: #6fb3d8;
-    --vent: #b98bd9;
-    --percussions: #e05c5c;
   }
   * { box-sizing: border-box; }
   body {
-    margin: 0; padding: 16px calc(16px + env(safe-area-inset-left)) 48px;
+    margin: 0;
+    padding: 16px calc(16px + env(safe-area-inset-left)) 48px calc(16px + env(safe-area-inset-right));
     background: var(--nuit); color: var(--texte);
     font: 16px/1.5 -apple-system, system-ui, sans-serif;
   }
   h1 { font-size: 20px; margin: 0 0 4px; }
   h2 { font-size: 17px; margin: 0 0 12px; color: var(--accent); }
-  h3 { font-size: 14px; margin: 0 0 8px; font-weight: 600; }
+  h3 { font-size: 13px; margin: 18px 0 8px; font-weight: 600; color: var(--doux);
+       text-transform: uppercase; letter-spacing: .06em; }
+  h3:first-of-type { margin-top: 0; }
   p { margin: 0 0 12px; color: var(--doux); font-size: 14px; }
   section {
     background: var(--carte); border: 1px solid var(--bord); border-radius: 12px;
@@ -42,9 +37,10 @@
   .note { border-left: 3px solid var(--accent); padding-left: 12px; font-size: 13px; }
 
   /* --- les trois tailles reelles --- */
-  .tailles { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 20px; }
-  .fiche { text-align: center; }
-  .fiche .ligne { display: flex; align-items: flex-end; justify-content: center; gap: 14px; min-height: 150px; }
+  .tailles { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 18px; }
+  .fiche { margin: 0; text-align: center; }
+  .fiche .ligne { display: flex; align-items: flex-end; justify-content: center;
+                  gap: 12px; min-height: 148px; }
   .fiche figcaption { font-size: 12px; color: var(--doux); margin-top: 6px; }
   .t64  { width: 64px;  height: 64px; }
   .t96  { width: 96px;  height: 96px; }
@@ -59,10 +55,21 @@
   }
   .jeton svg { width: 100%; height: 100%; }
 
+  /* --- les paires a risque, le vrai critere --- */
+  .paires { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 10px; }
+  .paire { display: flex; align-items: center; gap: 12px;
+           background: #18203a; border-radius: 12px; padding: 10px 12px; }
+  .paire.bois { background: var(--bois-scene); }
+  .paire.bois .etiquette { color: #3a2a16; }
+  .duo { display: flex; gap: 6px; flex: 0 0 auto; }
+  .duo .jeton { width: 64px; height: 64px; border-radius: 12px; padding: 5px; }
+  .paire.bois .jeton { background: rgba(255,255,255,.22); border-color: rgba(90,50,20,.3); }
+  .etiquette { font-size: 13px; font-weight: 600; }
+
   /* --- la scene, contexte reel --- */
   .scene {
     background: linear-gradient(180deg, var(--bois-scene) 0%, var(--bois-ombre) 100%);
-    border-radius: 14px; padding: 18px; display: flex; flex-wrap: wrap; gap: 14px;
+    border-radius: 14px; padding: 18px 34px; display: flex; flex-wrap: wrap; gap: 12px;
     justify-content: center; position: relative; overflow: hidden;
   }
   .scene::before, .scene::after {
@@ -74,248 +81,154 @@
   .emplacement {
     width: 104px; height: 104px; border-radius: 16px;
     background: rgba(255,255,255,.22); border: 2px dashed rgba(90,50,20,.35);
-    display: grid; place-items: center; padding: 8px; position: relative;
+    display: grid; place-items: center; padding: 8px;
   }
   .emplacement svg { width: 100%; height: 100%; }
 
   /* --- palette des familles --- */
   .palette { display: flex; flex-wrap: wrap; gap: 10px; }
-  .fam { min-width: 130px; border-radius: 10px; padding: 10px 12px; color: #22160c; font-size: 13px; font-weight: 600; }
-  .fam small { display: block; font-weight: 400; opacity: .75; font-family: ui-monospace, Menlo, monospace; }
+  .fam { min-width: 132px; border-radius: 10px; padding: 10px 12px; color: #22160c;
+         font-size: 13px; font-weight: 600; }
+  .fam small { display: block; font-weight: 400; opacity: .75;
+               font-family: ui-monospace, Menlo, monospace; }
 </style>
 </head>
 <body>
 
-<h1>Mon premier orchestre, test SVG</h1>
-<p>Quatre instruments dessinés en code, un par niveau de difficulté. La question a trancher :
-est-ce que du SVG écrit à la main tient la charge des 13, ou faut-il passer par des images
-générées puis détourées.</p>
-
-<!-- ================= LES SYMBOLES, DESSINES EN CODE ================= -->
-<svg width="0" height="0" style="position:absolute" aria-hidden="true">
-  <defs>
-
-    <!-- VIOLON, famille cordes. Le difficile : la taille de guepe doit rester
-         lisible quand la caisse ne fait plus que 40 px de large. -->
-    <symbol id="i-violon" viewBox="0 0 100 100">
-      <!-- manche -->
-      <rect x="45" y="12" width="10" height="30" rx="3" fill="var(--sombre)"/>
-      <!-- chevillier et volute -->
-      <path d="M50 4c-5 0-8 3-8 7 0 3 2 5 4 5h8c2 0 4-2 4-5 0-4-3-7-8-7z" fill="var(--sombre)"/>
-      <circle cx="50" cy="9" r="2.5" fill="var(--base)"/>
-      <!-- caisse : deux lobes et la taille -->
-      <path d="M50 37c12 0 19 6 19 15 0 4-3 6-6 8l6 3-7 2c4 4 10 10 10 17 0 9-10 14-22 14
-               S28 90 28 82c0-7 6-13 10-17l-7-2 6-3c-3-2-6-4-6-8 0-9 7-15 19-15z" fill="var(--base)"/>
-      <!-- table plus claire, pour le relief a plat -->
-      <path d="M50 41c9 0 15 5 15 11 0 3-3 5-6 7 3 3 8 9 8 15 0 7-8 11-17 11
-               S33 84 33 77c0-6 5-12 8-15-3-2-6-4-6-7 0-6 6-11 15-11z" fill="var(--clair)"/>
-      <!-- ouies -->
-      <path d="M41 63c-2 3-2 8 0 11M59 63c2 3 2 8 0 11" stroke="var(--sombre)"
-            stroke-width="2.6" stroke-linecap="round" fill="none"/>
-      <!-- chevalet -->
-      <rect x="42" y="70" width="16" height="4" rx="1.5" fill="var(--sombre)"/>
-      <!-- cordes -->
-      <path d="M46 14v58M48.7 14v58M51.3 14v58M54 14v58" stroke="var(--fil)"
-            stroke-width="1.1" opacity=".85"/>
-    </symbol>
-
-    <!-- TUBA, famille cuivres. Deuxieme version. La premiere lisait comme un
-         cor : pavillon trop petit, boucle trop serree. Ce qui fait un tuba pour
-         un enfant, c'est un pavillon ENORME tourne vers le haut qui mange la
-         moitie de la hauteur. Tout le reste est secondaire. -->
-    <symbol id="i-tuba" viewBox="0 0 100 100">
-      <!-- boucle de tubage, derriere le corps -->
-      <path d="M40 74c-10 6-22 2-24-8-2-9 6-16 14-14"
-            stroke="var(--base)" stroke-width="11" stroke-linecap="round" fill="none"/>
-      <!-- embouchure, sortant vers la gauche en haut du corps -->
-      <path d="M36 60H20" stroke="var(--base)" stroke-width="6.5" stroke-linecap="round"/>
-      <ellipse cx="18" cy="60" rx="5.5" ry="4.5" fill="var(--sombre)"/>
-      <!-- corps, le fut vertical sous le pavillon -->
-      <path d="M37 56h26v26a13 13 0 0 1-26 0z" fill="var(--base)"/>
-      <!-- pavillon evase, qui domine la silhouette -->
-      <path d="M36 58c-1-14-7-26-20-33h68c-13 7-19 19-20 33z" fill="var(--base)"/>
-      <!-- bord du pavillon, large, c'est lui qui signe l'instrument -->
-      <ellipse cx="50" cy="25" rx="34" ry="9.5" fill="var(--clair)"/>
-      <ellipse cx="50" cy="25" rx="25" ry="6" fill="var(--sombre)"/>
-      <!-- pistons, sur le fut -->
-      <g fill="var(--sombre)">
-        <rect x="40" y="62" width="6.5" height="15" rx="3.2"/>
-        <rect x="49" y="62" width="6.5" height="15" rx="3.2"/>
-        <rect x="58" y="62" width="6.5" height="15" rx="3.2"/>
-      </g>
-    </symbol>
-
-    <!-- XYLOPHONE, famille claviers. Le cas facile, purement geometrique.
-         Redessine pour occuper toute la hauteur de la boite : la premiere
-         version n'en prenait que la moitie, ce qui gaspillait la cible tactile. -->
-    <symbol id="i-xylophone" viewBox="0 0 100 100">
-      <!-- baguettes, levees -->
-      <g stroke="var(--fil)" stroke-width="3.6" stroke-linecap="round">
-        <path d="M28 32L44 10"/><path d="M62 32L78 10"/>
-      </g>
-      <circle cx="28" cy="32" r="7" fill="var(--clair)"/>
-      <circle cx="62" cy="32" r="7" fill="var(--clair)"/>
-      <!-- cadre -->
-      <path d="M8 88l7-40h70l7 40z" fill="var(--sombre)"/>
-      <!-- lames, de la plus longue a la plus courte -->
-      <g fill="var(--base)">
-        <rect x="16" y="50" width="10" height="36" rx="2.5"/>
-        <rect x="28" y="52" width="10" height="34" rx="2.5"/>
-        <rect x="40" y="54" width="10" height="32" rx="2.5"/>
-        <rect x="52" y="56" width="10" height="30" rx="2.5"/>
-        <rect x="64" y="58" width="10" height="28" rx="2.5"/>
-        <rect x="76" y="60" width="10" height="26" rx="2.5"/>
-      </g>
-      <!-- reflet, pour que ca ne soit pas plat mort -->
-      <g fill="var(--clair)" opacity=".5">
-        <rect x="16" y="50" width="10" height="5" rx="2.5"/>
-        <rect x="28" y="52" width="10" height="5" rx="2.5"/>
-        <rect x="40" y="54" width="10" height="5" rx="2.5"/>
-        <rect x="52" y="56" width="10" height="5" rx="2.5"/>
-        <rect x="64" y="58" width="10" height="5" rx="2.5"/>
-        <rect x="76" y="60" width="10" height="5" rx="2.5"/>
-      </g>
-    </symbol>
-
-    <!-- BATTERIE, famille percussions. Le test du multi-objet : est-ce que
-         quatre futs et une cymbale se lisent encore a 64 px. -->
-    <symbol id="i-batterie" viewBox="0 0 100 100">
-      <!-- pied de cymbale -->
-      <path d="M78 26v46" stroke="var(--sombre)" stroke-width="3" stroke-linecap="round"/>
-      <!-- cymbale -->
-      <ellipse cx="78" cy="26" rx="20" ry="5" fill="var(--clair)"/>
-      <ellipse cx="78" cy="25" rx="6" ry="2.4" fill="var(--sombre)"/>
-      <!-- grosse caisse, vue de face -->
-      <circle cx="44" cy="66" r="27" fill="var(--base)"/>
-      <circle cx="44" cy="66" r="20" fill="var(--clair)"/>
-      <circle cx="44" cy="66" r="6" fill="var(--sombre)"/>
-      <!-- toms poses dessus -->
-      <g>
-        <rect x="26" y="26" width="22" height="18" rx="4" fill="var(--base)"/>
-        <ellipse cx="37" cy="26" rx="11" ry="4" fill="var(--clair)"/>
-        <rect x="52" y="30" width="20" height="16" rx="4" fill="var(--base)"/>
-        <ellipse cx="62" cy="30" rx="10" ry="3.6" fill="var(--clair)"/>
-      </g>
-      <!-- caisse claire, a gauche -->
-      <rect x="4" y="52" width="24" height="15" rx="4" fill="var(--base)"/>
-      <ellipse cx="16" cy="52" rx="12" ry="4" fill="var(--clair)"/>
-      <!-- pieds -->
-      <g stroke="var(--sombre)" stroke-width="3" stroke-linecap="round">
-        <path d="M22 88l-6 8"/><path d="M66 88l6 8"/>
-      </g>
-    </symbol>
-
-  </defs>
-</svg>
-
-<style>
-  /* Chaque instance reçoit les trois tons de sa famille. C'est le mecanisme que
-     l'app utilisera : un seul jeu de symboles, teinte par famille. */
-  .f-cordes      { --base: var(--cordes);      --clair: #f0a07c; --sombre: #8e3f24; --fil: #f5e9d7; }
-  .f-cuivres     { --base: var(--cuivres);     --clair: #ffe79a; --sombre: #9c7511; --fil: #f5e9d7; }
-  .f-claviers    { --base: var(--claviers);    --clair: #a9d8ee; --sombre: #2f6b8c; --fil: #f5e9d7; }
-  .f-percussions { --base: var(--percussions); --clair: #f5a0a0; --sombre: #8e2b2b; --fil: #f5e9d7; }
-  .f-bois        { --base: var(--bois);        --clair: #9fe3bc; --sombre: #2c7a4e; --fil: #f5e9d7; }
-  .f-vent        { --base: var(--vent);        --clair: #dcbcec; --sombre: #6d4585; --fil: #f5e9d7; }
-</style>
+<h1>Mon premier orchestre, les 13 instruments en SVG</h1>
+<p>Les 13 dessinés en code, un seul jeu de symboles teinté par famille. La question à
+trancher : est-ce que du SVG écrit à la main tient la charge, ou faut-il passer par des
+images générées puis détourées.</p>
 
 <section>
-  <h2>1. Aux trois tailles reelles</h2>
+  <h2>1. Aux trois tailles réelles, par famille</h2>
   <p>64 px c'est la cible tactile minimale du cahier des charges, donc la taille d'un jeton
-  de reserve serre. 140 px, c'est un instrument pose sur la scene. <strong>Si ca ne se
-  reconnait pas a 64 px, c'est rate</strong>, un enfant de 6 ans ne lit pas les etiquettes.</p>
-  <div class="tailles">
-    <figure class="fiche">
-      <div class="ligne">
-        <svg class="t64 f-cordes"><use href="#i-violon"/></svg>
-        <svg class="t96 f-cordes"><use href="#i-violon"/></svg>
-        <svg class="t140 f-cordes"><use href="#i-violon"/></svg>
-      </div>
-      <figcaption>Violon, cordes. Le difficile : la taille de guepe.</figcaption>
-    </figure>
-    <figure class="fiche">
-      <div class="ligne">
-        <svg class="t64 f-cuivres"><use href="#i-tuba"/></svg>
-        <svg class="t96 f-cuivres"><use href="#i-tuba"/></svg>
-        <svg class="t140 f-cuivres"><use href="#i-tuba"/></svg>
-      </div>
-      <figcaption>Tuba, cuivres. Le plus dur du lot.</figcaption>
-    </figure>
-    <figure class="fiche">
-      <div class="ligne">
-        <svg class="t64 f-claviers"><use href="#i-xylophone"/></svg>
-        <svg class="t96 f-claviers"><use href="#i-xylophone"/></svg>
-        <svg class="t140 f-claviers"><use href="#i-xylophone"/></svg>
-      </div>
-      <figcaption>Xylophone, claviers. Le facile, geometrique.</figcaption>
-    </figure>
-    <figure class="fiche">
-      <div class="ligne">
-        <svg class="t64 f-percussions"><use href="#i-batterie"/></svg>
-        <svg class="t96 f-percussions"><use href="#i-batterie"/></svg>
-        <svg class="t140 f-percussions"><use href="#i-batterie"/></svg>
-      </div>
-      <figcaption>Batterie, percussions. Le test du multi-objet.</figcaption>
-    </figure>
-  </div>
+  de réserve serré. 140 px, c'est un instrument posé sur la scène. <strong>Si ça ne se
+  reconnaît pas à 64 px, c'est raté</strong>, un enfant de 6 ans ne lit pas les étiquettes.</p>
+  <div id="zone-tailles"></div>
 </section>
 
 <section>
-  <h2>2. En jeton de reserve</h2>
-  <p>Le contexte reel du fond bleu nuit, dans une pastille de 88 px.</p>
-  <div class="reserve">
-    <div class="jeton"><svg class="f-cordes"><use href="#i-violon"/></svg></div>
-    <div class="jeton"><svg class="f-cuivres"><use href="#i-tuba"/></svg></div>
-    <div class="jeton"><svg class="f-claviers"><use href="#i-xylophone"/></svg></div>
-    <div class="jeton"><svg class="f-percussions"><use href="#i-batterie"/></svg></div>
-  </div>
+  <h2>2. Les paires à risque, côte à côte à 64 px</h2>
+  <p>C'est le vrai critère, et il ne se juge pas instrument par instrument. Chaque paire est
+  formée de deux instruments <strong>de la même famille, donc de la même couleur</strong> :
+  seule la forme peut les séparer. Montrées sur les deux fonds de l'app.</p>
+  <div class="paires" id="zone-paires"></div>
+  <p class="note" style="margin-top:14px">Ce que j'ai fait pour chacune, et qui est
+  discutable : la flûte est posée <strong>en biais</strong> et la clarinette
+  <strong>debout avec son pavillon</strong>, c'est l'orientation qui trie avant la forme. Le
+  pavillon de la trompette est <strong>couché vers la droite</strong>, celui du tuba
+  <strong>debout vers le haut</strong>. Les cymbales n'ont <strong>aucun fût</strong>, rien
+  que des disques sur pied. Et le violon a reçu un <strong>archet</strong> : à 64 px la
+  rosace et la taille de guêpe ne suffisaient pas, deux caisses orange avec un manche se
+  ressemblent. L'archet change la silhouette au lieu du détail, et aucun des douze autres
+  n'a de bâton en travers.</p>
 </section>
 
 <section>
-  <h2>3. Sur la scene</h2>
-  <p>Bois clair et rideaux rouges, comme prevu dans le cadrage. C'est la que se juge la
-  lisibilite : les couleurs des instruments doivent tenir sur un fond clair aussi bien que
-  sur le bleu nuit.</p>
-  <div class="scene">
-    <div class="emplacement"><svg class="f-cordes"><use href="#i-violon"/></svg></div>
-    <div class="emplacement"><svg class="f-cuivres"><use href="#i-tuba"/></svg></div>
-    <div class="emplacement"><svg class="f-claviers"><use href="#i-xylophone"/></svg></div>
-    <div class="emplacement"><svg class="f-percussions"><use href="#i-batterie"/></svg></div>
-  </div>
+  <h2>3. Les 13 en réserve</h2>
+  <p>Le contexte réel du fond bleu nuit, en pastilles de 88 px, dans l'ordre de la réserve
+  (groupés par famille).</p>
+  <div class="reserve" id="zone-reserve"></div>
 </section>
 
 <section>
-  <h2>4. La palette des familles</h2>
-  <p>Trois tons par famille : la base, un clair pour le relief, un sombre pour les details.
-  Un seul jeu de symboles, teinte par famille en CSS. Les deux familles sans instrument
-  dessine ici sont montrees pour que tu juges l'ensemble.</p>
-  <div class="palette">
-    <div class="fam" style="background: var(--cordes)">Cordes <small>#E2724A</small></div>
-    <div class="fam" style="background: var(--bois)">Bois <small>#63C88A</small></div>
-    <div class="fam" style="background: var(--cuivres)">Cuivres <small>#F4C844</small></div>
-    <div class="fam" style="background: var(--claviers)">Claviers <small>#6FB3D8</small></div>
-    <div class="fam" style="background: var(--vent)">Vent <small>#B98BD9</small></div>
-    <div class="fam" style="background: var(--percussions)">Percussions <small>#E05C5C</small></div>
-  </div>
-  <p class="note" style="margin-top:14px">Une contradiction a trancher dans le cadrage : la
+  <h2>4. Sur la scène</h2>
+  <p>Bois clair et rideaux rouges, comme prévu dans le cadrage. C'est là que se juge la
+  lisibilité : les couleurs doivent tenir sur un fond clair aussi bien que sur le bleu nuit.
+  Les 6 premiers sont montrés, c'est la capacité de la scène.</p>
+  <div class="scene" id="zone-scene"></div>
+</section>
+
+<section>
+  <h2>5. La palette des familles</h2>
+  <p>Trois tons par famille : la base, un clair pour le relief, un sombre pour les détails.
+  Plus un ton crème commun pour les fils tendus, les cordes et les baguettes.</p>
+  <div class="palette" id="zone-palette"></div>
+  <p class="note" style="margin-top:14px">Une contradiction à trancher dans le cadrage : la
   section 8 annonce <strong>cinq</strong> familles (cordes, bois, cuivres, claviers,
   percussions), mais le tableau de la section 6 en utilise <strong>six</strong>, avec
-  l'accordeon range dans « Vent », seul de sa categorie. Soit on garde six couleurs, soit
-  l'accordeon rejoint les bois. Ca change une couleur, pas l'architecture.</p>
+  l'accordéon rangé dans « Vent », seul de sa catégorie. J'ai dessiné les six. Soit on les
+  garde, soit l'accordéon rejoint les bois. Ça change une couleur, pas l'architecture.</p>
+  <p class="note">Ce que j'ai remarqué en regardant les 13 sur le bois clair : le jaune des
+  cuivres est la couleur la plus proche du bois de la scène, donc la moins contrastée des
+  six. Lisible, mais c'est celle qui bougerait en premier si tu veux plus de mordant.</p>
 </section>
 
 <section>
   <h2>Ce que je te demande de juger</h2>
-  <p class="note">Premiere question, la seule qui compte vraiment : <strong>est-ce qu'un
-  enfant de 6 ans reconnait ces quatre instruments a 64 px</strong>, sans etiquette. Si oui,
-  je dessine les neuf autres de la meme main. Si non, on passe aux images generees puis
-  detourees, et il faudra les produire, les detourer et les optimiser, ce qui est un autre
-  chantier.</p>
-  <p class="note">Deuxieme question : la palette. Les six couleurs tiennent-elles ensemble,
-  et tiennent-elles sur le bois clair de la scene autant que sur le bleu nuit.</p>
-  <p class="note">Troisieme question : le style. A plat, sans degrade ni contour, c'est ce
+  <p class="note">Première question, la seule qui compte vraiment : <strong>est-ce qu'un
+  enfant de 6 ans reconnaît ces treize instruments à 64 px</strong>, sans étiquette. Je peux
+  te dire qu'ils remplissent tous leur boîte et que les paires de la section 2 sont
+  distinctes à mes yeux. Le verdict est à toi, et tu l'as déjà, les garçons sont là.</p>
+  <p class="note">Deuxième question : la palette. Les six couleurs tiennent-elles ensemble,
+  et tiennent-elles sur le bois clair de la scène autant que sur le bleu nuit.</p>
+  <p class="note">Troisième question : le style. À plat, sans dégradé ni contour, c'est ce
   que dit le cadrage. Trop sec ? Trop simple pour des enfants de 6 et 8 ans ?</p>
+  <p class="note">Le koto est celui dont je suis le moins sûr, et pas pour une raison de
+  dessin : un enfant de 6 ans ne connaît pas l'objet. Il ne le nommera pas. Ce que je
+  cherchais, c'est qu'il ne le confonde avec rien d'autre, d'où la silhouette la plus
+  singulière du lot.</p>
 </section>
+
+<script type="module">
+  import { FAMILLES, INSTRUMENTS, injecteSprite } from "../src/instruments.js";
+  injecteSprite();
+
+  const svg = (id, fam, classe) =>
+    `<svg class="${classe} f-${fam}"><use href="#i-${id}"/></svg>`;
+
+  // 1. les trois tailles, groupees par famille
+  document.getElementById("zone-tailles").innerHTML = Object.entries(FAMILLES)
+    .map(([cle, f]) => {
+      const membres = INSTRUMENTS.filter((i) => i.famille === cle);
+      return `<h3>${f.nom}</h3><div class="tailles">` + membres.map((i) => `
+        <figure class="fiche">
+          <div class="ligne">
+            ${svg(i.id, cle, "t64")}${svg(i.id, cle, "t96")}${svg(i.id, cle, "t140")}
+          </div>
+          <figcaption>${i.nom}</figcaption>
+        </figure>`).join("") + `</div>`;
+    }).join("");
+
+  // 2. les paires a risque
+  const PAIRES = [
+    ["flute", "clarinette", "Flûte contre clarinette, les deux en bois"],
+    ["trompette", "tuba", "Trompette contre tuba, les deux en cuivres"],
+    ["guitare", "violon", "Guitare contre violon, les deux en cordes"],
+    ["cymbales", "batterie", "Cymbales contre batterie, les deux en percussions"],
+    ["piano", "xylophone", "Piano contre xylophone, les deux en claviers"],
+    ["guitare", "sitar", "Guitare contre sitar, les deux en cordes"],
+  ];
+  const par = (id) => INSTRUMENTS.find((i) => i.id === id);
+  const paires = (fond) => PAIRES.map(([a, b, t]) => `
+    <div class="paire ${fond}">
+      <div class="duo">
+        <div class="jeton">${svg(a, par(a).famille, "")}</div>
+        <div class="jeton">${svg(b, par(b).famille, "")}</div>
+      </div>
+      <span class="etiquette">${t}</span>
+    </div>`).join("");
+  document.getElementById("zone-paires").innerHTML = paires("") + paires("bois");
+
+  // 3. la reserve
+  document.getElementById("zone-reserve").innerHTML = INSTRUMENTS
+    .map((i) => `<div class="jeton" title="${i.nom}">${svg(i.id, i.famille, "")}</div>`)
+    .join("");
+
+  // 4. la scene, les six premiers
+  document.getElementById("zone-scene").innerHTML = INSTRUMENTS.slice(0, 6)
+    .map((i) => `<div class="emplacement">${svg(i.id, i.famille, "")}</div>`)
+    .join("");
+
+  // 5. la palette
+  document.getElementById("zone-palette").innerHTML = Object.entries(FAMILLES)
+    .map(([cle, f]) => {
+      const membres = INSTRUMENTS.filter((i) => i.famille === cle).length;
+      return `<div class="fam" style="background:${f.base}">${f.nom}
+        <small>${f.base.toUpperCase()} &middot; ${membres} instrument${membres > 1 ? "s" : ""}</small></div>`;
+    }).join("");
+</script>
 
 </body>
 </html>

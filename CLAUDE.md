@@ -14,6 +14,32 @@ Mathieu, kinésithérapeute, pas développeur de métier mais a déjà déployé
 - **Il est l'oreille du projet.** Aucun modèle ne peut écouter le résultat. Chaque fois qu'un arrangement ou un mixage change, c'est lui qui valide à l'écoute. Ne jamais affirmer que ça sonne bien.
 - Il teste sur l'iPad, pas sur le Mac. Prévois systématiquement un serveur local accessible sur le réseau (`--host 0.0.0.0`) et donne-lui l'adresse à ouvrir sur l'iPad.
 
+## Autonomie
+
+Mathieu a demandé le 15 septembre 2026 que je code en quasi autonomie. Les autorisations
+sont dans `.claude/settings.json`, qu'il a lui-même posé : un agent ne s'accorde pas ses
+propres droits.
+
+**Ce que je m'interdis désormais : lui faire lancer une commande que je peux lancer
+moi-même.** `dig`, `curl`, un serveur local, une vérification d'état du dépôt, une mesure
+dans un navigateur sans tête : tout ça est de mon côté. Chaque aller-retour de terminal que
+je lui impose est du temps perdu et une erreur de méthode, pas une précaution.
+
+Ce qui reste à lui, et que je ne peux pas faire à sa place :
+
+| | |
+|---|---|
+| **L'écoute** | aucun modèle n'entend le résultat. Tout jugement sonore est le sien |
+| **Le goût** | les illustrations, les couleurs, le nom, la sensation de jeu |
+| **Les interfaces web** | réglages GitHub Pages, DNS, « Enforce HTTPS » |
+| **L'iPad et l'iPhone réels** | le simulateur responsive ne remplace pas le doigt sur la vitre |
+| **Son Mac et son wifi** | tout ce qui vit sur sa machine ou son réseau |
+| **Les retours des enfants** | c'est pour eux, et ils sont les seuls à pouvoir le dire |
+
+Et le mode plan est un réglage de sa session à lui (`shift+tab` dans le terminal, le
+sélecteur de mode dans l'interface web). Aucune liste d'autorisations que j'écris ne le
+change.
+
 ## Règles dures
 
 1. **Rien de B. toys.** Ni le nom, ni les visuels, ni les fichiers audio du jouet. Seul le principe de jeu est repris. Les illustrations sont originales.
@@ -164,6 +190,38 @@ Règle de fond : chaque instrument garde le même rôle d'un morceau à l'autre,
 
 Test à faire passer à chaque nouveau morceau : le violon seul doit être écoutable, le tuba seul doit être écoutable, et violon + tuba + batterie doit sonner comme un vrai petit arrangement.
 
+## Illustrations
+
+Source unique : **`src/instruments.js`**. Le module exporte `FAMILLES` (la palette, six
+familles, trois tons plus un ton crème), `INSTRUMENTS` (les 13 avec leur famille et leur
+libellé), `SPRITE` (le balisage des 13 symboles SVG) et `injecteSprite()`.
+
+**Contrainte technique à connaître, c'est elle qui dicte la forme du module.** Un
+`<use href="fichier.svg#id">` externe **ne reçoit pas les variables CSS du document hôte**,
+dans aucun navigateur courant : le contenu référencé vit dans un document séparé, l'héritage
+des propriétés personnalisées ne le traverse pas. Un fichier `assets/img/instruments.svg`
+séparé rendrait donc la teinte par famille impossible. D'où le sprite injecté à l'exécution
+dans le document courant : `var(--base)` résout alors normalement à travers le shadow tree de
+`<use>`. Compatible avec la règle « modules ES natifs, pas d'étape de compilation ».
+
+Style : à plat, sans contour ni dégradé, boîte `viewBox="0 0 100 100"`, aucune couleur en
+dur (tout passe par `--base`, `--clair`, `--sombre`, `--fil`), lisible à 64 px.
+
+Familles, conformes au tableau de `docs/cadrage.md` section 6 : cordes (violon, guitare,
+koto, sitar), bois (flûte, clarinette), cuivres (trompette, tuba), claviers (xylophone,
+piano), vent (accordéon), percussions (batterie, cymbales).
+
+**Méthode qui a fait ses preuves, et qui n'est pas négociable : dessiner, rendre en image,
+regarder, corriger.** Le tuba lisait comme un cor, le xylophone comme un diagramme en barres
+puis comme une pile d'assiettes, la trompette comme un gramophone. Aucune de ces trois erreurs
+n'était visible dans le code, les trois sautaient aux yeux sur l'image.
+
+**Le vrai critère de lisibilité n'est pas l'instrument seul, c'est la paire.** Six paires
+sont à risque parce que les deux instruments sont de la même famille, donc de la même
+couleur : flûte / clarinette, trompette / tuba, guitare / violon, cymbales / batterie,
+piano / xylophone, guitare / sitar. Elles se vérifient côte à côte à 64 px, sur le bleu nuit
+et sur le bois clair.
+
 ## Interface
 
 Trois zones : contrôles en haut (sélecteur de morceau, play/pause, tempo, volume), scène au centre (6 emplacements), réserve autour en paysage et en dessous en portrait.
@@ -193,8 +251,14 @@ Côté DNS, un enregistrement CNAME `symphony` vers `<utilisateur>.github.io`. L
 Une fois le certificat émis, cocher « Enforce HTTPS » dans les réglages Pages.
 
 **Conséquence de méthode :** Pages ne sert que `main`. Le développement se fait sur une
-branche, et toute mise en ligne passe par une fusion vers `main`. Ne jamais fusionner sans
-que Mathieu l'ait demandé explicitement.
+branche, et toute mise en ligne passe par une fusion vers `main`. **Je fusionne vers `main` à
+chaque livraison terminée et vérifiée**, sans le demander : sinon rien n'est testable sur
+l'iPad, et l'iPad est le seul juge. Autorisé explicitement par Mathieu le 15 septembre 2026.
+Une fusion en avance rapide, jamais un rebase, et l'invariant vérifié après coup.
+
+Ce qui reste interdit sans son accord : réécrire l'historique de la branche (elle est
+publiée, il l'a en local), pousser sur une autre branche que celle désignée, et fusionner une
+livraison que je n'ai pas vérifiée moi-même.
 
 **Piège qui a mordu le 14 septembre 2026.** Toute action dans l'interface web de GitHub
 écrit un commit **directement sur `main`** : les réglages Pages, l'édition d'un fichier en
@@ -250,7 +314,7 @@ pas de persistance des données (voir piège iOS n° 4).
 
 ## Phases
 
-- **Phase 0** : choix du kit de percussion, écoute comparée des timbres, maquette fixe des deux mises en page, chaîne de déploiement vérifiée de bout en bout. Fait : le son sur iOS, le kit (FluidR3_GM), le déploiement en HTTPS, le nom. Reste : le style des illustrations puis la maquette fixe.
+- **Phase 0** : choix du kit de percussion, écoute comparée des timbres, maquette fixe des deux mises en page, chaîne de déploiement vérifiée de bout en bout. Fait : le son sur iOS, le kit (FluidR3_GM), le déploiement en HTTPS, le nom, les 13 illustrations et les deux maquettes fixes. **Reste le jugement de Mathieu**, sur les illustrations (`test/svg.html`) et sur les maquettes (`test/maquette.html`).
 - **Phase 1** : tranche verticale. Moteur audio complet, trois morceaux (Ah ! vous dirai-je maman, Alouette, Row Your Boat), scène et réserve au toucher, visuels provisoires, testée sur l'iPad. Objectif : valider la sensation de jeu avec les enfants avant d'aller plus loin.
 - **Phase 2** : mise en page adaptative, glisser-déposer, animations, illustrations finales, zone parent, import et export, PWA hors ligne.
 - **Phase 3** : le reste de la bibliothèque.

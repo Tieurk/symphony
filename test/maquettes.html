@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" href="data:,">
+<title>Mon premier orchestre, les deux mises en page</title>
+<style>
+  /* Les deux mises en page cote a cote, chacune dans un cadre a sa taille
+     exacte puis reduite a l'echelle. C'est la meme page, maquette.html : ce
+     qui change n'est que la largeur du cadre, donc c'est bien le point de
+     rupture qu'on regarde travailler, pas deux fichiers differents. */
+  :root {
+    --nuit: #141b2e; --carte: #1e2740; --bord: #33405e;
+    --texte: #f5e9d7; --doux: #9fb0d0; --accent: #f2a65a;
+    --ep: .58;   /* echelle du cadre paysage */
+    --eo: .58;   /* echelle du cadre portrait */
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 16px calc(16px + env(safe-area-inset-left)) 40px;
+    background: var(--nuit); color: var(--texte);
+    font: 15px/1.5 -apple-system, system-ui, sans-serif;
+  }
+  h1 { font-size: 19px; margin: 0 0 4px; }
+  p { color: var(--doux); font-size: 14px; margin: 0 0 16px; max-width: 74ch; }
+  .duo { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; }
+  figure { margin: 0; }
+  figcaption { font-size: 13px; color: var(--doux); margin-top: 8px; }
+  figcaption b { color: var(--texte); }
+  .cadre {
+    border: 1px solid var(--bord); border-radius: 10px; overflow: hidden;
+    background: #000; position: relative;
+  }
+  .cadre iframe { border: 0; display: block; transform-origin: top left; }
+  /* paysage, cible 1180 x 820 */
+  .paysage { width: calc(1180px * var(--ep)); height: calc(820px * var(--ep)); }
+  .paysage iframe { width: 1180px; height: 820px; transform: scale(var(--ep)); }
+  /* portrait, cible 390 x 844 */
+  .portrait { width: calc(390px * var(--eo)); height: calc(844px * var(--eo)); }
+  .portrait iframe { width: 390px; height: 844px; transform: scale(var(--eo)); }
+
+  @media (max-width: 1160px) { :root { --ep: .48; --eo: .52; } }
+  @media (max-width:  980px) { :root { --ep: .40; --eo: .46; } }
+  @media (max-width:  760px) { :root { --ep: .46; --eo: .56; } .duo { flex-direction: column; } }
+  @media (max-width:  600px) { :root { --ep: .34; --eo: .52; } }
+  @media (max-width:  430px) { :root { --ep: .28; --eo: .46; } }
+  @media (max-width:  360px) { :root { --ep: .24; --eo: .42; } }
+
+  .note {
+    border-left: 3px solid var(--accent); padding-left: 12px; font-size: 13px;
+    color: var(--doux); max-width: 74ch; margin: 24px 0 0;
+  }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<h1>Les deux mises en page, côte à côte</h1>
+<p>La même page dans deux cadres de largeurs différentes, réduite à l'échelle. À gauche le
+paysage (iPad et Mac), à droite le portrait (iPhone). Les trois boutons d'état sont dans
+chaque cadre, et ils marchent : scène vide, scène à 3 instruments, scène pleine à 6.</p>
+
+<div class="duo">
+  <figure>
+    <div class="cadre paysage"><iframe src="maquette.html" title="mise en page paysage"></iframe></div>
+    <figcaption><b>Paysage, 1180 x 820</b><br>iPad et Mac. Réserve en deux colonnes
+    latérales, 6 à gauche (cordes et bois), 7 à droite.</figcaption>
+  </figure>
+  <figure>
+    <div class="cadre portrait"><iframe src="maquette.html" title="mise en page portrait"></iframe></div>
+    <figcaption><b>Portrait, 390 x 844</b><br>iPhone. Réserve en grille de 13 en
+    dessous.</figcaption>
+  </figure>
+</div>
+
+<p class="note">Pour juger vraiment, ouvre <a href="maquette.html">maquette.html</a> en
+plein écran sur l'iPad puis sur l'iPhone : les cadres ci-dessus sont réduits, donc les
+cibles tactiles n'y font pas leur taille réelle. Mesurées en plein écran : l'emplacement de
+scène fait 275 px sur l'iPad et 91 px sur l'iPhone, le jeton de réserve 81 px et 67 px. Le
+plancher du cahier des charges est 64 px, il tient partout, jusqu'à un iPhone SE.</p>
+
+<p class="note">Cette page-ci se regarde sur l'iPad. Sur un téléphone, le cadre paysage est
+réduit à un quart de sa taille, donc illisible : c'est inévitable, on ne montre pas une mise
+en page de 1180 px sur un écran de 390. Sur le téléphone, ouvre directement
+<a href="maquette.html">maquette.html</a>.</p>
+
+<p class="note">Ce qui n'est pas dans la maquette, volontairement : aucune animation, aucun
+son, aucun glisser-déposer. C'est l'ordre de travail que tu as fixé, la mise en page d'abord.
+Une seule chose bouge, l'interrupteur des trois états, pour que les trois cas du cahier des
+charges se voient sans recharger.</p>
+
+</body>
+</html>
