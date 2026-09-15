@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Banc d'essai : l'icone de l'app</title>
+<link rel="icon" href="../assets/img/icone-32.png">
+<style>
+  body { margin: 0; padding: 24px; background: #555; color: #fff;
+         font: 13px/1.5 system-ui, sans-serif;
+         display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap; }
+  svg.icone { display: block; }
+  .t512 { width: 512px; height: 512px; }
+  .t192 { width: 192px; height: 192px; }
+  .t180 { width: 180px; height: 180px; }
+  .t64  { width: 64px;  height: 64px; }
+  .t32  { width: 32px;  height: 32px; }
+  /* Les deux masques qui rognent vraiment : le coin arrondi d'iOS et le
+     masque rond d'Android. La verification qui compte est que rien
+     d'important ne tombe dans ce qui est coupe. */
+  .rond { border-radius: 50%; overflow: hidden; }
+  .ios  { border-radius: 22.5%; overflow: hidden; }
+  p.note { flex: 1 1 100%; margin: 0 0 4px; max-width: 60ch; }
+</style>
+</head>
+<body>
+
+<p class="note">Le dessin vient de <code>ICONE</code> dans <code>src/instruments.js</code>,
+la meme source que les treize instruments. Les PNG d'<code>assets/img/</code> en sont le
+rendu.</p>
+
+<div><svg class="icone t512" id="grande" viewBox="0 0 512 512"></svg><div>512, brut</div></div>
+<div><div class="ios"><svg class="icone t180" viewBox="0 0 512 512"></svg></div><div>180, masque iOS</div></div>
+<div><div class="rond"><svg class="icone t192" viewBox="0 0 512 512"></svg></div><div>192, masque rond</div></div>
+<div><svg class="icone t64" viewBox="0 0 512 512"></svg><div>64</div></div>
+<div><svg class="icone t32" viewBox="0 0 512 512"></svg><div>32</div></div>
+
+<script type="module">
+  import { injecteSprite, ICONE } from "../src/instruments.js";
+  injecteSprite();
+  for (const s of document.querySelectorAll("svg.icone")) s.innerHTML = ICONE;
+  window.pret = true;
+</script>
+
+</body>
+</html>

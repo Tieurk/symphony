@@ -554,3 +554,28 @@ export function injecteSprite(doc = document) {
 export function instrument(id) {
   return INSTRUMENTS.find((i) => i.id === id);
 }
+
+// L'ICONE DE L'APP, en 512x512. Elle vit ici et nulle part ailleurs, pour la
+// meme raison que les instruments : une seule source de dessin dans le depot.
+// Elle reutilise le symbole du violon, la plus reconnaissable des treize
+// marques, posee sur la scene de l'app (rideaux, frise festonnee, plancher de
+// bois clair), ce qui fait que l'icone de l'ecran d'accueil et la page se
+// ressemblent.
+//
+// Les quatre PNG d'assets/img/ en sont le rendu, committes. test/icone.html
+// les montre aux tailles reelles et sous les deux masques, celui d'iOS et le
+// masque rond d'Android : la verification qui compte est que rien
+// d'important ne tombe dans les coins rognes.
+export const ICONE = `
+  <rect width="512" height="512" fill="#1e2740"/>
+  <path d="M0 420h512v92H0z" fill="#d9b382"/>
+  <path d="M0 420h512v16H0z" fill="#e6c79c"/>
+  <rect x="0" y="0" width="52" height="512" fill="#a63d40"/>
+  <rect x="460" y="0" width="52" height="512" fill="#a63d40"/>
+  <rect x="0" y="0" width="18" height="512" fill="#7d2b2e"/>
+  <rect x="494" y="0" width="18" height="512" fill="#7d2b2e"/>
+  <rect x="0" y="0" width="512" height="46" fill="#a63d40"/>
+  <g fill="#1e2740">
+${Array.from({ length: 11 }, (_, i) => `    <circle cx="${(23.3 + i * 46.5).toFixed(1)}" cy="46" r="23"/>`).join("\n")}
+  </g>
+  <g class="f-cordes"><svg x="46" y="30" width="420" height="420"><use href="#i-violon"/></svg></g>`;

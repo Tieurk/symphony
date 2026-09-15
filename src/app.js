@@ -11,6 +11,7 @@
 // pas de desynchronisation possible entre la scene et la reserve.
 
 import { INSTRUMENTS, injecteSprite, instrument } from "./instruments.js";
+import { urlsDesEchantillons } from "./echantillons.js";
 import * as moteur from "./moteur.js";
 
 injecteSprite();
@@ -19,11 +20,14 @@ const NB_PLACES = 6;
 const SEUIL_GLISSER = 8;      // px avant qu'un appui devienne un glisser
 const APPUI_LONG = 2000;      // ms sur l'engrenage, comme dit le cadrage
 const BRIDE_TRESSAUT = 150;   // ms entre deux tressauts du meme instrument
+const CLE = "orchestre";      // cle de persistance
+const VERSION = "phase 1, hors ligne, 15 septembre 2026";
 
 const emplacements = new Array(NB_PLACES).fill(null);
 let morceaux = [];
 let choisi = 0;
 let amorcage = null;          // la promesse d'amorcage, une seule fois
+let veutJouer = false;        // l'intention de lecture, voir plus bas
 
 const $ = (id) => document.getElementById(id);
 const zScene = $("scene"), zPlaces = $("places"), zMorceaux = $("morceaux");
@@ -71,6 +75,46 @@ function rend() {
   const m = morceaux[choisi];
   for (const b of zMorceaux.children) b.classList.toggle("choisi", +b.dataset.morceau === choisi);
   if (m) document.title = "Mon premier orchestre, " + m.titre;
+  sauve();
+}
+
+// --- persistance ------------------------------------------------------------
+// La scene, le morceau et les reglages survivent a la fermeture. Sans ca, un
+// enfant qui rouvre l'app retrouve une scene vide et doit tout reposer.
+//
+// Piege iOS n° 4 : les donnees d'un simple onglet Safari peuvent etre purgees
+// apres sept jours, celles d'une PWA installee sur l'ecran d'accueil
+// persistent. D'ou l'interet d'installer.
+
+function sauve() {
+  try {
+    localStorage.setItem(CLE, JSON.stringify({
+      v: 1, emplacements, choisi,
+      tempo: +$("tempo").value, volume: +$("volume").value,
+    }));
+  } catch (e) { /* navigation privee, quota plein : on continue sans */ }
+}
+
+function restaure() {
+  let d = null;
+  try { d = JSON.parse(localStorage.getItem(CLE) || "null"); } catch (e) { return; }
+  if (!d || d.v !== 1) return;
+  // On valide TOUT : localStorage peut contenir n'importe quoi, une version
+  // precedente du format, ou une saisie a la main. Un identifiant inconnu
+  // poserait un instrument fantome sur la scene.
+  const connus = new Set(INSTRUMENTS.map((i) => i.id));
+  if (Array.isArray(d.emplacements) && d.emplacements.length === NB_PLACES) {
+    const vus = new Set();
+    d.emplacements.forEach((id, n) => {
+      if (typeof id === "string" && connus.has(id) && !vus.has(id)) {
+        emplacements[n] = id;
+        vus.add(id);
+      }
+    });
+  }
+  if (Number.isInteger(d.choisi) && d.choisi >= 0 && d.choisi < morceaux.length) choisi = d.choisi;
+  if (Number.isFinite(d.tempo) && d.tempo >= 60 && d.tempo <= 140) $("tempo").value = d.tempo;
+  if (Number.isFinite(d.volume) && d.volume >= 0 && d.volume <= 100) $("volume").value = d.volume;
 }
 
 const surScene = (id) => emplacements.includes(id);
@@ -142,10 +186,24 @@ document.addEventListener("animationend", (e) => {
   e.target.classList.remove("refus", "clignote", "joue");
 });
 
-// --- amorcage ---------------------------------------------------------------
+// --- amorcage et intention de lecture ---------------------------------------
 // Le contexte audio d'iOS ne demarre qu'apres un geste, et le bouton silencieux
 // de l'iPhone se contourne dans le meme geste. Donc le PREMIER geste amorce,
 // quel qu'il soit : un enfant touche un instrument, ca doit jouer.
+//
+// PIEGE QUI A MORDU, et qui ne se voyait pas : confondre « amorcer » et
+// « jouer ». Le pointerdown global amorce, l'amorcage lancait la lecture, et
+// le clic qui suivait sur le bouton BASCULAIT ce qu'il venait de lancer. Un
+// enfant qui appuyait d'abord sur lecture, le geste le plus naturel, obtenait
+// le silence, et il fallait appuyer deux fois. Mesure : horloge « paused »,
+// crete SILENCE, 0 echantillon audible sur 120.
+//
+// Donc deux choses separees :
+//   AMORCER      ouvrir le contexte, construire le graphe, charger le
+//                morceau. N'importe quel geste, une seule fois.
+//   VOULOIR      une intention qui vit dans l'app, appliquee au moteur des
+//                qu'il existe et reappliquee a chaque changement. L'ordre
+//                d'arrivee des evenements n'y change plus rien.
 
 function amorce() {
   if (amorcage) return amorcage;
@@ -161,8 +219,7 @@ function amorce() {
       // pas encore. Les instruments poses pendant le chargement resteraient
       // donc muets. On reapplique l'etat une fois le moteur pret.
       for (const id of emplacements) if (id) moteur.ouvre(id);
-      moteur.lecture();
-      majPlay();
+      appliqueLecture();
     } catch (e) {
       console.error("amorcage audio : ", e);
       amorcage = null;   // on pourra reessayer au geste suivant
@@ -173,12 +230,22 @@ function amorce() {
   return amorcage;
 }
 
+// Appelable a tout moment. Avant l'amorcage, ca ne fait que repondre a
+// l'oeil : l'etat voulu partira au moteur des qu'il existe.
+function appliqueLecture() {
+  majPlay();
+  if (!moteur.estPret()) return;
+  if (veutJouer) moteur.lecture(); else moteur.pause();
+}
+
+// L'icone montre ce que l'enfant a DEMANDE, pas l'etat de l'horloge : le
+// chargement des treize instruments prend un moment, et un bouton qui ne
+// repond pas tout de suite se fait appuyer une deuxieme fois.
 function majPlay() {
-  const joue = moteur.enLecture();
   // Une classe, pas l'attribut hidden : voir le commentaire de src/app.css,
   // hidden n'existe pas sur un SVGElement.
-  $("play").classList.toggle("joue", joue);
-  $("play").setAttribute("aria-label", joue ? "pause" : "lecture");
+  $("play").classList.toggle("joue", veutJouer);
+  $("play").setAttribute("aria-label", veutJouer ? "pause" : "lecture");
 }
 
 // --- appui simple -----------------------------------------------------------
@@ -203,6 +270,10 @@ function origine(el) {
 }
 
 document.addEventListener("pointerdown", (e) => {
+  // Le premier geste lance la lecture, sauf la ou on n'appelle pas de
+  // musique : le bouton de lecture (il bascule, c'est son role) et tout ce
+  // qui tient a la zone parent, l'engrenage compris.
+  if (!amorcage && !e.target.closest("#play, #engrenage, #parent")) veutJouer = true;
   amorce();
   const el = origine(e.target.closest("[data-inst]"));
   if (!el) return;
@@ -275,9 +346,10 @@ function effaceCibles() {
 // --- controles --------------------------------------------------------------
 
 $("play").addEventListener("click", async () => {
-  await amorce();
-  moteur.basculeLecture();
-  majPlay();
+  veutJouer = !veutJouer;
+  appliqueLecture();          // l'icone repond dans le geste
+  await amorce();             // amorce, ou attend l'amorcage deja en cours
+  appliqueLecture();          // et le moteur suit des qu'il existe
 });
 
 zMorceaux.addEventListener("click", (e) => {
@@ -316,6 +388,9 @@ $("volume").addEventListener("input", async (e) => {
   await amorce();
   moteur.volume(+e.target.value / 100);
 });
+// A la fin du geste seulement : un enregistrement par pixel parcouru serait
+// une ecriture synchrone par pixel.
+for (const id of ["tempo", "volume"]) $(id).addEventListener("change", sauve);
 
 // --- zone parent, appui long de 2 s -----------------------------------------
 
@@ -337,7 +412,102 @@ eng.addEventListener("pointermove", (e) => {
   // un glisser qui passe sur l'engrenage
   if (minuteur && (Math.abs(e.movementX) > 6 || Math.abs(e.movementY) > 6)) annule();
 });
-$("ferme-parent").addEventListener("click", () => { $("parent").hidden = true; });
+const fermeParent = () => { $("parent").hidden = true; };
+$("ferme-parent").addEventListener("click", fermeParent);
+// Deux sorties de plus, parce que sur un iPhone le bouton « Retour au jeu »
+// est en bas d'un panneau plus haut que l'ecran : le voile ferme, et la touche
+// d'echappement aussi sur le Mac.
+$("parent").addEventListener("click", (e) => { if (e.target === $("parent")) fermeParent(); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") fermeParent(); });
+
+// --- hors ligne -------------------------------------------------------------
+// Le service worker garantit mecaniquement la regle dure n° 4 du projet :
+// aucun appel reseau au moment de jouer.
+
+let sw = null;
+if ("serviceWorker" in navigator) {
+  // Y avait-il DEJA un service worker au chargement ? C'est ce qui distingue
+  // une premiere visite d'une mise a jour, plus bas.
+  const avaitControleur = !!navigator.serviceWorker.controller;
+
+  navigator.serviceWorker.register("./sw.js")
+    .then((reg) => {
+      sw = reg;
+      majHorsLigne();
+      // Demander la verification tout de suite : sans ca, mesure faite, il
+      // fallait TROIS ouvertures de l'app pour qu'une correction arrive.
+      reg.update().catch(() => { /* hors ligne, ce sera pour la prochaine fois */ });
+    })
+    .catch((e) => console.warn("service worker refuse : ", e && e.message));
+
+  // Quand un nouveau service worker prend la main, la page tourne encore sur
+  // l'ANCIEN code. On recharge donc une fois, mais SEULEMENT si rien n'a
+  // commence : couper la musique sous les doigts d'un enfant pour appliquer
+  // une correction serait pire que la correction. Sinon, ce sera au prochain
+  // lancement, et le service worker actif est deja le bon.
+  let rechargee = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (rechargee || !avaitControleur || amorcage) return;
+    rechargee = true;
+    location.reload();
+  });
+  navigator.serviceWorker.addEventListener("message", (e) => {
+    const m = e.data || {};
+    if (m.type === "hors-ligne-avance") {
+      $("etat-hors-ligne").textContent = `Enregistrement : ${m.fait} sur ${m.total}...`;
+    } else if (m.type === "hors-ligne-fini") {
+      $("hors-ligne").disabled = false;
+      $("etat-hors-ligne").textContent = m.rates
+        ? `${m.fait} fichiers gardes, ${m.rates} en echec. Reessaie avec du reseau.`
+        : "Tout est garde. L'app marche sans reseau.";
+    }
+  });
+}
+
+// Combien d'echantillons sont deja en cache : la seule facon honnete de dire
+// si le hors ligne est pret, plutot que d'afficher une intention.
+async function majHorsLigne() {
+  const zone = $("etat-hors-ligne");
+  if (!("caches" in window)) { zone.textContent = "Ce navigateur ne sait pas garder hors ligne."; return; }
+  const attendus = urlsDesEchantillons();
+  let en = 0;
+  for (const u of attendus) if (await caches.match(u, { ignoreSearch: true })) en++;
+  const installee = matchMedia("(display-mode: standalone)").matches;
+  zone.textContent = en >= attendus.length
+    ? `Les ${attendus.length} sons sont gardes, l'app marche sans reseau.`
+    : `${en} sons gardes sur ${attendus.length}. Ils s'enregistrent a l'usage, ou d'un coup avec le bouton.`;
+  $("version").textContent = VERSION + (installee ? ", installee" : ", dans le navigateur");
+}
+
+$("hors-ligne").addEventListener("click", async () => {
+  if (!("serviceWorker" in navigator)) return;
+  $("hors-ligne").disabled = true;
+  $("etat-hors-ligne").textContent = "Enregistrement...";
+  const reg = await navigator.serviceWorker.ready;
+  const actif = reg.active || (sw && sw.active);
+  if (!actif) { $("hors-ligne").disabled = false; $("etat-hors-ligne").textContent = "Reessaie dans un instant."; return; }
+  // La liste vient de src/echantillons.js, la source unique. Le service
+  // worker ne la connait pas et n'a pas a la connaitre.
+  actif.postMessage({
+    type: "garde-hors-ligne",
+    urls: [...urlsDesEchantillons(), ...morceaux.map((m) => `songs/${m.id}.json`)],
+  });
+});
+
+$("reinit").addEventListener("click", () => {
+  try { localStorage.removeItem(CLE); } catch (e) { /* rien */ }
+  emplacements.fill(null);
+  moteur.fermeTout();
+  moteur.tempo(100);
+  $("tempo").value = 100;
+  $("volume").value = 80;
+  moteur.volume(0.8);
+  majReperes(100);
+  choisi = 0;
+  rend();
+  if (moteur.estPret()) moteur.chargeMorceau(morceaux[0]);
+  $("parent").hidden = true;
+});
 
 // --- le minimum vivant ------------------------------------------------------
 // C'est le moteur qui appelle, au temps AUDIO passe par Tone.Draw. Un
@@ -374,6 +544,9 @@ zMorceaux.innerHTML = morceaux.map((m, i) =>
   `<button class="morceau" data-morceau="${i}" style="background:${m.couleur}">
      <span>${m.titre}</span></button>`).join("");
 
+// Apres le chargement des morceaux, parce que la restauration verifie que le
+// morceau enregistre existe encore.
+restaure();
 rend();
 majPlay();
 majReperes(+$("tempo").value);

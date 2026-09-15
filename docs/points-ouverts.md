@@ -34,16 +34,37 @@ Ce qui se juge, et que je ne peux pas mesurer :
 - est-ce qu'ils touchent au tempo, et est-ce que la tortue et le lapin leur parlent
 - combien de temps ils jouent avant de se lasser
 
+### 3. L'installation sur l'iPad, et l'icône.
+
+L'app s'installe maintenant sur l'écran d'accueil et marche sans réseau. Deux choses qui sont
+de ton côté, pas du mien.
+
+Installer, sur l'iPad, dans Safari, sur `https://symphony.kinefitlabs.com` :
+
+1. le bouton Partager, puis **Sur l'écran d'accueil**
+2. ouvrir l'app depuis l'icône, plus depuis Safari
+3. appui long de 2 s sur l'engrenage, puis **Tout garder hors ligne** (2,6 Mo, une fois)
+4. couper le wifi et rouvrir : ça doit jouer
+
+Ça vaut le détour même si le réseau marche : les données d'un simple onglet Safari peuvent
+être purgées après sept jours, celles d'une PWA installée restent. C'est ce qui fait que la
+scène, le morceau, le tempo et le volume sont encore là le lendemain.
+
+**L'icône est un jugement de goût, donc le tien.** Un violon et son archet sur la scène de
+l'app. `test/icone.html` la montre aux tailles réelles et sous les deux masques qui rognent.
+J'ai corrigé une seule chose, qui était un défaut de lisibilité et pas de goût : le violon
+était trop petit dans un cadre de scène trop grand, illisible à 32 px.
+
 ## À trancher avant la phase 2
 
-3. **Import MIDI.** Confirmer que le bouton Importer accepte aussi les fichiers `.mid` avec écran de correspondance des pistes, ou seulement les fichiers au format du projet.
+4. **Import MIDI.** Confirmer que le bouton Importer accepte aussi les fichiers `.mid` avec écran de correspondance des pistes, ou seulement les fichiers au format du projet.
 
-4. **Accès à la zone parent.** Appui long de 2 s sur l'engrenage, ou un autre geste.
+5. **Accès à la zone parent.** L'appui long de 2 s sur l'engrenage est en place, comme le prévoit le cadrage. À confirmer à l'usage : un enfant de 8 ans qui cherche ne doit pas tomber dessus par hasard, et toi tu ne dois pas avoir à t'y reprendre à trois fois.
 
 ## À trancher avant la phase 3
 
-5. **Les trois remplacements** dans la liste des 15 morceaux du jouet : The Wheels on the Bus (encore protégé en Europe), Alphabet Song (même mélodie qu'Ah ! vous dirai-je maman), Come Little Leaves (statut à vérifier). Voir `docs/cadrage.md` section 7.4.
-6. **La deuxième série de morceaux.** Voir `docs/cadrage.md` section 7.5.
+6. **Les trois remplacements** dans la liste des 15 morceaux du jouet : The Wheels on the Bus (encore protégé en Europe), Alphabet Song (même mélodie qu'Ah ! vous dirai-je maman), Come Little Leaves (statut à vérifier). Voir `docs/cadrage.md` section 7.4.
+7. **La deuxième série de morceaux.** Voir `docs/cadrage.md` section 7.5.
 
 ## Tranché en phase 1
 

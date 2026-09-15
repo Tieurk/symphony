@@ -58,6 +58,21 @@ for (const [inst, frappes] of Object.entries(PERCUSSIONS)) {
 // A 100 a la noire une ronde tient (2,4 s), au dela de cinq temps ca coupe.
 export const DUREE_ECHANTILLON = 3.16;
 
+// Tous les fichiers d'echantillons, en chemins relatifs a la racine de l'app.
+// DERIVE des deux tables ci-dessus : c'est ce qui permet de preparer le hors
+// ligne sans qu'une copie de la liste traine ailleurs. Un miroir qui derive
+// donne un 404, donc un instrument muet, et sans aucune erreur visible.
+export function urlsDesEchantillons(base = RACINE) {
+  const out = [];
+  for (const [nom, fiche] of Object.entries(MELODIQUES)) {
+    for (const n of fiche.notes) out.push(`${base}${nom}/${n}.mp3`);
+  }
+  for (const [nom, frappes] of Object.entries(PERCUSSIONS)) {
+    for (const f of frappes) out.push(`${base}${nom}/${f}.wav`);
+  }
+  return out;
+}
+
 // --- Outils de hauteur, partages par le moteur et le validateur -------------
 
 const DEMI_TONS = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };

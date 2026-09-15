@@ -18,11 +18,15 @@
   p { color:var(--doux); font-size:15px; margin:0 0 20px; }
   ul { list-style:none; margin:0; padding:0; }
   li { margin:0 0 10px; }
-  a { display:block; background:var(--carte); border:1px solid var(--bord);
+  /* La carte, uniquement dans la liste : sans le « li », le lien dans la
+     phrase d'introduction devenait lui aussi une grosse boite et coupait la
+     phrase en trois. */
+  li a { display:block; background:var(--carte); border:1px solid var(--bord);
       border-radius:12px; padding:14px 16px; min-height:64px;
       color:var(--texte); text-decoration:none; }
-  a b { display:block; color:var(--accent); font-size:16px; }
-  a span { font-size:13px; color:var(--doux); }
+  li a b { display:block; color:var(--accent); font-size:16px; }
+  li a span { font-size:13px; color:var(--doux); }
+  p a { color:var(--accent); }
   footer { margin-top:28px; font-size:13px; color:var(--doux); }
 </style>
 </head>
@@ -46,6 +50,10 @@
     <li><a href="svg.html">
       <b>Les 13 instruments</b>
       <span>Les illustrations, et les six paires a risque de confusion a 64 px.</span></a></li>
+    <li><a href="icone.html">
+      <b>L'icone de l'ecran d'accueil</b>
+      <span>Aux cinq tailles reelles, et sous les deux masques qui rognent :
+      le coin arrondi d'iOS et le masque rond d'Android.</span></a></li>
     <li><a href="phase0.html">
       <b>Banc d'essai phase 0</b>
       <span>L'ancien banc audio, garde pour la non-regression.</span></a></li>

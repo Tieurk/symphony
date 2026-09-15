@@ -6,7 +6,9 @@
 <meta name="theme-color" content="#141b2e">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="icon" href="data:,">
+<link rel="icon" href="assets/img/icone-32.png">
+<link rel="apple-touch-icon" href="assets/img/icone-180.png">
+<link rel="manifest" href="manifest.webmanifest">
 <link rel="stylesheet" href="src/app.css">
 <title>Mon premier orchestre</title>
 </head>
@@ -93,7 +95,14 @@
     <p>Le moteur audio est <strong>Tone.js</strong> 15.1.22, sous licence MIT, copié dans
     l'app : aucun appel réseau pendant que ça joue.</p>
     <p>Les illustrations sont originales, dessinées pour ce projet.</p>
-    <p><a href="test/">Bancs d'essai</a></p>
+
+    <h2>Hors ligne</h2>
+    <p id="etat-hors-ligne">…</p>
+    <p class="menu">
+      <button id="hors-ligne" class="secondaire">Tout garder hors ligne</button>
+      <button id="reinit" class="secondaire">Vider la scène et les réglages</button>
+    </p>
+    <p class="fin"><a href="test/">Bancs d'essai</a> &middot; <span id="version"></span></p>
     <button id="ferme-parent">Retour au jeu</button>
   </div>
 </div>

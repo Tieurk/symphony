@@ -87,6 +87,7 @@ Transition de mute : une rampe très courte (5 à 10 ms) pour éviter le clic, p
 | `src/app.js` | l'interaction : l'état, le toucher, le glisser-déposer, les animations |
 | `src/app.css` | la mise en page, **feuille unique** partagée par l'app et la maquette |
 | `index.html` | l'app. Les bancs d'essai sont dans `test/` |
+| `sw.js`, `manifest.webmanifest` | le hors ligne et l'installation, voir leur section |
 | `test/phase1.html` | le banc d'écoute, interface minimale, gardé pour le diagnostic |
 
 **L'app ne touche jamais à `Tone` directement.** Tout passe par `src/moteur.js`, y compris la synchronisation visuelle : `surNote(rappel)` et `surMesure(rappel)` enveloppent le rappel dans `Tone.Draw`, pour que l'animation tombe sur le temps **audio** et pas sur celui du navigateur. Avec une anticipation de 20 ms, un `setTimeout` tomberait à côté.
@@ -213,7 +214,33 @@ Règle de fond : chaque instrument garde le même rôle d'un morceau à l'autre,
 
 Test à faire passer à chaque nouveau morceau : le violon seul doit être écoutable, le tuba seul doit être écoutable, et violon + tuba + batterie doit sonner comme un vrai petit arrangement.
 
-## Piège JavaScript qui a mordu le 15 septembre 2026
+## Pièges qui ont mordu le 15 septembre 2026
+
+### Amorcer n'est pas jouer
+
+**Le premier appui sur le bouton de lecture ne lançait rien.** Le `pointerdown` global
+amorçait (iOS n'ouvre le contexte audio que dans un geste), l'amorçage lançait la lecture, et
+le `click` qui suivait **basculait ce qu'il venait de lancer**. Un enfant qui appuie d'abord
+sur lecture, le geste le plus naturel du monde, obtenait le silence, et il fallait appuyer
+deux fois. Mesuré : horloge `paused`, crête SILENCE, 0 échantillon audible sur 120.
+
+Aucune erreur, aucune trace, et les deux morceaux de code étaient justes séparément. La
+correction n'est pas un correctif d'ordre d'événements mais une séparation :
+
+| | |
+|---|---|
+| **Amorcer** | ouvrir le contexte, construire le graphe, charger le morceau. N'importe quel geste, une seule fois |
+| **Vouloir jouer** | une intention qui vit dans l'app (`veutJouer`), appliquée au moteur dès qu'il existe et réappliquée à chaque changement |
+
+Un état voulu ne dépend pas de l'ordre d'arrivée des événements, une bascule si. Conséquence
+agréable : l'icône montre ce que l'enfant a **demandé**, pas l'état de l'horloge, donc le
+bouton répond dans le geste au lieu d'attendre la fin du chargement des treize instruments.
+
+Le premier geste lance la lecture quel qu'il soit, sauf sur le bouton de lecture (il bascule,
+c'est son rôle) et dans la zone parent (un parent qui ouvre les réglages n'appelle pas de
+musique).
+
+### `hidden` sur un SVG
 
 **`hidden` est une propriété de `HTMLElement`, pas de `SVGElement`.** Poser `svg.hidden = true` ne fait **absolument rien** : la propriété est créée sur l'objet JS, l'attribut n'est pas écrit, et l'élément reste visible. Le bouton de lecture affichait donc les icônes play **et** pause en même temps.
 
@@ -245,6 +272,17 @@ regarder, corriger.** Le tuba lisait comme un cor, le xylophone comme un diagram
 puis comme une pile d'assiettes, la trompette comme un gramophone. Aucune de ces trois erreurs
 n'était visible dans le code, les trois sautaient aux yeux sur l'image.
 
+**L'icône de l'app vit dans le même module**, exportée sous `ICONE` : le violon et son
+archet posés sur la scène de l'app (rideaux, frise festonnée, plancher clair), donc l'écran
+d'accueil et la page se ressemblent. Les quatre PNG d'`assets/img/` en sont le rendu et sont
+committés ; `test/icone.html` les montre aux tailles réelles et sous les deux masques qui
+rognent vraiment, le coin arrondi d'iOS et le masque rond d'Android. Vérifié : le rendu
+reproduit les quatre fichiers **au bit près** depuis `ICONE`, donc la source est bien unique.
+
+Même méthode, même résultat : la première version avait le violon trop petit dans un cadre de
+scène trop grand, illisible à 32 px. Trois variantes rendues côte à côte, celle où le violon
+domine retenue. Ça ne se voyait pas dans le code.
+
 **Le vrai critère de lisibilité n'est pas l'instrument seul, c'est la paire.** Six paires
 sont à risque parce que les deux instruments sont de la même famille, donc de la même
 couleur : flûte / clarinette, trompette / tuba, guitare / violon, cymbales / batterie,
@@ -264,6 +302,7 @@ Trois zones : contrôles en haut (sélecteur de morceau, play/pause, tempo, volu
 - Tempo de 60 % à 140 %, aimanté sur trois repères illustrés : **tortue, noire, lapin**, dessinés dans `src/instruments.js` sous les identifiants `r-lent`, `r-normal`, `r-rapide`. Ce ne sont pas des instruments, ils ne sont donc pas dans `INSTRUMENTS`. Vérifiés lisibles à 26 px.
 - Cibles tactiles de 64 px minimum. Aucun texte nécessaire pour jouer.
 - Zone parent derrière un appui long de 2 s sur un engrenage : bibliothèque, import, export, licences.
+- **Trois sorties de la zone parent**, et ce n'est pas du luxe : le bouton du bas, le voile, la touche d'échappement. Mesuré : sur un iPhone le panneau fait 743 px pour une vue de 664, donc le bouton « Retour au jeu » est hors de l'écran, et comme `html` et `body` sont en `overflow: hidden`, la zone parent était un **cul-de-sac** dont on ne sortait qu'en rechargeant. Le voile défile maintenant, et le centrage passe par `margin: auto` : `place-items: center` rogne le **haut** du contenu dès qu'il dépasse, sans barre de défilement pour le rattraper.
 
 ## Pièges iOS, à traiter en phase 1
 
@@ -272,6 +311,63 @@ Trois zones : contrôles en haut (sélecteur de morceau, play/pause, tempo, volu
 3. Le verrouillage de l'écran arrête la musique. Acceptable, ne pas chercher à contourner.
 4. Les données d'une PWA installée sur l'écran d'accueil persistent ; celles d'un simple onglet Safari peuvent être purgées après sept jours. D'où l'importance d'installer.
 5. Tester sur l'iPad réel, pas dans le simulateur responsive de Safari sur Mac.
+
+## Hors ligne et installation
+
+L'app s'installe sur l'écran d'accueil et marche sans réseau. C'est la garantie mécanique de
+la règle dure n° 4 (aucun appel réseau au moment de jouer), et c'est ce qui rend les données
+persistantes sur iOS, voir le piège n° 4 ci-dessus.
+
+| Fichier | Rôle |
+|---|---|
+| `manifest.webmanifest` | nom, `start_url`, `display: standalone`, les icônes dont une `maskable` |
+| `sw.js` | le service worker : deux caches, la stratégie, la mise en cache à la demande |
+| `assets/img/icone-{32,180,192,512}.png` | rendus de `ICONE`, voir la section Illustrations |
+
+**Deux caches, et c'est volontaire.** `orchestre-coque-v1` porte le code et les pages, il
+change à chaque livraison, donc il est versionné. `orchestre-sons-v1` porte les 2,6 Mo
+d'échantillons et les morceaux, qui ne changent presque jamais. Les séparer évite de
+retélécharger 2,6 Mo à chaque correction d'une ligne de CSS.
+
+**La liste des 76 échantillons n'est pas dans `sw.js`, et ne doit pas y arriver.** Elle vit
+dans `src/echantillons.js`, qui l'expose par `urlsDesEchantillons()`. La page, qui importe ce
+module, l'envoie au service worker par `postMessage` quand on demande « Tout garder hors
+ligne ». Raison : un service worker Safari **ne peut pas être un module ES**, il ne peut donc
+pas importer ce fichier, et recopier la liste créerait un troisième miroir à garder d'accord.
+Un miroir qui dérive donne un 404 hors ligne, donc un instrument muet sans aucune erreur
+visible.
+
+**La persistance** tient dans `localStorage` sous la clé `orchestre` : les six emplacements,
+le morceau choisi, le tempo et le volume. Tout ce qui revient est **revalidé** au chargement
+(un identifiant d'instrument inconnu, un morceau supprimé, un tempo hors bornes sont
+ignorés), parce que la clé est modifiable à la main et qu'une donnée pourrie ne doit pas
+casser l'app au démarrage. Écriture à la fin du geste seulement pour les curseurs, pas à
+chaque pixel parcouru.
+
+L'état du hors ligne affiché dans la zone parent est **compté**, pas annoncé : la page
+regarde combien des 76 échantillons sont réellement dans le cache. Dire « prêt » sans
+compter serait afficher une intention.
+
+**Règle de livraison, à ne pas oublier : monter `VERSION_COQUE` dans `sw.js` dès qu'un
+fichier de la coque change.** La stratégie est « cache d'abord » sans revalidation, donc un
+appareil qui a déjà la coque continuerait de servir l'**ancien** code indéfiniment : la
+correction serait en ligne et n'arriverait jamais chez l'enfant. Monter le numéro change
+aussi les octets de `sw.js`, ce qui est précisément ce qui déclenche l'installation du
+nouveau service worker. Et l'installation demande le réseau (`cache: "reload"`), sinon la
+nouvelle coque pourrait se remplir d'anciens fichiers gardés par le cache HTTP du
+navigateur.
+
+**Mesuré, et corrigé :** monter le numéro ne suffisait pas, il fallait **trois ouvertures**
+de l'app pour qu'une correction arrive. La première ne déclenche même pas la vérification, la
+deuxième installe le nouveau service worker pendant que la page tourne déjà sur l'ancien
+code, la troisième seulement sert le nouveau. Deux ajouts côté page : `reg.update()` au
+chargement, et un rechargement automatique quand le nouveau service worker prend la main.
+**Une seule ouverture suffit maintenant**, vérifié sur une copie du dépôt servie à part.
+
+Ce rechargement automatique est **conditionné à ce que rien n'ait commencé** : couper la
+musique sous les doigts d'un enfant pour appliquer une correction serait pire que la
+correction. Si ça joue, la mise à jour attend le prochain lancement. Les deux comportements
+sont vérifiés.
 
 ## Déploiement
 
@@ -347,7 +443,7 @@ pas de persistance des données (voir piège iOS n° 4).
 
 - **Phase 0** : choix du kit de percussion, écoute comparée des timbres, maquette fixe des deux mises en page, chaîne de déploiement vérifiée de bout en bout. Fait : le son sur iOS, le kit (FluidR3_GM), le déploiement en HTTPS, le nom, les 13 illustrations et les deux maquettes fixes. **Reste le jugement de Mathieu**, sur les illustrations (`test/svg.html`) et sur les maquettes (`test/maquette.html`).
 - **Phase 1** : **finie**, reste à la tester avec Grégoire et Louis. Ordre fixé par Mathieu : le son d'abord (moteur dans `src/`, 13 instruments échantillonnés, trois morceaux en 13 parties, arrangements validés à l'oreille le 15 septembre 2026), puis l'interaction (l'app à la racine, les deux gestes, le minimum vivant). Deux écarts au tableau des phases, tranchés par Mathieu : le **glisser-déposer** et les **animations** sont montés en phase 1 au lieu de la 2, parce que l'objectif de la phase est de valider la sensation de jeu et qu'une interface figée la sous-vend.
-- **Phase 2** : zone parent complète (bibliothèque, import, export), PWA hors ligne et installation sur l'écran d'accueil, persistance du volume et du morceau choisi. La mise en page adaptative, le glisser-déposer, les animations et les illustrations sont déjà faits. Les crédits de la zone parent sont déjà là : la règle dure n° 3 les exige dès que l'app est la porte d'entrée.
+- **Phase 2** : reste la **zone parent complète**, bibliothèque, import (dont `.mid`, avec un écran de correspondance des pistes) et export. Faits : la mise en page adaptative, le glisser-déposer, les animations, les illustrations, les crédits (règle dure n° 3, exigés dès que l'app est la porte d'entrée), et le **hors ligne** : manifeste, service worker, icônes, installation sur l'écran d'accueil, persistance de la scène, du morceau, du tempo et du volume. Voir la section « Hors ligne et installation ».
 - **Phase 3** : le reste de la bibliothèque.
 - **Phase 4** : réglage des mixages morceau par morceau, retours des enfants.
 

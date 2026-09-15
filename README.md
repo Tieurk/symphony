@@ -25,12 +25,14 @@ Fait :
   pleine qui refuse sans remplacer
 - le **minimum vivant** : l'instrument qui joue tressaille, la scène pulse à la mesure, les
   emplacements vides invitent
+- le **hors ligne** : l'app s'installe sur l'écran d'accueil, garde ses 2,6 Mo de sons et
+  joue sans réseau ; la scène, le morceau, le tempo et le volume sont retrouvés au
+  rechargement
 
 Un point encore ouvert : **Alouette**, dont la mélodie n'a pas pu être vérifiée depuis le
 conteneur de développement. Voir `docs/points-ouverts.md`.
 
-Reste pour la phase 2 : zone parent complète (bibliothèque, import, export), PWA hors ligne,
-persistance.
+Reste pour la phase 2 : la zone parent complète, bibliothèque, import et export.
 
 ## Où regarder
 
@@ -43,6 +45,8 @@ persistance.
 
 ```
 index.html            l'app
+manifest.webmanifest  nom et icones pour l'installation sur l'ecran d'accueil
+sw.js                 le service worker : deux caches, l'app joue sans reseau
 src/app.js            l'interaction : l'etat, le toucher, le glisser, les animations
 src/app.css           la mise en page, feuille UNIQUE partagee avec la maquette
 src/moteur.js         le graphe audio, l'horloge, les 13 canaux
@@ -53,8 +57,9 @@ src/vendor/           Tone.js 15.1.22, copié tel quel, plus sa licence MIT
 songs/                un JSON par morceau, plus index.json qui donne l'ordre
 assets/samples/       les sons, 2,9 Mo pour les 13 instruments
 assets/silence.mp3    le contournement du bouton silencieux d'iOS
+assets/img/           les 4 PNG de l'icone, rendus de ICONE dans src/instruments.js
 scripts/              outillage (téléchargement des samples, extraction du kit)
-test/                 bancs d'essai et maquettes, temporaires
+test/                 bancs d'essai et maquettes
 docs/                 cadrage et spécifications
 ```
 
@@ -78,7 +83,14 @@ qu'après un toucher, et le bouton silencieux de l'iPhone se contourne dans le m
 Toucher un instrument suffit à amorcer, le bouton de lecture montre le chargement des 13
 instruments pendant les premières secondes.
 
-Les crédits des banques de sons sont derrière un **appui long de 2 s sur l'engrenage**.
+Derrière un **appui long de 2 s sur l'engrenage** : les crédits des banques de sons, l'état
+du hors ligne, et deux boutons, « Tout garder hors ligne » et « Vider la scène et les
+réglages ».
+
+**À installer sur l'écran d'accueil**, dans Safari, bouton Partager puis « Sur l'écran
+d'accueil ». Deux raisons : l'app s'ouvre en plein écran sans la barre d'adresse, et les
+données d'une PWA installée ne sont pas purgées, contrairement à celles d'un simple onglet
+Safari au bout de sept jours.
 
 En `https://`, le certificat est émis depuis le 15 septembre 2026.
 
@@ -104,9 +116,6 @@ Les deux bancs audio (`test/phase1.html` et `test/phase0.html`) ne font aucun br
 l'appui sur « Demarrer l'audio ». Un bandeau de diagnostic y est affiché en permanence, c'est
 lui qu'il faut recopier si le son ne sort pas. Les maquettes et le test SVG ne font jamais de
 son : ils n'ont pas d'audio du tout.
-
-Le dossier `test/` est temporaire. Il disparaîtra quand l'app aura sa propre interface, en
-phase 1 ou 2.
 
 ## Outillage
 

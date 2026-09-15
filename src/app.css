@@ -381,12 +381,21 @@ body {
    LE PANNEAU DES CREDITS, derriere un appui long de 2 s sur l'engrenage.
    Regle dure n° 3 du projet : la banque de sons doit etre creditee.
    ========================================================================== */
+/* Le panneau est plus haut que l'ecran d'un iPhone. Mesure faite : le bouton
+   « Retour au jeu » tombait a 742 px pour une vue de 664, hors de l'ecran, et
+   comme html et body sont en overflow: hidden, rien ne pouvait le ramener :
+   la zone parent devenait un cul-de-sac, il fallait recharger la page.
+   Donc le voile defile, et le centrage passe par « margin: auto » et non par
+   place-items: center, qui rogne le HAUT du contenu des qu'il depasse. */
 #parent {
-  position: fixed; inset: 0; z-index: 60; display: grid; place-items: center;
-  background: rgba(10,14,26,.82); padding: 20px;
+  position: fixed; inset: 0; z-index: 60; display: flex;
+  background: rgba(10,14,26,.82);
+  overflow-y: auto; -webkit-overflow-scrolling: touch;
+  padding: max(20px, env(safe-area-inset-top)) 20px max(20px, env(safe-area-inset-bottom));
 }
 #parent[hidden] { display: none; }
 #parent .panneau {
+  margin: auto;
   background: var(--nuit-clair); border: 1px solid var(--bord);
   border-radius: 16px; padding: 20px; max-width: 460px; width: 100%;
   font: 14px/1.55 -apple-system, system-ui, sans-serif;
@@ -394,6 +403,14 @@ body {
 #parent h2 { margin: 0 0 10px; font-size: 17px; color: var(--accent); }
 #parent p { margin: 0 0 10px; color: var(--doux); }
 #parent a { color: var(--accent); }
+#parent .menu { display: flex; flex-wrap: wrap; gap: 8px; }
+#parent .fin { font-size: 12px; margin-top: 14px; }
+#parent button.secondaire {
+  flex: 1 1 auto; min-height: 56px; font-size: 14px; font-weight: 600;
+  background: #2b3654; color: var(--texte); border: 1px solid var(--bord);
+  border-radius: 10px; margin: 0;
+}
+#parent button.secondaire:disabled { opacity: .5; }
 #parent button {
   font: inherit; margin-top: 8px; min-height: 64px; width: 100%;
   background: var(--accent); color: #22160c; border: 0; border-radius: 12px;
