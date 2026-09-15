@@ -6,9 +6,12 @@ En ligne : https://symphony.kinefitlabs.com
 
 ## État
 
-Phase 0 en cours. Pas encore d'app : ce qui existe est de l'outillage et une page de test
-audio, `test/phase0.html`, à ouvrir sur un iPad pour valider la sortie son sous iOS et
-choisir le kit de percussion à l'oreille.
+Phase 0 en cours. Pas encore d'app : ce qui existe est de l'outillage et un banc d'essai du
+moteur audio, `test/phase0.html`.
+
+Tranché : le son sort sur iOS, la percussion est choisie (FluidR3_GM), et la chaîne de
+déploiement fonctionne en HTTPS. Reste le nom de l'app et le choix entre maquette fixe et
+tranche verticale directe, tous deux dans `docs/points-ouverts.md`.
 
 ## Où regarder
 
@@ -25,7 +28,7 @@ src/vendor/  Tone.js 15.1.22, copié tel quel, plus sa licence MIT
 songs/     un fichier JSON par morceau
 assets/    samples/ les sons, img/ les illustrations
 scripts/   outillage (téléchargement des samples, etc.)
-test/      page de test de phase 0 et kits de percussion candidats, temporaire
+test/      banc d'essai du moteur audio, temporaire
 docs/      cadrage et spécifications
 ```
 
@@ -34,12 +37,10 @@ docs/      cadrage et spécifications
 Le plus court, rien à lancer, ouvrir directement sur l'iPad :
 
 ```
-http://symphony.kinefitlabs.com/test/phase0.html
+https://symphony.kinefitlabs.com/test/phase0.html
 ```
 
-En `http://` et pas en `https://` pour l'instant : le certificat du domaine n'est pas
-encore émis, voir la section Déploiement. Web Audio n'a pas besoin d'un contexte sécurisé,
-donc le son sort quand même.
+En `https://`, le certificat est émis depuis le 15 septembre 2026.
 
 Le serveur local reste utile pour écouter une modification qui n'est pas encore poussée.
 Sur le Mac, à la racine du dépôt :
@@ -63,41 +64,42 @@ Dans les deux cas, la page ne fait aucun bruit avant l'appui sur « Demarrer l'a
 contexte audio d'iOS ne démarre qu'après un geste. Un bandeau de diagnostic est affiché en
 permanence, c'est lui qu'il faut recopier si le son ne sort pas.
 
-Le dossier `test/` est temporaire. Il disparaît quand le kit de percussion est choisi : le
-kit retenu migre vers `assets/samples/`, les deux autres et la page de test sont
-supprimés.
+Le dossier `test/` est temporaire. Il disparaîtra quand l'app aura sa propre interface, en
+phase 1 ou 2.
 
 ## Outillage
 
 ```bash
-bash scripts/fetch-samples.sh   # les notes des instruments mélodiques, curl seul
-bash scripts/fetch-kits.sh      # les trois kits candidats, demande ffmpeg
+bash scripts/fetch-samples.sh      # les notes des instruments mélodiques, curl seul
+bash scripts/fetch-percussion.sh   # les 9 frappes, extraites du .sf2, demande ffmpeg
 ```
 
-Le premier est relançable sans rien installer. Le second n'a pas à être relancé : ses 27
-fichiers sont déjà dans le dépôt, il est là pour documenter leur provenance.
+Le premier est relançable sans rien installer. Le second n'a pas à être relancé : ses 9
+fichiers sont déjà dans le dépôt, il est là pour documenter leur provenance. Vérifié, il les
+reproduit au bit près.
 
 ## Déploiement
 
 GitHub Pages sert la branche `main` à la racine. Toute mise en ligne passe donc par une
 fusion vers `main`, le développement se fait sur une branche.
 
-État au 14 septembre 2026 :
+État au 15 septembre 2026 :
 
 - DNS correct, `symphony` pointe sur `tieurk.github.io`
-- domaine bien enregistré côté Pages, le site répond en `http://`
-- **certificat TLS pas encore émis**, donc `https://` échoue et « Enforce HTTPS » est
-  inactive. Sans conséquence pour l'écoute, mais bloquant avant la phase 2 : l'installation
-  sur l'écran d'accueil et le service worker exigent HTTPS
+- domaine enregistré côté Pages, certificat TLS émis, le site répond en `HTTP/2 200`
+- reste à cocher « Enforce HTTPS » dans les réglages Pages
+
+Attention, toute action dans l'interface web de GitHub écrit un commit **directement sur
+`main`** et fait diverger la branche de travail. Voir `CLAUDE.md`, section Déploiement.
 
 ## Licences
 
 Code sous licence MIT. Les banques de sons ont leurs propres licences, créditées dans la
 page « à propos » de l'app :
 
-- **FluidR3_GM** (instruments mélodiques), Creative Commons Attribution 3.0, via le projet
-  `midi-js-soundfonts`
+- **FluidR3_GM** (les 11 instruments mélodiques via le projet `midi-js-soundfonts`, la
+  batterie et les cymbales extraites du `.sf2`), Creative Commons Attribution 3.0
 - **Tone.js** 15.1.22, licence MIT, copié dans `src/vendor/`
-- Kits de percussion candidats, en attente de décision : **Virtuosity Drums** (Versilian
-  Studios et Karoryfer Samples, CC0 1.0), **VCSL** (Versilian Studios, CC0 1.0), et la
-  banque de percussion de **FluidR3_GM** (CC-BY 3.0)
+
+La percussion vient de la même banque que les instruments mélodiques, donc **un seul crédit
+couvre toute la banque de sons** : FluidR3_GM, Creative Commons Attribution 3.0.

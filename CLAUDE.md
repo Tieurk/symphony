@@ -78,13 +78,35 @@ Correspondance à utiliser :
 | Xylophone | `xylophone` |
 | Piano | `acoustic_grand_piano` |
 
-**La percussion vient d'ailleurs.** Ce dépôt ne rend que les 128 programmes mélodiques : vérifié le 13 septembre 2026, `percussion-mp3/`, `drums-mp3/` et `standard_kit-mp3/` renvoient 404. Batterie et cymbales ont donc besoin d'une source séparée, un kit en CC0 ou en CC-BY (`docs/cadrage.md` section 10 admet les deux). Ne pas se rabattre sur `taiko_drum` ou `synth_drum` comme substituts, ce ne sont pas des kits.
+**La percussion est tranchée : la banque de percussion du FluidR3_GM lui-même.** Choisie à l'écoute par Mathieu le 15 septembre 2026, contre Virtuosity Drums et VCSL. Raison décisive : elle vient de la même banque et de la même prise de son que les 11 instruments mélodiques, donc elle se marie. Les deux concurrents étaient des prises de salle, qui sonnaient étrangères à côté d'un soundfont. Le comparatif complet est dans `docs/points-ouverts.md`.
 
-Trois candidats sont rapatriés dans `test/kits/` et comparés à l'écoute sur `test/phase0.html`. Le tableau et les réserves de chacun sont dans `docs/points-ouverts.md`. Décision en attente de l'oreille de Mathieu.
+Conséquence agréable : **une seule licence et un seul crédit pour toute la banque de sons**, Creative Commons Attribution 3.0. Et la couverture est complète, les neuf frappes existent sans transposition, y compris trois toms distincts.
+
+Le rendu MP3 pré-fabriqué ne contient que les 128 programmes mélodiques : vérifié le 13 septembre 2026, `percussion-mp3/`, `drums-mp3/` et `standard_kit-mp3/` renvoient 404. La percussion s'extrait donc du `.sf2` lui-même, banque 128 programme 0, preset « Standard ». C'est ce que fait `scripts/extract-kit-fluidr3.py`, sans aucune dépendance, appelé par `scripts/fetch-percussion.sh`. Les 9 fichiers WAV sont committés, ces scripts n'ont pas à être relancés. Vérifié : ils reproduisent les 9 fichiers au bit près.
+
+Correspondance note General MIDI vers frappe du projet, à ne pas changer sans réextraire :
+
+| Instrument | Frappe | Note GM | Échantillon FluidR3 |
+|---|---|---|---|
+| Batterie | `kick` | 36 | Std Kick |
+| Batterie | `snare` | 38 | Std Snr 1 |
+| Batterie | `tom_bas` | 41 | Low Flr Studio |
+| Batterie | `tom_med` | 45 | Low Studio |
+| Batterie | `tom_haut` | 50 | Hi Studio |
+| Cymbales | `charley` | 42 | Hi-Hat Closed |
+| Cymbales | `charley_ouvert` | 46 | Hi-Hat Half-Open |
+| Cymbales | `crash` | 49 | Crsh 1 |
+| Cymbales | `ride` | 51 | Ride1 |
+
+**La batterie et les cymbales sont deux instruments distincts de la scène**, avec leurs propres emplacements et leurs propres niveaux de mixage. Les fichiers vivent donc dans `assets/samples/batterie/` et `assets/samples/cymbales/`, et le moteur leur ouvre deux canaux séparés. L'enfant peut poser l'un sans l'autre.
+
+Ne pas se rabattre sur `taiko_drum` ou `synth_drum`, ce ne sont pas des kits.
 
 **Convention de nommage, confirmée fichier par fichier le 13 septembre 2026.** Lettre majuscule, bémol en `b` minuscule, numéro d'octave, extension `.mp3` : `C4.mp3`, `Db4.mp3`, `Bb3.mp3`. Les dièses n'existent pas, `Cs4.mp3` et `C#4.mp3` renvoient 404. 88 notes par instrument, de `A0` à `C8`, chromatique. MP3 stéréo 44 100 Hz à débit variable, 3,16 s par note quel que soit l'instrument, 25 Ko au maximum.
 
 `scripts/fetch-samples.sh` rapatrie uniquement les notes retenues dans `assets/samples/<instrument>/`. Ne prends pas toutes les notes : 4 à 6 par instrument suffisent au `Tone.Sampler`, qui transpose le reste. C'est ce qui garde le poids total sous 10 Mo.
+
+Une réserve à connaître : la note 46 du General MIDI s'appelle « Open Hi-Hat », mais l'échantillon que FluidR3 y place est un charley **à demi ouvert**. Affiché dans la page de test, à ne pas oublier en écrivant les arrangements.
 
 **Contrainte à garder en tête en écrivant les arrangements :** l'échantillon s'arrête à 3,16 s, et il sonne jusqu'au bout (aucun silence de queue, mesuré à -60 dB). À 100 à la noire, une ronde tient (2,4 s), une note de plus de cinq temps est coupée. Sans conséquence pour les comptines, mais à vérifier si un morceau lent arrive.
 
