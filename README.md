@@ -9,28 +9,28 @@ En ligne : https://symphony.kinefitlabs.com
 
 ## État
 
-Phase 1, premier batch. L'app n'a pas encore son interface au toucher, mais **le moteur audio
-est complet et les trois morceaux se jouent**.
+**Phase 1 finie.** L'app existe, elle est à la racine, et elle se joue au doigt : on pose un
+instrument sur la scène, l'arrangement se transforme en direct.
 
-Fait en phase 0 : le son sort sur iOS, la percussion est choisie (FluidR3_GM), le déploiement
-fonctionne en HTTPS, le nom est choisi, les 13 illustrations et les deux maquettes sont
-livrées.
+Ce qui reste de la phase 1 n'est pas technique : **la tester avec Grégoire et Louis.** C'est
+son objectif, et c'est le seul juge de la sensation de jeu.
 
-Fait en phase 1 : le moteur dans `src/`, les 13 instruments échantillonnés (2,9 Mo), trois
-morceaux en 13 parties pleines, et un validateur de format partagé avec l'import de la phase 2.
+Fait :
 
-Livré, en attente du jugement de Mathieu :
+- le **moteur audio** dans `src/moteur.js`, une horloge, 13 canaux, anticipation à 20 ms
+- les **13 instruments échantillonnés**, 2,6 Mo, banque FluidR3_GM
+- **trois morceaux** en 13 parties pleines, validés à l'écoute
+- les **13 illustrations** et les **deux mises en page**, validées
+- l'**interaction** : appui simple et glisser-déposer, échange sur emplacement occupé, scène
+  pleine qui refuse sans remplacer
+- le **minimum vivant** : l'instrument qui joue tressaille, la scène pulse à la mesure, les
+  emplacements vides invitent
 
-- **les trois arrangements**, à écouter sur `test/phase1.html`. C'est le seul risque qu'aucune
-  mesure ne peut lever : aucun modèle n'entend le résultat
-- **les 13 instruments en SVG**, source unique `src/instruments.js`, à juger sur
-  `test/svg.html`. Le vrai critère est la section 2, les six paires à risque de confusion
-  côte à côte à 64 px
-- **les deux mises en page en fixe**, `test/maquette.html` en plein écran et
-  `test/maquettes.html` pour les voir côte à côte
+Un point encore ouvert : **Alouette**, dont la mélodie n'a pas pu être vérifiée depuis le
+conteneur de développement. Voir `docs/points-ouverts.md`.
 
-Reste à faire : l'interface au toucher, sur la maquette validée. Et Alouette, dont la mélodie
-n'a pas pu être vérifiée depuis ce conteneur, voir `docs/points-ouverts.md`.
+Reste pour la phase 2 : zone parent complète (bibliothèque, import, export), PWA hors ligne,
+persistance.
 
 ## Où regarder
 
@@ -42,6 +42,9 @@ n'a pas pu être vérifiée depuis ce conteneur, voir `docs/points-ouverts.md`.
 ## Structure
 
 ```
+index.html            l'app
+src/app.js            l'interaction : l'etat, le toucher, le glisser, les animations
+src/app.css           la mise en page, feuille UNIQUE partagee avec la maquette
 src/moteur.js         le graphe audio, l'horloge, les 13 canaux
 src/echantillons.js   quelles notes existent, pour chaque instrument
 src/format-morceau.js valide(morceau), partagé avec l'import de la phase 2
@@ -62,16 +65,20 @@ Modules ES natifs, aucune étape de compilation, aucune dépendance npm à l'ex�
 Le plus court, rien à lancer, ouvrir directement sur l'iPad :
 
 ```
-https://symphony.kinefitlabs.com/                      le sommaire, tous les liens
-https://symphony.kinefitlabs.com/test/phase1.html      le banc d'ecoute, moteur et morceaux
-https://symphony.kinefitlabs.com/test/maquette.html    la maquette, en plein ecran
-https://symphony.kinefitlabs.com/test/maquettes.html   les deux mises en page cote a cote
-https://symphony.kinefitlabs.com/test/svg.html         les 13 instruments en SVG
-https://symphony.kinefitlabs.com/test/phase0.html      l'ancien banc audio, pour la non-regression
+https://symphony.kinefitlabs.com/            L'APP
+https://symphony.kinefitlabs.com/test/       les bancs d'essai et les maquettes
 ```
 
-`maquette.html` s'ouvre sur l'iPad **puis** sur l'iPhone : c'est la même page, elle bascule
-de mise en page au point de rupture de 900 px.
+L'app s'ouvre sur l'iPad **puis** sur l'iPhone : c'est la même page, elle bascule de mise en
+page au point de rupture de 900 px. La scène est en demi-cercle en paysage, en grille 3x2 en
+portrait.
+
+Elle ne fait **aucun bruit avant le premier geste** : le contexte audio d'iOS ne démarre
+qu'après un toucher, et le bouton silencieux de l'iPhone se contourne dans le même geste.
+Toucher un instrument suffit à amorcer, le bouton de lecture montre le chargement des 13
+instruments pendant les premières secondes.
+
+Les crédits des banques de sons sont derrière un **appui long de 2 s sur l'engrenage**.
 
 En `https://`, le certificat est émis depuis le 15 septembre 2026.
 
@@ -93,10 +100,10 @@ ipconfig getifaddr "$(route -n get default | awk '/interface:/{print $2}')"
 
 Sur l'iPad, même wifi : `http://<adresse-affichee>:8080/test/phase0.html`
 
-Les deux bancs audio (`phase1.html` et `phase0.html`) ne font aucun bruit avant l'appui sur
-« Demarrer l'audio » : le contexte audio d'iOS ne démarre qu'après un geste. Un bandeau de
-diagnostic est affiché en permanence, c'est lui qu'il faut recopier si le son ne sort pas. Les
-maquettes et le test SVG, eux, ne font jamais de son : ils n'ont pas d'audio du tout.
+Les deux bancs audio (`test/phase1.html` et `test/phase0.html`) ne font aucun bruit avant
+l'appui sur « Demarrer l'audio ». Un bandeau de diagnostic y est affiché en permanence, c'est
+lui qu'il faut recopier si le son ne sort pas. Les maquettes et le test SVG ne font jamais de
+son : ils n'ont pas d'audio du tout.
 
 Le dossier `test/` est temporaire. Il disparaîtra quand l'app aura sa propre interface, en
 phase 1 ou 2.

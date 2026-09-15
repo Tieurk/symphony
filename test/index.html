@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" href="data:,">
+<title>Mon premier orchestre, bancs d'essai</title>
+<style>
+  :root { --nuit:#141b2e; --carte:#1e2740; --bord:#33405e; --texte:#f5e9d7;
+          --doux:#9fb0d0; --accent:#f2a65a; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--nuit); color:var(--texte);
+         font:16px/1.6 -apple-system, system-ui, sans-serif;
+         padding:32px calc(20px + env(safe-area-inset-left)) 48px;
+         display:flex; justify-content:center; }
+  main { max-width: 620px; width: 100%; }
+  h1 { font-size:26px; margin:0 0 6px; }
+  p { color:var(--doux); font-size:15px; margin:0 0 20px; }
+  ul { list-style:none; margin:0; padding:0; }
+  li { margin:0 0 10px; }
+  a { display:block; background:var(--carte); border:1px solid var(--bord);
+      border-radius:12px; padding:14px 16px; min-height:64px;
+      color:var(--texte); text-decoration:none; }
+  a b { display:block; color:var(--accent); font-size:16px; }
+  a span { font-size:13px; color:var(--doux); }
+  footer { margin-top:28px; font-size:13px; color:var(--doux); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Bancs d'essai</h1>
+  <p>L'app est <a href="../">a la racine</a>. Ces pages-ci servent a verifier et a juger,
+  pas a jouer. Sur l'iPad de preference.</p>
+  <ul>
+    <li><a href="phase1.html">
+      <b>Banc d'ecoute</b>
+      <span>Le moteur, les trois morceaux, le validateur de format et le reglage
+      d'anticipation. Interface minimale, c'est l'oreille qui juge.</span></a></li>
+    <li><a href="maquette.html">
+      <b>Maquette</b>
+      <span>La reference figee de la mise en page, avec ses trois etats de scene.
+      Meme feuille de style que l'app, donc elle ne peut pas deriver.</span></a></li>
+    <li><a href="maquettes.html">
+      <b>Les deux mises en page cote a cote</b>
+      <span>A regarder sur l'iPad, pour les juger d'un coup.</span></a></li>
+    <li><a href="svg.html">
+      <b>Les 13 instruments</b>
+      <span>Les illustrations, et les six paires a risque de confusion a 64 px.</span></a></li>
+    <li><a href="phase0.html">
+      <b>Banc d'essai phase 0</b>
+      <span>L'ancien banc audio, garde pour la non-regression.</span></a></li>
+  </ul>
+  <footer>Sons : FluidR3_GM, Creative Commons Attribution 3.0. Moteur : Tone.js, licence MIT.</footer>
+</main>
+</body>
+</html>

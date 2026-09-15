@@ -84,11 +84,20 @@ Transition de mute : une rampe très courte (5 à 10 ms) pour éviter le clic, p
 | `src/moteur.js` | le graphe, l'horloge, les 13 canaux, le tempo, le volume, l'anticipation |
 | `src/echantillons.js` | pour chaque instrument, son nom General MIDI et les notes réellement rapatriées |
 | `src/format-morceau.js` | `valide(morceau)`, partagé avec l'import de la phase 2 |
-| `test/phase1.html` | le banc d'écoute, interface minimale et explicitement provisoire |
+| `src/app.js` | l'interaction : l'état, le toucher, le glisser-déposer, les animations |
+| `src/app.css` | la mise en page, **feuille unique** partagée par l'app et la maquette |
+| `index.html` | l'app. Les bancs d'essai sont dans `test/` |
+| `test/phase1.html` | le banc d'écoute, interface minimale, gardé pour le diagnostic |
+
+**L'app ne touche jamais à `Tone` directement.** Tout passe par `src/moteur.js`, y compris la synchronisation visuelle : `surNote(rappel)` et `surMesure(rappel)` enveloppent le rappel dans `Tone.Draw`, pour que l'animation tombe sur le temps **audio** et pas sur celui du navigateur. Avec une anticipation de 20 ms, un `setTimeout` tomberait à côté.
 
 Les chemins des échantillons sont résolus depuis l'emplacement du **module** (`import.meta.url`), pas depuis celui de la page. Une page à la racine et une page dans `test/` chargent donc les mêmes fichiers sans que le moteur sache d'où on l'appelle.
 
-**Mesuré en phase 0 :** la rampe de 8 ms fait son travail, le gain atteint zéro en 11 ms. Mais le son ne s'arrête que 125 ms après l'appui, parce que `Tone.getContext().lookAhead` vaut 0,1 s par défaut en mode `interactive`. La réaction perçue à un geste est donc d'environ 110 ms, pas de 8. Descendre `lookAhead` accélère la réaction au prix d'un risque d'accrocs audio sur les appareils faibles. À trancher à la main sur l'iPad, pas à l'aveugle.
+**Mesuré en phase 0 :** la rampe de 8 ms fait son travail, le gain atteint zéro en 11 ms. Mais le son ne s'arrête que 125 ms après l'appui, parce que `Tone.getContext().lookAhead` vaut 0,1 s par défaut en mode `interactive`. La réaction perçue à un geste est donc d'environ 110 ms, pas de 8.
+
+**Tranché : l'anticipation est à 20 ms.** Choisie à l'oreille par Mathieu sur l'iPad le 15 septembre 2026, contre 100 et 50 ms. La réaction perçue tombe à **28 ms, mesuré**, soit quatre fois plus vif. La constante est `ANTICIPATION` dans `src/moteur.js`, posée dès le chargement du module.
+
+**Réserve à garder en tête :** descendre l'anticipation accélère la réaction au prix d'un risque d'accrocs audio sur les appareils faibles. Testé sur l'iPad, **pas sur l'iPhone**. Si un accroc apparaît sur un appareil plus faible, `anticipation()` reste exportée et `test/phase1.html` garde ses trois boutons pour retester.
 
 **Piège des mesures composées.** Tone compte en **noires**, pas en unités de la signature : il ramène `[n, d]` à `n / (d / 4)`, donc une mesure de **6/8 vaut 3 temps, pas 6**. Les positions se notent en noires et en doubles-croches, jamais en croches de 6/8, et le `bpm` d'un morceau en 6/8 reste un tempo à la noire. Row Your Boat est en 6/8 précisément pour exercer ce chemin.
 
@@ -204,6 +213,12 @@ Règle de fond : chaque instrument garde le même rôle d'un morceau à l'autre,
 
 Test à faire passer à chaque nouveau morceau : le violon seul doit être écoutable, le tuba seul doit être écoutable, et violon + tuba + batterie doit sonner comme un vrai petit arrangement.
 
+## Piège JavaScript qui a mordu le 15 septembre 2026
+
+**`hidden` est une propriété de `HTMLElement`, pas de `SVGElement`.** Poser `svg.hidden = true` ne fait **absolument rien** : la propriété est créée sur l'objet JS, l'attribut n'est pas écrit, et l'élément reste visible. Le bouton de lecture affichait donc les icônes play **et** pause en même temps.
+
+Rien dans le code ne le laissait voir, et aucune erreur n'était levée. C'est une capture d'écran qui l'a montré. Deux leçons : basculer une icône SVG passe par une **classe** et du CSS, jamais par `hidden`, et **regarder l'image reste la seule vérification qui attrape ce genre de chose.**
+
 ## Illustrations
 
 Source unique : **`src/instruments.js`**. Le module exporte `FAMILLES` (la palette, six
@@ -240,7 +255,7 @@ et sur le bois clair.
 
 Trois zones : contrôles en haut (sélecteur de morceau, play/pause, tempo, volume), scène au centre (6 emplacements), réserve autour en paysage et en dessous en portrait.
 
-- Deux gestes équivalents : le clic ou le toucher simple envoie vers la scène ou en ramène, le glisser-déposer fait la même chose. Les deux doivent marcher.
+- Deux gestes équivalents, **faits** : l'appui simple envoie vers la scène ou en ramène, le glisser-déposer fait la même chose. Un glisser ne commence qu'après **8 px** de mouvement, sinon il avalerait l'appui simple et les deux gestes s'excluraient au lieu d'être équivalents. Différence voulue entre les deux : l'appui pose sur le **premier emplacement libre**, le glisser pose **là où le doigt vise**.
 - Scène pleine : l'instrument touché tremble, les 6 emplacements clignotent une fois. Pas de remplacement automatique.
 - Glisser sur un emplacement occupé : échange.
 - Changement de morceau : les instruments restent en place, le nouveau morceau repart du début dans le même état de lecture.
@@ -331,8 +346,8 @@ pas de persistance des données (voir piège iOS n° 4).
 ## Phases
 
 - **Phase 0** : choix du kit de percussion, écoute comparée des timbres, maquette fixe des deux mises en page, chaîne de déploiement vérifiée de bout en bout. Fait : le son sur iOS, le kit (FluidR3_GM), le déploiement en HTTPS, le nom, les 13 illustrations et les deux maquettes fixes. **Reste le jugement de Mathieu**, sur les illustrations (`test/svg.html`) et sur les maquettes (`test/maquette.html`).
-- **Phase 1** : tranche verticale. Ordre fixé par Mathieu le 15 septembre 2026 : **le son d'abord, l'interaction ensuite**, parce que les arrangements sont le seul risque qu'aucune mesure ne peut lever. Premier batch fait : moteur audio complet dans `src/`, les 13 instruments échantillonnés (2,9 Mo), trois morceaux en 13 parties, banc d'écoute `test/phase1.html`. **Reste : l'interface au toucher**, sur la maquette validée, et le verdict de Mathieu à l'écoute.
-- **Phase 2** : mise en page adaptative, glisser-déposer, animations, illustrations finales, zone parent, import et export, PWA hors ligne.
+- **Phase 1** : **finie**, reste à la tester avec Grégoire et Louis. Ordre fixé par Mathieu : le son d'abord (moteur dans `src/`, 13 instruments échantillonnés, trois morceaux en 13 parties, arrangements validés à l'oreille le 15 septembre 2026), puis l'interaction (l'app à la racine, les deux gestes, le minimum vivant). Deux écarts au tableau des phases, tranchés par Mathieu : le **glisser-déposer** et les **animations** sont montés en phase 1 au lieu de la 2, parce que l'objectif de la phase est de valider la sensation de jeu et qu'une interface figée la sous-vend.
+- **Phase 2** : zone parent complète (bibliothèque, import, export), PWA hors ligne et installation sur l'écran d'accueil, persistance du volume et du morceau choisi. La mise en page adaptative, le glisser-déposer, les animations et les illustrations sont déjà faits. Les crédits de la zone parent sont déjà là : la règle dure n° 3 les exige dès que l'app est la porte d'entrée.
 - **Phase 3** : le reste de la bibliothèque.
 - **Phase 4** : réglage des mixages morceau par morceau, retours des enfants.
 

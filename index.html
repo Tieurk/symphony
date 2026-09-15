@@ -2,53 +2,104 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#141b2e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="icon" href="data:,">
+<link rel="stylesheet" href="src/app.css">
 <title>Mon premier orchestre</title>
-<style>
-  :root { --nuit:#141b2e; --carte:#1e2740; --bord:#33405e; --texte:#f5e9d7;
-          --doux:#9fb0d0; --accent:#f2a65a; }
-  * { box-sizing: border-box; }
-  body { margin:0; background:var(--nuit); color:var(--texte);
-         font:16px/1.6 -apple-system, system-ui, sans-serif;
-         padding:32px calc(20px + env(safe-area-inset-left)) 48px;
-         display:flex; justify-content:center; }
-  main { max-width: 620px; width: 100%; }
-  h1 { font-size:26px; margin:0 0 6px; }
-  p { color:var(--doux); font-size:15px; margin:0 0 20px; }
-  ul { list-style:none; margin:0; padding:0; }
-  li { margin:0 0 10px; }
-  a { display:block; background:var(--carte); border:1px solid var(--bord);
-      border-radius:12px; padding:14px 16px; min-height:64px;
-      color:var(--texte); text-decoration:none; }
-  a b { display:block; color:var(--accent); font-size:16px; }
-  a span { font-size:13px; color:var(--doux); }
-  footer { margin-top:28px; font-size:13px; color:var(--doux); }
-</style>
 </head>
 <body>
-<main>
-  <h1>Mon premier orchestre</h1>
-  <p>Chantier en cours. L'app n'a pas encore son interface : en attendant, voici les pages
-  a ouvrir, sur l'iPad de preference.</p>
-  <ul>
-    <li><a href="test/phase1.html">
-      <b>Banc d'ecoute</b>
-      <span>Le moteur audio complet et les trois morceaux. C'est ici que ca s'ecoute.</span></a></li>
-    <li><a href="test/maquette.html">
-      <b>Maquette</b>
-      <span>Les deux mises en page, en plein ecran. Bascule a 900 px de large.</span></a></li>
-    <li><a href="test/maquettes.html">
-      <b>Les deux mises en page cote a cote</b>
-      <span>A regarder sur l'iPad, pour les juger d'un coup.</span></a></li>
-    <li><a href="test/svg.html">
-      <b>Les 13 instruments</b>
-      <span>Les illustrations, et les six paires a risque de confusion a 64 px.</span></a></li>
-    <li><a href="test/phase0.html">
-      <b>Banc d'essai phase 0</b>
-      <span>L'ancien banc audio, garde pour la non-regression.</span></a></li>
-  </ul>
-  <footer>Sons : FluidR3_GM, Creative Commons Attribution 3.0. Moteur : Tone.js, licence MIT.</footer>
-</main>
+
+<div class="app">
+
+  <!-- Rangee 1 en portrait, debut de ligne en paysage : le selecteur de
+       morceau, la fleche suivant (le PLAY du jouet, qui enchaine), et
+       l'engrenage de la zone parent derriere un appui long de 2 s. -->
+  <header class="ctrl">
+    <div class="rangee">
+      <div class="morceaux" id="morceaux"></div>
+      <button class="rond" id="suivant" aria-label="morceau suivant">
+        <svg viewBox="0 0 24 24"><path d="M5 4l11 8-11 8z"/><path d="M18 4h2v16h-2z"/></svg>
+      </button>
+      <button class="rond engrenage" id="engrenage" aria-label="zone parent, appui long de 2 secondes">
+        <svg viewBox="0 0 24 24"><path d="M12 8.5A3.5 3.5 0 1 0 12 15.5A3.5 3.5 0 1 0 12 8.5M10.6 2h2.8l.5 2.5 2.2 1.3 2.4-.9 1.4 2.4-1.9 1.7v2.5l1.9 1.7-1.4 2.4-2.4-.9-2.2 1.3-.5 2.5h-2.8l-.5-2.5-2.2-1.3-2.4.9-1.4-2.4 1.9-1.7v-2.5L4.1 7.3l1.4-2.4 2.4.9 2.2-1.3z"/></svg>
+      </button>
+    </div>
+
+    <!-- Rangee 2 : le gros bouton de lecture et le tempo, aimante sur les
+         trois reperes illustres (tortue, noire, lapin). -->
+    <div class="rangee">
+      <button class="rond play" id="play" aria-label="lecture">
+        <svg id="icone-play" viewBox="0 0 24 24"><path d="M6 3l16 9-16 9z"/></svg>
+        <svg id="icone-pause" viewBox="0 0 24 24"><path d="M5 3h5v18H5zM14 3h5v18h-5z"/></svg>
+      </button>
+      <div class="curseur">
+        <input type="range" class="piste" id="tempo" min="60" max="140" step="1" value="100"
+               aria-label="tempo">
+        <div class="reperes">
+          <svg aria-label="lent"><use href="#r-lent"/></svg>
+          <svg class="actif" aria-label="normal"><use href="#r-normal"/></svg>
+          <svg aria-label="rapide"><use href="#r-rapide"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rangee 3 : le volume, sur toute la largeur en portrait. -->
+    <div class="rangee">
+      <div class="ligne-volume">
+        <svg viewBox="0 0 24 24"><path d="M4 9h4l5-5v16l-5-5H4z"/><path d="M16 8a5 5 0 0 1 0 8v-2a3 3 0 0 0 0-4z"/></svg>
+        <input type="range" class="piste" id="volume" min="0" max="100" step="1" value="80"
+               aria-label="volume">
+      </div>
+    </div>
+  </header>
+
+  <!-- La scene. Six emplacements en demi-cercle en paysage, en grille 3x2 en
+       portrait. Scene vide, aucun son, et l'horloge continue de tourner. -->
+  <div class="scene" id="scene">
+    <div class="rideau-g"></div>
+    <div class="rideau-d"></div>
+    <div class="frise"></div>
+    <div class="places" id="places"></div>
+  </div>
+
+  <!-- La reserve. Deux colonnes laterales en paysage, coupees sur une
+       frontiere de famille : cordes et bois a gauche, le reste a droite.
+       Une grille de 13 en portrait. -->
+  <div class="res-paysage res-a" id="res-a"></div>
+  <div class="res-paysage res-b" id="res-b"></div>
+  <div class="res-portrait" id="res-portrait"></div>
+
+</div>
+
+<!-- Le fantome qui suit le doigt pendant un glisser. En pointer-events: none,
+     sinon il se masquerait lui-meme a elementFromPoint. -->
+<div id="fantome" hidden></div>
+
+<!-- La zone parent, derriere un appui long de 2 s sur l'engrenage. Version
+     minimale : les credits, que la regle dure n° 3 du projet exige des que
+     l'app est la porte d'entree. La bibliotheque, l'import et l'export
+     viennent en phase 2. -->
+<div id="parent" hidden>
+  <div class="panneau">
+    <h2>À propos</h2>
+    <p><strong>Mon premier orchestre</strong>, phase 1. Un orchestre à poser sur une scène.</p>
+    <p>Les sons viennent de <strong>FluidR3_GM</strong>, sous licence
+    <strong>Creative Commons Attribution 3.0</strong>, via le projet
+    <em>midi-js-soundfonts</em>. La batterie et les cymbales sont extraites de la même banque,
+    donc un seul crédit couvre les treize instruments.</p>
+    <p>Le moteur audio est <strong>Tone.js</strong> 15.1.22, sous licence MIT, copié dans
+    l'app : aucun appel réseau pendant que ça joue.</p>
+    <p>Les illustrations sont originales, dessinées pour ce projet.</p>
+    <p><a href="test/">Bancs d'essai</a></p>
+    <button id="ferme-parent">Retour au jeu</button>
+  </div>
+</div>
+
+<script src="src/vendor/tone.js"></script>
+<script type="module" src="src/app.js"></script>
+
 </body>
 </html>

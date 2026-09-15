@@ -140,12 +140,14 @@ interface au toucher vient au batch suivant, sur la maquette.</p>
 </section>
 
 <section id="bloc-anticipation" disabled>
-  <h2>3. L'anticipation, a trancher a l'oreille sur l'iPad</h2>
-  <p><code>lookAhead</code> vaut 0,1 s par defaut. Mesure en phase 0 : la rampe de mute fait
-  son travail en 11 ms, mais le son ne s'arrete que 125 ms apres l'appui a cause de cette
-  anticipation. Descendre accelere la reaction au prix d'un risque d'accrocs audio sur les
-  appareils faibles. <strong>Ca ne se tranche pas a l'aveugle</strong> : joue le trio, appuie
-  sur un instrument, et ecoute si ca decroche.</p>
+  <h2>3. L'anticipation, tranchee a 20 ms</h2>
+  <p><strong>Tranche a 20 ms le 15 septembre 2026</strong>, a l'oreille sur l'iPad. Tone met
+  0,1 s par defaut, ce qui donnait une reaction percue de 108 ms alors que la rampe de mute
+  fait son travail en 11 ms. A 20 ms la reaction tombe a environ 28 ms.</p>
+  <p class="note">Reserve a garder : descendre l'anticipation accelere la reaction au prix
+  d'un risque d'accrocs audio sur les appareils faibles. Teste sur l'iPad, <strong>pas sur
+  l'iPhone</strong>. Les trois boutons restent la pour retester ailleurs : joue le trio,
+  appuie sur un instrument, et ecoute si ca decroche.</p>
   <div class="rangee" id="anticipations"></div>
 </section>
 
@@ -291,9 +293,10 @@ interface au toucher vient au batch suivant, sur la maquette.</p>
 
   // --- anticipation ---------------------------------------------------------
   const ANTICIPATIONS = [0.1, 0.05, 0.02];
+  const RETENUE = 0.02;   // tranche a l'oreille sur l'iPad le 15 septembre 2026
   const zoneA = document.getElementById("anticipations");
-  zoneA.innerHTML = ANTICIPATIONS.map((s, i) =>
-    `<button data-anticipation="${s}" class="${i === 0 ? "actif" : ""}">${s * 1000} ms${i === 0 ? ", defaut" : ""}</button>`).join("");
+  zoneA.innerHTML = ANTICIPATIONS.map((s) =>
+    `<button data-anticipation="${s}" class="${s === RETENUE ? "actif" : ""}">${s * 1000} ms${s === RETENUE ? ", retenu" : ""}</button>`).join("");
   zoneA.addEventListener("click", (e) => {
     const b = e.target.closest("[data-anticipation]");
     if (!b) return;

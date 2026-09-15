@@ -30,6 +30,16 @@ const RACINE = new URL("../assets/", import.meta.url).href;
 // Rampe de mute. Assez longue pour eviter le clic, assez courte pour ne pas
 // rater l'attaque. Mesure en phase 0 : le gain atteint zero en 11 ms.
 const RAMPE_MUTE = 0.008;
+
+// L'ANTICIPATION, tranchee par Mathieu a l'oreille sur l'iPad le 15 septembre
+// 2026. Tone met 0,1 s par defaut en mode « interactive », ce qui donnait une
+// reaction percue de 108 ms alors que la rampe de mute fait son travail en 11.
+// A 20 ms la reaction tombe a environ 28 ms, soit quatre fois plus vif.
+// Reserve a garder en tete : CLAUDE.md previent qu'un reglage court peut
+// accrocher sur un appareil faible. Teste sur l'iPad, PAS sur l'iPhone. Le banc
+// d'essai garde ses trois boutons pour retester ailleurs, via anticipation().
+const ANTICIPATION = 0.02;
+Tone.getContext().lookAhead = ANTICIPATION;
 // Rampe du niveau de mixage, au changement de morceau. Un saut brutal sur un
 // canal deja ouvert s'entend.
 const RAMPE_MIX = 0.02;
@@ -48,12 +58,33 @@ let parties = [];     // les Tone.Part du morceau courant, a jeter au suivant
 let morceauCourant = null;
 let pourcentageTempo = 100;
 let rapporteErreur = (texte) => console.error(texte);
+let rappelNote = null;      // (instrument) -> void, au temps VISUEL
+let rappelMesure = null;    // () -> void, au temps VISUEL
+let idMesure = null;
 
 const silencieux = new Audio(RACINE + "silence.mp3");
 silencieux.loop = true;
 silencieux.setAttribute("playsinline", "");
 
 export function surErreur(rappel) { rapporteErreur = rappel; }
+
+// LA SYNCHRONISATION VISUELLE PASSE PAR ICI, ET NULLE PART AILLEURS.
+// L'app ne touche jamais a Tone directement : c'est ce qui garde la
+// connaissance de l'audio dans un seul fichier. Et c'est Tone.Draw qui aligne
+// le visuel sur le temps AUDIO : un setTimeout tomberait a cote, d'autant plus
+// que l'anticipation vaut 20 ms.
+export function surNote(rappel) { rappelNote = rappel; }
+export function surMesure(rappel) { rappelMesure = rappel; }
+
+// Appele depuis le rappel de partie, donc environ 20 ms avant que le son
+// sorte. L'etat ouvert est relu au temps VISUEL : un instrument ferme ne doit
+// jamais tressaillir, meme si sa partie tourne (et elles tournent toutes).
+function signaleNote(inst, temps) {
+  if (!rappelNote) return;
+  Tone.Draw.schedule(() => {
+    if (voies[inst] && voies[inst].ouvert) rappelNote(inst);
+  }, temps);
+}
 export function estPret() { return pret; }
 export function morceau() { return morceauCourant; }
 export function instruments() { return INSTRUMENTS.slice(); }
@@ -75,6 +106,10 @@ export async function demarre() {
   });
 
   await Tone.start();
+  // Tone.start() reprend le contexte existant, il ne le remplace pas, donc la
+  // valeur posee au chargement tient. On la reaffirme quand meme : si une
+  // version de Tone recreait le contexte, on repartirait a 0,1 s en silence.
+  Tone.getContext().lookAhead = ANTICIPATION;
   construis();
   await Tone.loaded();
   pret = true;
@@ -174,6 +209,9 @@ export function chargeMorceau(m) {
 
   for (const p of parties) p.dispose();
   parties = [];
+  // « 1m » depend de la signature rythmique, qui change d'un morceau a
+  // l'autre : la pulsation de mesure se reprogramme avec les parties.
+  if (idMesure !== null) { Tone.Transport.clear(idMesure); idMesure = null; }
 
   const parMesure = tempsParMesure(m.mesure) || 4;
   const sig = /^(\d+)\/(\d+)$/.exec(String(m.mesure || "4/4"));
@@ -188,15 +226,20 @@ export function chargeMorceau(m) {
     voies[inst].mixage.gain.rampTo(niveau(m, inst), RAMPE_MIX);
 
     const evts = Array.isArray(m.parties[inst]) ? m.parties[inst] : [];
-    const rappel = PERCUSSIONS[inst]
+    const joue = PERCUSSIONS[inst]
       ? (temps, ev) => frappe(ev.frappe, temps, voies[inst].mute, ev.vel)
       : (temps, ev) => sources[inst].triggerAttackRelease(
           ev.note, ev.duree, temps, ev.vel === undefined ? 0.8 : ev.vel);
+    const rappel = (temps, ev) => { joue(temps, ev); signaleNote(inst, temps); };
 
     // La partie est programmee meme vide : les 13 tournent en permanence, et
     // une partie vide qui tourne coute zero.
     parties.push(new Tone.Part(garde(inst, rappel), versTone(evts)).start(0));
   }
+
+  idMesure = Tone.Transport.scheduleRepeat((temps) => {
+    if (rappelMesure) Tone.Draw.schedule(rappelMesure, temps);
+  }, "1m", 0);
 
   morceauCourant = m;
   // parMesure sert au diagnostic, pas au Transport qui le recalcule lui-meme.
@@ -275,7 +318,7 @@ export function diagnostic() {
   return {
     pret,
     contexte: ctx.state,
-    anticipation: ctx.lookAhead,
+    anticipation: Math.round(ctx.lookAhead * 1000) / 1000,
     reactionMs: Math.round((ctx.lookAhead + RAMPE_MUTE) * 1000),
     horloge: t.state,
     position: t.position,
