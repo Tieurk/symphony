@@ -81,10 +81,11 @@
 </head>
 <body>
 
-<h1>Banc d'ecoute, phase 1</h1>
-<p>Le moteur audio complet et les trois morceaux, avec une interface volontairement
-minimale : ce qui se juge ici, <strong>c'est l'oreille</strong>, pas la mise en page. La vraie
-interface au toucher vient au batch suivant, sur la maquette.</p>
+<h1>Banc d'ecoute</h1>
+<p>Le moteur audio complet et les morceaux du dépôt, avec une interface volontairement
+minimale : ce qui se juge ici, <strong>c'est l'oreille</strong>, pas la mise en page.
+<a href="../">L'app</a> est ailleurs ; cette page reste pour ecouter un morceau instrument par
+instrument et pour la non-regression.</p>
 
 <section>
   <button id="amorce" class="principal">Demarrer l'audio</button>
@@ -152,8 +153,9 @@ interface au toucher vient au batch suivant, sur la maquette.</p>
 </section>
 
 <section>
-  <h2>4. Verdict du format sur les trois morceaux</h2>
-  <p>Le meme validateur servira a l'import d'un fichier depuis l'appareil, en phase 2. Il
+  <h2>4. Verdict du format sur les morceaux du dépôt</h2>
+  <p>Le meme validateur tourne sur l'import d'un fichier depuis l'appareil, dans la zone
+  parent de l'app : une erreur refuse l'import, une reserve le laisse passer en le disant. Il
   verifie les 13 cles, les positions dans la boucle, les noms de notes (la banque n'a pas de
   dieses), les frappes sur le bon canal, et deux contraintes propres a ce projet : aucune note
   au dela des 3,16 s de l'echantillon, et aucune transposition de plus de 5 demi-tons.</p>
@@ -165,12 +167,13 @@ interface au toucher vient au batch suivant, sur la maquette.</p>
   <p class="note">Si ca sonne. Je peux mesurer que chaque instrument produit du son, qu'aucune
   note n'est coupee, que la transposition reste courte et que les 13 parties tournent ensemble
   sans erreur. <strong>Savoir si l'arrangement est musical et si le mixage tient, c'est ton
-  oreille et elle seule.</strong> Les niveaux de mixage des trois fichiers sont mon estimation,
-  jamais validee.</p>
-  <p class="note">Alouette manque, et c'est volontaire : je ne suis pas assez sur de sa melodie
-  de memoire, et le reseau d'ici bloque Wikipedia et les sites de partitions, donc je n'ai pas
-  pu la verifier. Ecrire une fausse melodie sur une chanson que les garcons connaissent serait
-  un vrai defaut. Frere Jacques la remplace pour ce batch, il est deja dans la liste du cadrage.</p>
+  oreille et elle seule.</strong> Les niveaux de mixage sont mon estimation, jamais validee :
+  leur reglage morceau par morceau est la phase 4.</p>
+  <p class="note">Il manque des morceaux de la liste du jouet, et c'est volontaire : je n'ecris
+  que des phrases dont je suis sur, et le reseau d'ici bloque Wikipedia comme les sites de
+  partitions. Ecrire une fausse melodie sur une chanson que les garcons connaissent serait un
+  vrai defaut. La liste de ce qui manque, et les deux facons de debloquer, sont dans
+  <code>docs/points-ouverts.md</code>.</p>
 </section>
 
 <div id="diag">diagnostic...</div>
