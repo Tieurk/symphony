@@ -63,6 +63,7 @@ change.
 | Morceaux | Fichiers JSON dans `songs/`, plus `songs/index.json` qui donne l'ordre, plus import local depuis l'appareil |
 | Trois morceaux de la phase 1 | Ah ! vous dirai-je maman, Row Your Boat, **Frère Jacques**. Alouette était prévue et n'est pas écrite : sa mélodie n'a pas pu être vérifiée depuis ce conteneur (Wikipédia et les sites de partitions sont bloqués par le mandataire de sortie), et l'écrire de mémoire approximative serait un défaut sur une chanson que les garçons connaissent |
 | Trois morceaux de la phase 3 | Au clair de la lune (le remplaçant de The Wheels on the Bus prévu au cadrage), La Lettre à Élise, Cinquième Symphonie (thème). Choisis sur un seul critère : **je suis sûr de leur matière**. Voir la règle ci-dessous |
+| Trois morceaux de plus, écrits depuis une source | Berceuse de Brahms, Pop! Goes the Weasel, Arkansas Traveler (l'air du « Baby Bumblebee » du cadrage). **Neuf morceaux en tout.** Critère : une source lisible depuis ce conteneur, citée dans leur champ `source` |
 
 ## Architecture audio
 
@@ -272,7 +273,41 @@ est un défaut et pas un détail. Conséquences concrètes :
   et non quatre : mesuré, une boucle de quatre ne laissait que quatre notes à la plupart des
   instruments, et un enfant qui pose la clarinette seule n'entendait presque rien
 
-Deux détails techniques appris en écrivant ces trois-là :
+**Et depuis le 15 septembre 2026, trois morceaux qui ne viennent plus de ma mémoire mais
+d'une source lue.** Leur champ `source` porte la vérification, pas seulement « Domaine
+public » :
+
+- **Berceuse de Brahms**, Wiegenlied op. 49 n° 4, relevée sur le LilyPond de MutopiaProject.
+  Mi bémol majeur, 3/4, 16 mesures. Brahms est mort en 1897, domaine public sans discussion
+- **Pop! Goes the Weasel**, relevée sur le corpus ABC du Traditional Tune Archive. 6/8,
+  12 mesures. L'endroit exact du « Pop » vient de la source et plus de mon souvenir
+- **Arkansas Traveler**, relevée sur le recueil ABC `rjl20/abc-tunebook`. Ré majeur, 4/4,
+  16 mesures. C'est l'air que le cadrage appelle **Baby Bumblebee** : le titre affiché est
+  celui de la source, Mathieu renomme s'il préfère l'autre
+
+Les six morceaux plus anciens gardent `source: "Domaine public"`, ce qui est exact, mais
+**leur mélodie vient de ma mémoire et pas d'une source**. Trois d'entre eux ont été validés à
+l'oreille par Mathieu, ce qui vaut mieux qu'une partition ; les trois autres attendent son
+écoute. Ne pas les réécrire pour aligner le champ, ce serait toucher à des fichiers validés
+pour un gain de forme.
+
+**Les sources que ce conteneur atteint, mesuré.** L'information a coûté une demi-heure à
+établir et resservira à chaque morceau, donc elle est ici :
+
+| Source | État mesuré |
+|---|---|
+| IMSLP, abcnotation.com, fr.wikisource.org, commons.wikimedia.org | **bloqués**, HTTP 000 |
+| GitHub, pages et fichiers bruts | accessibles |
+| MutopiaProject (LilyPond, domaine public) | accessible |
+| Recueils ABC hébergés sur GitHub | accessibles |
+
+Ce qui reste sans source après cette passe : **Alouette, B-I-N-G-O, L'araignée Gipsy, Le
+Cancan et l'Entrée des gladiateurs.** Mutopia n'a ni Offenbach ni Fučík, et les recueils ABC
+sont des corpus de danses et d'airs de session, pas de comptines. Ces cinq-là ne s'écrivent
+donc pas, et le chemin le plus rapide reste l'import MIDI de la zone parent, qui est fait
+pour ça.
+
+Quatre détails techniques appris en écrivant ces six-là :
 
 1. **La flûte ne double pas toujours à l'octave.** Son plus haut échantillon est `C6`, et
    au-delà de 5 demi-tons de transposition le timbre change pour de bon. Quand l'octave
@@ -280,6 +315,15 @@ Deux détails techniques appris en écrivant ces trois-là :
    trois réserves sur la Cinquième avant cette correction
 2. **La gamme du koto est un paramètre du morceau.** `do ré mi sol la` jure avec un morceau
    en do mineur, où le mi est bémol
+3. **En ABC, l'armure s'applique aux notes écrites.** En `K:G`, un `F` d'ABC est un **fa
+   dièse**, qui s'écrit `Gb` ici puisque la banque n'a pas de dièses ; en `K:D`, un `c` est un
+   **do dièse**, donc `Db`. Relever un ABC note à note sans appliquer l'armure donne une
+   mélodie en mode majeur bancal, juste assez fausse pour être insupportable et assez proche
+   pour ne pas sauter aux yeux dans le fichier
+4. **En LilyPond, `\relative` rend l'octave d'une note dépendante de la précédente**, et les
+   bémols s'écrivent en néerlandais (`es` pour mi bémol, `aes` pour la bémol). Une lecture
+   littérale des noms de notes, sans dérouler les octaves relatives, transpose des fragments
+   entiers d'une octave sans prévenir
 
 Et un garde-fou ajouté au validateur : **un instrument qui joue mais qui n'est pas dans
 `mix` sort à 0 dB**, donc plus fort que tout le reste (voir `niveau()` dans `src/moteur.js`).
@@ -337,11 +381,12 @@ laissait l'app muette dès qu'un parent avait touché au panneau avant de jouer,
 l'amorçage avait déjà eu lieu et que le geste suivant n'était plus le premier. Deuxième fois
 que ce même piège mord au même endroit.
 
-### Un appui long de 2 s, trois façons de le rater
+### Un appui long de 2 s, cinq façons de le rater
 
 **« Marche pas »**, rapporté par Mathieu sur l'iPad le 15 septembre 2026, sur l'appui long de
-l'engrenage. Rien ne se voyait dans un navigateur sans tête, et il y avait **trois défauts
-empilés** sur un seul geste :
+l'engrenage. Rien ne se voyait dans un navigateur sans tête, et il y avait **cinq défauts
+empilés** sur un seul geste. Les trois premiers ont été trouvés à l'aveugle, les deux derniers
+grâce à une seule phrase de lui, « j'appuie 3 fois et ça marche » :
 
 1. **Rien ne se voyait pendant l'appui.** Deux secondes sans retour visuel, on lâche avant la
    fin, et il ne se passe rien. Un anneau se remplit maintenant sur l'engrenage, et sa durée
@@ -364,9 +409,38 @@ dépend d'aucun maintien, donc d'aucun comportement système, et reste hors de p
 de jeu. Il donne en plus un diagnostic : si les trois appuis marchent et que le maintien non,
 c'est le maintien qui est mangé.
 
-Le dérapage se mesure depuis le point de départ (16 px) et plus par `movementX`, qui n'est pas
-fiable sur un événement tactile de Safari et qui comparait de toute façon un pas entre deux
-événements, pas une distance parcourue.
+**4. Le critère de dérapage était faux.** Le code annulait le maintien dès 16 px parcourus
+depuis le point de départ. Un doigt posé deux secondes sur une vitre **ne reste pas
+immobile** : le centre de la zone de contact se déplace quand la pression change, et 16 px
+valent 2,5 mm sur un iPad. Un roulement de doigt tout à fait ordinaire annulait donc tout,
+**et sans rien dire**. La bonne question n'est pas « est-ce que le doigt a bougé » mais
+**« est-ce que le doigt a quitté le bouton »** : la comparaison se fait maintenant contre
+`getBoundingClientRect()` élargi de `MARGE_ENGRENAGE` (24 px). Un doigt qui roule sur place
+reste dans les 68 px du bouton, un doigt qui part vers la scène en sort.
+
+**5. Un `pointercancel` tuait le maintien.** Le défaut n° 2 en supprime la cause la plus
+fréquente, mais iOS peut encore reprendre un pointeur pour ses propres raisons, et le
+gestionnaire appelait `relache()`, donc annulait le minuteur. Il ne l'annule plus : il note que
+le pointeur a disparu et **laisse le minuteur courir**. Contrepartie assumée : après un
+`pointercancel` on ne sait plus quand le doigt se lève, donc le panneau peut s'ouvrir jusqu'à
+2 s après un geste que le système a interrompu. C'est borné, ça se voit (l'anneau continue de
+se remplir), et ça vaut mieux qu'un bouton mort.
+
+**Ce que la phrase de Mathieu a permis de conclure, et qui vaut méthode.** « J'appuie 3 fois et
+ça marche » dit que le `pointerdown` arrive, que `relache()` s'exécute (c'est le seul chemin
+qui compte les appuis), que `ouvreParent()` fonctionne et que le panneau s'affiche. Tout le
+reste du geste est donc innocenté, et il ne restait que ces deux coupables. **La porte de
+secours a servi de sonde**, et c'est pour ça qu'elle reste.
+
+Deux conséquences dans le code, pour ne plus dépendre d'une phrase :
+
+- **le motif de l'échec est affiché**, un message par cas : lâché trop tôt, sorti du bouton,
+  interrompu par le système. Un geste qui échoue en silence est un geste qu'on ne peut pas
+  diagnostiquer à distance
+- **une ligne de diagnostic dans la page « À propos »** (`#diagnostic-appui`) garde le dernier
+  motif et la durée tenue, par exemple « sorti du bouton après 0,4 s ». Mathieu entre par les
+  trois appuis et me lit la ligne : c'est le chemin le plus court vers la cause, sans câble et
+  sans Mac
 
 ### `hidden` en CSS, et `hidden` sur un SVG
 
@@ -432,6 +506,15 @@ Trois zones : contrôles en haut (sélecteur de morceau, play/pause, tempo, volu
 - Changement de morceau : les instruments restent en place, le nouveau morceau repart du début dans le même état de lecture.
 - **Scène en demi-cercle en paysage**, tranché le 15 septembre 2026 contre une grille 3x2 : six emplacements en arc face au public, extrémités basses et milieu haut. Coût mesuré, l'emplacement passe de 275 px à 129 px sur l'iPad. La grille 3x2 reste en portrait, faute de largeur.
 - **Réserve portrait à cinq colonnes**, pas les quatre du cadrage. Mesuré : en quatre colonnes les 13 jetons prennent une rangée de plus, soit 148 px pris à la scène, et l'emplacement tombe à 67 px sur un iPhone 390 et à 16 px sur un SE. La cible tactile de 64 px gagne contre le nombre de colonnes.
+- **Le ruban de morceaux défile, et deux choses en découlent, mesurées à neuf morceaux.**
+  Sur un iPhone SE, neuf vignettes font 624 px pour 193 px visibles : la sélection sortait de
+  l'écran dès le quatrième morceau enchaîné avec la flèche, et plus rien ne disait où on en
+  était. Le ruban **recentre donc la vignette choisie** (`montreChoisi()`), et seulement quand
+  le rang change : `rend()` est appelé à chaque instrument posé, recentrer sous les doigts de
+  l'enfant serait pire que de ne rien faire. Et le **voile de bord est conditionnel**
+  (`majBordsRuban()`, classes `deborde-gauche` et `deborde-droite`) : affiché en permanence, il
+  éteignait la dernière vignette, c'est à dire précisément celle que l'enfant venait de
+  choisir. Les deux défauts grandissent à chaque morceau ajouté, donc ils sont dans les tests.
 - Tempo de 60 % à 140 %, aimanté sur trois repères illustrés : **tortue, noire, lapin**, dessinés dans `src/instruments.js` sous les identifiants `r-lent`, `r-normal`, `r-rapide`. Ce ne sont pas des instruments, ils ne sont donc pas dans `INSTRUMENTS`. Vérifiés lisibles à 26 px.
 - Cibles tactiles de 64 px minimum. Aucun texte nécessaire pour jouer.
 - Dans la **zone parent**, les actions d'une ligne de bibliothèque font aussi 64 px de haut, ce qui dicte la forme de la ligne : titre sur une ligne, actions en dessous. Cinq boutons de 64 px et un titre ne tiennent pas côte à côte sur la largeur d'un iPhone (mesuré : 344 px nécessaires pour 310 px utiles). Les onglets et les boutons secondaires descendent à 56 px, seul écart assumé, et c'est du texte qu'un adulte lit.
@@ -587,7 +670,7 @@ pas de persistance des données (voir piège iOS n° 4).
 - **Phase 0** : choix du kit de percussion, écoute comparée des timbres, maquette fixe des deux mises en page, chaîne de déploiement vérifiée de bout en bout. Fait : le son sur iOS, le kit (FluidR3_GM), le déploiement en HTTPS, le nom, les 13 illustrations et les deux maquettes fixes. **Reste le jugement de Mathieu**, sur les illustrations (`test/svg.html`) et sur les maquettes (`test/maquette.html`).
 - **Phase 1** : **finie**, reste à la tester avec Grégoire et Louis. Ordre fixé par Mathieu : le son d'abord (moteur dans `src/`, 13 instruments échantillonnés, trois morceaux en 13 parties, arrangements validés à l'oreille le 15 septembre 2026), puis l'interaction (l'app à la racine, les deux gestes, le minimum vivant). Deux écarts au tableau des phases, tranchés par Mathieu : le **glisser-déposer** et les **animations** sont montés en phase 1 au lieu de la 2, parce que l'objectif de la phase est de valider la sensation de jeu et qu'une interface figée la sous-vend.
 - **Phase 2** : **finie.** Mise en page adaptative, glisser-déposer, animations, illustrations, crédits (règle dure n° 3, exigés dès que l'app est la porte d'entrée), **hors ligne** (manifeste, service worker, icônes, installation, persistance de la scène, du morceau, du tempo et du volume) et **zone parent complète** : bibliothèque (masquer, réordonner, supprimer), import d'un fichier du projet ou d'un MIDI avec écran de correspondance des pistes, export par la feuille de partage. Voir « Hors ligne et installation » et « La bibliothèque, l'import et l'export ».
-- **Phase 3** : en cours. Trois morceaux ajoutés (Au clair de la lune, La Lettre à Élise, Cinquième Symphonie), six en tout. Restent ceux du tableau 7.4 dont je ne suis pas sûr de la mélodie (Le Cancan, la Berceuse de Brahms, B-I-N-G-O, L'araignée Gipsy, Baby Bumblebee, Pop! Goes the Weasel, l'Entrée des gladiateurs) et la deuxième série du 7.5, que Mathieu doit cocher. Voir `docs/points-ouverts.md`.
+- **Phase 3** : en cours. Six morceaux ajoutés, **neuf en tout** : Au clair de la lune, La Lettre à Élise et Cinquième Symphonie de mémoire, puis Berceuse de Brahms, Pop! Goes the Weasel et Arkansas Traveler depuis une source lue. Restent **cinq** morceaux du tableau 7.4 dont aucune source atteignable ne me donne la mélodie (Alouette, B-I-N-G-O, L'araignée Gipsy, Le Cancan, l'Entrée des gladiateurs) et la deuxième série du 7.5, que Mathieu doit cocher. Voir `docs/points-ouverts.md`.
 - **Phase 4** : réglage des mixages morceau par morceau, retours des enfants.
 
 Chaque phase se termine par une version en ligne testable.

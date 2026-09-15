@@ -67,9 +67,18 @@ body {
   display: flex; gap: 6px; min-width: 0; flex: 1 1 auto;
   overflow-x: auto; overflow-y: hidden; scrollbar-width: none;
   scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
-  -webkit-mask-image: linear-gradient(90deg, #000 0 88%, transparent 100%);
-  mask-image: linear-gradient(90deg, #000 0 88%, transparent 100%);
+  /* Le voile de bord dit « il y en a d'autres par la ». Il ne doit pas
+     s'afficher quand il n'y a rien de plus a voir, sinon la derniere
+     vignette a l'air eteinte alors qu'elle est la vignette choisie. Les deux
+     bornes sont pilotees par app.js, qui regarde le defilement reel. */
+  --f-g: 0%; --f-d: 100%;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 var(--f-g),
+                                              #000 var(--f-d), transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 var(--f-g),
+                                     #000 var(--f-d), transparent 100%);
 }
+.morceaux.deborde-gauche { --f-g: 12%; }
+.morceaux.deborde-droite { --f-d: 88%; }
 .morceaux::-webkit-scrollbar { display: none; }
 .morceau { scroll-snap-align: start; }
 .morceau {

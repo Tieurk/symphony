@@ -76,9 +76,44 @@ function rend() {
   for (const j of jetons) j.classList.toggle("vide", surScene(j.dataset.inst));
   const m = morceaux[choisi];
   for (const b of zMorceaux.children) b.classList.toggle("choisi", +b.dataset.morceau === choisi);
+  montreChoisi();
   if (m) document.title = "Mon premier orchestre, " + m.titre;
   sauve();
 }
+
+// Le ruban de morceaux defile des qu'il y en a plus que de largeur : mesure,
+// neuf morceaux font 624 px pour 193 px visibles sur un iPhone SE. Sans ce
+// recentrage, l'enfant qui enchaine avec la fleche perd de vue le morceau
+// choisi : la vignette allumee est hors de l'ecran et plus rien ne dit ou on
+// en est. Le defaut grandit a chaque morceau ajoute.
+//
+// On ne defile QUE si le rang a change : rend() est appele a chaque instrument
+// pose, et recentrer le ruban sous les doigts de l'enfant serait pire que de
+// ne rien faire.
+let defileVers = -1;
+function montreChoisi() {
+  if (defileVers === choisi) return;
+  defileVers = choisi;
+  const b = zMorceaux.querySelector(`[data-morceau="${choisi}"]`);
+  // block: nearest, sinon la page elle-meme bougerait verticalement. Et un
+  // defilement anime est un mouvement comme un autre : il respecte
+  // prefers-reduced-motion, que le CSS honore deja partout ailleurs.
+  const doux = !matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (b) b.scrollIntoView({ block: "nearest", inline: "center", behavior: doux ? "smooth" : "auto" });
+  majBordsRuban();
+}
+
+// Le voile de bord n'est vrai que s'il reste vraiment quelque chose a voir de
+// ce cote. Affiche en permanence, il eteignait la derniere vignette, qui est
+// justement celle que l'enfant vient de choisir.
+function majBordsRuban() {
+  const max = zMorceaux.scrollWidth - zMorceaux.clientWidth;
+  zMorceaux.classList.toggle("deborde-gauche", zMorceaux.scrollLeft > 4);
+  zMorceaux.classList.toggle("deborde-droite", zMorceaux.scrollLeft < max - 4);
+}
+zMorceaux.addEventListener("scroll", majBordsRuban);
+// La rotation de l'iPad change la largeur du ruban, donc ses debords.
+addEventListener("resize", majBordsRuban);
 
 // --- persistance ------------------------------------------------------------
 // La scene, le morceau et les reglages survivent a la fermeture. Sans ca, un
@@ -437,15 +472,50 @@ for (const id of ["tempo", "volume"]) $(id).addEventListener("change", sauve);
 // Le mouvement se mesure depuis le point de depart et plus par movementX, qui
 // n'est pas fiable sur un evenement tactile de Safari et qui comparait de
 // toute facon un pas entre deux evenements, pas une distance parcourue.
+//
+// DEUXIEME TOUR, apres le retour de Mathieu sur l'iPad : « j'appuie 3 fois et
+// ca marche ». La porte de secours a fait son travail de diagnostic. Elle dit
+// que le doigt atteint le bouton, que les ecouteurs sont branches et que le
+// panneau s'affiche : seul le MAINTIEN echouait, et en silence. Il restait
+// deux coupables, tous les deux de mon fait :
+//
+// 4. LE CRITERE DE DERAPAGE ETAIT MAUVAIS. Un doigt pose deux secondes sur une
+//    vitre ne reste pas immobile : le centre de la zone de contact se deplace
+//    quand la pression change. 16 px valent environ 2,5 mm sur un iPad, un
+//    roulement de doigt tout a fait ordinaire, et ce chemin annulait SANS RIEN
+//    DIRE. La bonne question n'est pas « est-ce que le doigt a bouge », c'est
+//    « est-ce que le doigt a QUITTE LE BOUTON ». On compare donc a la boite du
+//    bouton, elargie d'une marge.
+// 5. UN pointercancel TUAIT LE MAINTIEN. iOS peut reprendre un pointeur pour
+//    ses propres raisons, meme avec touch-action: none. Desormais il ne coupe
+//    plus le minuteur : on note que le pointeur a disparu et on laisse courir.
+//    Contrepartie assumee : apres un pointercancel on ne sait plus quand le
+//    doigt se leve, donc le panneau peut s'ouvrir jusqu'a 2 s apres un geste
+//    interrompu. C'est borne, c'est visible (l'anneau se remplit), et ca vaut
+//    mieux qu'un bouton mort.
+//
+// Et le motif de l'echec est maintenant AFFICHE, puis consigne dans la page
+// « A propos » : c'est le chemin le plus court pour savoir ce qui bloque sur un
+// appareil que je ne peux pas essayer.
 
 let minuteur = null;
 let debutAppui = 0;
-let departAppui = null;
+let pointeurParti = false;      // un pointercancel est passe, le doigt est inconnu
+let dernierMotif = "";          // pour la ligne de diagnostic de la zone parent
 const eng = $("engrenage");
-const SEUIL_ENGRENAGE = 16;     // px de derapage toleres avant d'abandonner
+const MARGE_ENGRENAGE = 24;     // px hors du bouton avant d'abandonner
 eng.style.setProperty("--appui", APPUI_LONG + "ms");
 
+// Le doigt est-il encore sur le bouton ? Sa boite elargie d'une marge, et pas
+// une distance parcourue depuis le depart.
+function surLeBouton(x, y) {
+  const r = eng.getBoundingClientRect();
+  return x >= r.left - MARGE_ENGRENAGE && x <= r.right + MARGE_ENGRENAGE
+      && y >= r.top - MARGE_ENGRENAGE && y <= r.bottom + MARGE_ENGRENAGE;
+}
+
 function ouvreParent() {
+  if (debutAppui) noteMotif("ouvert", performance.now() - debutAppui);
   // Rafraichir AVANT d'afficher : la liste et le compte des sons en cache ont
   // pu changer depuis la derniere ouverture.
   parent.rafraichis();
@@ -457,8 +527,18 @@ function ouvreParent() {
 function annule() {
   if (minuteur) { clearTimeout(minuteur); minuteur = null; }
   debutAppui = 0;
-  departAppui = null;
+  pointeurParti = false;
   eng.classList.remove("presse");
+}
+
+// Le motif du dernier echec, garde pour la page « A propos ». Mathieu entre
+// par les trois appuis et me lit la ligne : sans Mac, c'est la seule facon de
+// savoir lequel des defauts l'a bloque.
+function noteMotif(motif, tenu) {
+  const s = (tenu / 1000).toFixed(1).replace(".", ",");
+  dernierMotif = `${motif} apr\u00e8s ${s} s`;
+  const z = $("diagnostic-appui");
+  if (z) z.textContent = "Dernier appui long : " + dernierMotif + ".";
 }
 
 let minuteurAstuce = null;
@@ -471,8 +551,12 @@ function astuce(texte) {
 }
 
 eng.addEventListener("pointerdown", (e) => {
+  // Un minuteur du geste precedent peut encore courir, apres un
+  // pointercancel qui ne le coupe plus : sinon il ouvrirait le panneau tout
+  // seul pendant le geste suivant.
+  if (minuteur) { clearTimeout(minuteur); minuteur = null; }
   debutAppui = performance.now();
-  departAppui = { x: e.clientX, y: e.clientY };
+  pointeurParti = false;
   // Retirer puis remettre la classe, sinon l'animation de l'anneau ne repart
   // pas au deuxieme appui.
   eng.classList.remove("presse");
@@ -499,22 +583,43 @@ function relache() {
   // minuteur non nul veut dire qu'il n'a pas encore tire : s'il est en retard
   // alors que le temps est fait, on ouvre quand meme.
   if (minuteur !== null && tenu >= APPUI_LONG) { ouvreParent(); appuis = []; return; }
-  annule();
+
+  // Si le systeme a deja interrompu le pointeur, ce pointerup ne prouve pas
+  // que le doigt s'est leve : la specification dit qu'il ne doit pas arriver,
+  // et un navigateur qui l'enverrait quand meme remettrait le defaut n° 5. On
+  // compte donc l'appui pour le triple, mais on NE COUPE PAS le minuteur, qui
+  // est devenu le seul chemin fiable.
+  if (!pointeurParti) {
+    noteMotif("l\u00e2ch\u00e9 trop t\u00f4t", tenu);
+    annule();
+  }
 
   const t = performance.now();
   appuis = appuis.filter((x) => t - x < FENETRE_TRIPLE);
   appuis.push(t);
   if (appuis.length >= 3) { appuis = []; ouvreParent(); return; }
-  astuce("Garde le doigt appuyé 2 secondes sur l'engrenage, ou appuie trois fois de suite.");
+  astuce("Garde le doigt appuyé jusqu'à ce que l'anneau se remplisse, ou appuie trois fois de suite.");
 }
 eng.addEventListener("pointerup", relache);
-eng.addEventListener("pointercancel", relache);
+
+// Le pointeur interrompu par le systeme NE COUPE PLUS le maintien : on note
+// seulement qu'on ne sait plus ou est le doigt, et le minuteur continue.
+eng.addEventListener("pointercancel", () => {
+  if (!debutAppui) return;
+  pointeurParti = true;
+  noteMotif("interrompu par le syst\u00e8me", performance.now() - debutAppui);
+  astuce("iOS a interrompu le geste. Garde le doigt, ou appuie trois fois de suite.");
+});
+
 eng.addEventListener("pointermove", (e) => {
-  // Un doigt qui derape abandonne : sinon l'appui long se declencherait
-  // pendant un glisser qui passe sur l'engrenage. Sans astuce ici, ce n'est
-  // pas un appui rate mais un autre geste.
-  if (!minuteur || !departAppui) return;
-  if (Math.hypot(e.clientX - departAppui.x, e.clientY - departAppui.y) > SEUIL_ENGRENAGE) annule();
+  // Un doigt qui QUITTE LE BOUTON abandonne : sinon l'appui long se
+  // declencherait pendant un glisser qui passe sur l'engrenage. Un doigt qui
+  // roule sur place, lui, ne quitte rien et ne doit rien annuler.
+  if (!minuteur || !debutAppui || pointeurParti) return;
+  if (surLeBouton(e.clientX, e.clientY)) return;
+  noteMotif("sorti du bouton", performance.now() - debutAppui);
+  annule();
+  astuce("Le doigt a quitté le bouton. Recommence sans glisser.");
 });
 const fermeParent = () => { $("parent").hidden = true; };
 $("ferme-parent").addEventListener("click", fermeParent);
@@ -599,9 +704,12 @@ moteur.surErreur((texte) => console.error("moteur : " + texte));
 // masque, supprime ou deplace change la liste que voit l'enfant.
 
 function rendSelecteur() {
+  // Remplacer le contenu remet le defilement a zero : il faudra recentrer.
+  defileVers = -1;
   zMorceaux.innerHTML = morceaux.map((m, i) =>
     `<button class="morceau" data-morceau="${i}" style="background:${m.couleur}">
        <span>${m.titre}</span></button>`).join("");
+  majBordsRuban();
 }
 
 // Appele par la zone parent. Garde le morceau en cours s'il est toujours

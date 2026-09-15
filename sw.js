@@ -29,7 +29,7 @@
 // indefiniment, et la correction n'arriverait jamais chez l'enfant. Changer ce
 // numero change aussi les octets de ce fichier-ci, ce qui est justement ce qui
 // declenche l'installation d'un nouveau service worker.
-const VERSION_COQUE = "v5";
+const VERSION_COQUE = "v6";
 const VERSION_MORCEAUX = "v1";   // a monter quand un fichier de songs/ change
 const VERSION_SONS = "v1";       // a monter quand un echantillon change
 const COQUE = "orchestre-coque-" + VERSION_COQUE;

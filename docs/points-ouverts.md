@@ -4,37 +4,49 @@
 
 ## À trancher maintenant
 
-### 1. Les mélodies dont je ne suis pas sûr. Alouette et sept autres.
+### 1. Les mélodies dont je ne suis pas sûr. Cinq restent.
 
-**Six morceaux sont en ligne** : Ah ! vous dirai-je maman, Row Your Boat, Frère Jacques, Au
-clair de la lune, La Lettre à Élise, Cinquième Symphonie. Je n'écris que des phrases dont je
-suis sûr, et c'est ce qui bloque la suite.
+**Neuf morceaux sont en ligne** : Ah ! vous dirai-je maman, Row Your Boat, Frère Jacques, Au
+clair de la lune, La Lettre à Élise, Cinquième Symphonie, et depuis aujourd'hui **Berceuse de
+Brahms**, **Pop! Goes the Weasel** et **Arkansas Traveler**. Les trois derniers sont écrits
+parce que j'ai enfin trouvé une source lisible depuis ce conteneur, et leur champ `source` dit
+laquelle.
 
-Ce qui reste du tableau 7.4, et pourquoi je ne l'ai pas écrit : **je ne suis pas assez sûr de
-la mélodie de mémoire**, et le réseau de ce conteneur bloque Wikipédia, les sites de
-partitions et les bases de données de morceaux. J'ai cherché des recueils libres sur GitHub :
-ceux que j'ai trouvés sont soit vides de comptines françaises, soit sous une licence
-non commerciale et à partage identique, que je préfère ne pas mêler au dépôt.
+J'ai cartographié ce que le réseau de sortie laisse passer, et c'est ça qui a débloqué la
+situation :
 
-| Morceau | Ce qui me manque |
+| Source | État mesuré |
 |---|---|
-| Alouette | le contour exact des reprises, la partie qui énumère |
-| Le Cancan (Offenbach) | je reconnais l'air, je ne saurais pas l'écrire note à note |
-| Berceuse de Brahms | j'hésite entre deux versions du premier intervalle |
-| B-I-N-G-O | le rythme des lettres épelées |
-| L'araignée Gipsy | la fin de la phrase |
-| Baby Bumblebee | l'air d'Arkansas Traveler, dont je ne suis pas sûr |
-| Pop! Goes the Weasel | l'endroit exact du « Pop » |
-| Entrée des gladiateurs (Fučík) | la descente chromatique |
+| IMSLP, abcnotation.com, Wikisource, Wikimedia Commons | bloqués, HTTP 000 |
+| GitHub, pages et fichiers bruts | accessibles |
+| MutopiaProject, partitions LilyPond en domaine public | accessible |
+| Recueils ABC hébergés sur GitHub | accessibles |
+
+Ce qui reste du tableau 7.4, après avoir cherché dans Mutopia, dans les recueils ABC libres et
+dans l'index des partitions LilyPond de GitHub. **Aucune source ne me donne ces cinq
+mélodies**, donc je ne les écris pas :
+
+| Morceau | Ce qui me manque | Ce que j'ai cherché |
+|---|---|---|
+| Alouette | le contour exact des reprises, la partie qui énumère | absente de Mutopia et des recueils ABC, qui sont des corpus de danses et d'airs de session, pas de comptines |
+| B-I-N-G-O | le rythme des lettres épelées | idem |
+| L'araignée Gipsy | la fin de la phrase | idem |
+| Le Cancan (Offenbach) | je reconnais l'air, je ne saurais pas l'écrire note à note | Mutopia n'a aucune partition d'Offenbach |
+| Entrée des gladiateurs (Fučík) | la descente chromatique | Mutopia n'a aucune partition de Fučík |
 
 Deux façons de débloquer, et la première est beaucoup plus rapide pour toi :
 
-1. **Tu importes un MIDI toi-même.** C'est exactement le circuit 2 du cadrage, et il marche
-   depuis ce matin : tu trouves un `.mid` du morceau, tu l'importes dans la zone parent, tu
-   répartis les pistes, et il est dans la bibliothèque. Si le résultat te plaît, tu me
-   l'exportes et je le reprends proprement en arrangement pour la scène
+1. **Tu importes un MIDI toi-même.** C'est exactement le circuit 2 du cadrage : tu trouves un
+   `.mid` du morceau, tu l'importes dans la zone parent, tu répartis les pistes, et il est
+   dans la bibliothèque. Si le résultat te plaît, tu me l'exportes et je le reprends
+   proprement en arrangement pour la scène
 2. **Tu me confirmes la mélodie**, en solfège ou en notes (do ré mi, ou C D E), avec le
    rythme. Une ligne par phrase suffit
+
+Et une question de nom, qui est de ton ressort : le cadrage appelle le morceau **Baby
+Bumblebee**, alors que l'air est celui d'**Arkansas Traveler**. J'ai mis « Arkansas
+Traveler », qui est le titre de la source. Si « Baby Bumblebee » parle davantage aux garçons,
+dis-le et je renomme.
 
 ### 2. Le test avec les enfants.
 

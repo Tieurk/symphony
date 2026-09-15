@@ -19,7 +19,7 @@ Fait :
 
 - le **moteur audio** dans `src/moteur.js`, une horloge, 13 canaux, anticipation à 20 ms
 - les **13 instruments échantillonnés**, 2,6 Mo, banque FluidR3_GM
-- **six morceaux** en 13 parties pleines, dont trois validés à l'écoute par Mathieu
+- **neuf morceaux** en 13 parties pleines, dont trois validés à l'écoute par Mathieu
 - les **13 illustrations** et les **deux mises en page**, validées
 - l'**interaction** : appui simple et glisser-déposer, échange sur emplacement occupé, scène
   pleine qui refuse sans remplacer
@@ -32,13 +32,12 @@ Fait :
   projet ou d'un **MIDI** avec écran de correspondance des pistes, export par la feuille de
   partage, crédits des banques de sons
 
-Un point encore ouvert : **Alouette**, dont la mélodie n'a pas pu être vérifiée depuis le
-conteneur de développement. Voir `docs/points-ouverts.md`.
-
-Phase 3 en cours : six morceaux sur les quinze du jouet. Les suivants attendent soit une
-mélodie que je puisse vérifier, soit un MIDI importé depuis l'appareil, soit les coches de
-Mathieu sur la deuxième série. Voir `docs/points-ouverts.md`. Et pour la phase 4, le réglage
-des mixages morceau par morceau, à l'oreille.
+Phase 3 en cours : neuf morceaux sur les quinze du jouet. Les trois derniers (Berceuse de
+Brahms, Pop! Goes the Weasel, Arkansas Traveler) sont écrits depuis une source vérifiable, et
+leur champ `source` dit laquelle. **Cinq restent sans source** : Alouette, B-I-N-G-O,
+L'araignée Gipsy, Le Cancan, l'Entrée des gladiateurs. Elles attendent soit une mélodie que
+Mathieu me confirme, soit un MIDI importé depuis l'appareil. Voir `docs/points-ouverts.md`.
+Et pour la phase 4, le réglage des mixages morceau par morceau, à l'oreille.
 
 ## Où regarder
 
