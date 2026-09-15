@@ -55,11 +55,27 @@ l'app. `test/icone.html` la montre aux tailles réelles et sous les deux masques
 J'ai corrigé une seule chose, qui était un défaut de lisibilité et pas de goût : le violon
 était trop petit dans un cadre de scène trop grand, illisible à 32 px.
 
-## À trancher avant la phase 2
+### 4. La correspondance des pistes MIDI, et le mixage des imports.
 
-4. **Import MIDI.** Confirmer que le bouton Importer accepte aussi les fichiers `.mid` avec écran de correspondance des pistes, ou seulement les fichiers au format du projet.
+L'import MIDI est fait, écran de correspondance compris. Deux choses dedans sont **mes
+estimations**, et il n'y a que l'usage qui les jugera.
 
-5. **Accès à la zone parent.** L'appui long de 2 s sur l'engrenage est en place, comme le prévoit le cadrage. À confirmer à l'usage : un enfant de 8 ans qui cherche ne doit pas tomber dessus par hasard, et toi tu ne dois pas avoir à t'y reprendre à trois fois.
+- **La proposition d'instrument** part des numéros de programme General MIDI, par famille :
+  cordes vers le violon, basses vers le tuba, flûtes vers la flûte, canal 10 vers la batterie
+  et les cymbales. Si sur un fichier réel la proposition tombe systématiquement à côté,
+  dis-le moi avec le fichier, la table est facile à corriger
+- **Le mixage d'un morceau importé** part d'une table par défaut, la même pour tous. Le
+  réglage à l'oreille morceau par morceau est la phase 4, et c'est toi qui entends
+
+Et le rappel du cadrage, qui vaut d'être répété : un MIDI trouvé sur le web n'a pas été écrit
+pour cette scène. Ça jouera, mais rarement aussi bien qu'un arrangement où chaque instrument
+a un rôle pensé pour toutes les combinaisons de 1 à 6.
+
+### 5. L'accès à la zone parent, à confirmer à l'usage.
+
+L'appui long de 2 s sur l'engrenage est en place, comme le prévoit le cadrage. Deux choses à
+vérifier avec les garçons dans la pièce : un enfant de 8 ans qui cherche ne doit pas tomber
+dessus par hasard, et toi tu ne dois pas avoir à t'y reprendre à trois fois.
 
 ## À trancher avant la phase 3
 

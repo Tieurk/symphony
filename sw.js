@@ -24,7 +24,7 @@
 // indefiniment, et la correction n'arriverait jamais chez l'enfant. Changer ce
 // numero change aussi les octets de ce fichier-ci, ce qui est justement ce qui
 // declenche l'installation d'un nouveau service worker.
-const VERSION_COQUE = "v2";
+const VERSION_COQUE = "v3";
 const COQUE = "orchestre-coque-" + VERSION_COQUE;
 const SONS = "orchestre-sons-v1";
 
@@ -41,6 +41,9 @@ const FICHIERS_COQUE = [
   "src/instruments.js",
   "src/echantillons.js",
   "src/format-morceau.js",
+  "src/bibliotheque.js",
+  "src/parent.js",
+  "src/midi.js",
   "src/vendor/tone.js",
   "assets/silence.mp3",
   "assets/img/icone-32.png",

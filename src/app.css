@@ -26,6 +26,12 @@
   --jeton: 68px;          /* cible tactile, plancher a 64 px */
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+/* L'attribut hidden n'est qu'un display: none de la feuille du navigateur :
+   la moindre regle d'auteur qui pose un display le bat. Mesure faite, les
+   boutons de l'import restaient visibles malgre hidden, parce qu'ils sont dans
+   un .menu en display: flex. Cousin du piege deja consigne dans CLAUDE.md :
+   hidden n'existe pas du tout sur un SVGElement. */
+[hidden] { display: none !important; }
 button { font: inherit; color: inherit; cursor: pointer; }
 html, body { margin: 0; height: 100%; overflow: hidden; }
 body {
@@ -405,15 +411,88 @@ body {
 #parent a { color: var(--accent); }
 #parent .menu { display: flex; flex-wrap: wrap; gap: 8px; }
 #parent .fin { font-size: 12px; margin-top: 14px; }
-#parent button.secondaire {
+/* La classe et pas l'element : « Choisir un fichier » est une <label> qui
+   enveloppe le champ natif, pas un <button>. La regle sur l'element seul la
+   laissait a 22 px de haut, mesure faite. */
+#parent .secondaire {
   flex: 1 1 auto; min-height: 56px; font-size: 14px; font-weight: 600;
   background: #2b3654; color: var(--texte); border: 1px solid var(--bord);
-  border-radius: 10px; margin: 0;
+  border-radius: 10px; margin: 0; display: grid; place-items: center;
+  text-align: center; padding: 4px 10px;
 }
-#parent button.secondaire:disabled { opacity: .5; }
+#parent .secondaire:disabled { opacity: .5; }
 #parent button {
   font: inherit; margin-top: 8px; min-height: 64px; width: 100%;
   background: var(--accent); color: #22160c; border: 0; border-radius: 12px;
   font-weight: 700; font-size: 16px;
 }
 .rond.engrenage.presse { color: var(--accent); background: rgba(242,166,90,.18); }
+
+/* ===========================================================================
+   LA BIBLIOTHEQUE ET L'IMPORT, dans la zone parent. Trois pages derriere un
+   bandeau d'onglets.
+
+   Cibles tactiles : 64 px pour les actions d'une ligne de morceau, comme
+   partout ailleurs dans le projet. C'est ce qui dicte la forme de la ligne,
+   titre puis actions en dessous : cinq boutons de 64 px et un titre ne
+   tiennent pas cote a cote sur la largeur d'un iPhone. Mesure : 5 x 64 + 4 x 6
+   = 344 px, contre 310 px utiles dans le panneau a 390 px de large, donc les
+   boutons partagent la largeur avec un plancher a 56 px quand ils sont cinq.
+   =========================================================================== */
+#parent .onglets { display: flex; gap: 6px; margin: 0 0 14px; }
+#parent .onglet {
+  flex: 1 1 0; min-width: 0; min-height: 56px; margin: 0; padding: 6px 4px;
+  background: #2b3654; color: var(--doux); border: 1px solid var(--bord);
+  border-radius: 10px; font-size: 13px; font-weight: 600; width: auto;
+}
+#parent .onglet.actif { background: var(--accent); color: #22160c; border-color: var(--accent); }
+#parent .aide { font-size: 12px; color: var(--doux); opacity: .85; }
+#parent .etat { font-size: 13px; color: var(--accent); min-height: 1.2em; }
+#parent .etat:empty { min-height: 0; margin: 0; }
+#parent .resume { font-size: 13px; }
+#parent code { font-size: 12px; background: #2b3654; padding: 1px 4px; border-radius: 4px; }
+
+#parent .liste { list-style: none; margin: 0 0 10px; padding: 0; }
+#parent .liste .vide { color: var(--doux); font-size: 13px; padding: 10px 0; }
+#parent .ligne-morceau, #parent .ligne-piste {
+  border: 1px solid var(--bord); border-radius: 12px; padding: 10px;
+  margin: 0 0 8px; background: rgba(255,255,255,.03);
+}
+#parent .ligne-morceau.masquee { opacity: .55; }
+#parent .ligne-morceau.fait { border-color: var(--accent); }
+#parent .ligne-morceau.refus { animation: tremble .45s; border-color: #d9534f; }
+#parent .titre-morceau { display: flex; align-items: center; gap: 8px; }
+#parent .pastille { width: 14px; height: 14px; border-radius: 50%; flex: 0 0 auto; }
+#parent .titre-morceau .nom {
+  flex: 1 1 auto; min-width: 0; color: var(--texte); font-weight: 600;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+#parent .titre-morceau .origine { font-size: 11px; color: var(--doux); flex: 0 0 auto; }
+#parent .actions { display: flex; gap: 6px; margin-top: 8px; }
+#parent .action {
+  flex: 1 1 0; min-width: 56px; min-height: 64px; width: auto; margin: 0;
+  background: #2b3654; color: var(--texte); border: 1px solid var(--bord);
+  border-radius: 10px; display: grid; place-items: center;
+}
+#parent .action svg { width: 24px; height: 24px; fill: currentColor; }
+#parent .action:disabled { opacity: .3; }
+
+#parent .ligne-piste .aide { margin: 6px 0; }
+#parent .ligne-piste select, #parent .champ input {
+  width: 100%; min-height: 56px; font: inherit; font-size: 15px;
+  background: #2b3654; color: var(--texte);
+  border: 1px solid var(--bord); border-radius: 10px; padding: 0 10px;
+}
+#parent .champ { display: block; font-size: 12px; color: var(--doux); margin: 0 0 10px; }
+#parent .champ input { margin-top: 4px; }
+
+/* Le champ de fichier natif est inutilisable tel quel : on l'etale,
+   transparent, par-dessus une etiquette qui a l'air d'un bouton. Un simple
+   « display: none » marcherait aussi, mais casse le clavier sur certains
+   navigateurs. */
+#parent .fichier { position: relative; overflow: hidden; display: grid; place-items: center;
+  text-align: center; padding: 0 10px; }
+#parent .fichier input {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  opacity: 0; font-size: 100px; cursor: pointer;
+}

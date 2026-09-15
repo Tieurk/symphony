@@ -87,6 +87,7 @@ Transition de mute : une rampe très courte (5 à 10 ms) pour éviter le clic, p
 | `src/app.js` | l'interaction : l'état, le toucher, le glisser-déposer, les animations |
 | `src/app.css` | la mise en page, **feuille unique** partagée par l'app et la maquette |
 | `index.html` | l'app. Les bancs d'essai sont dans `test/` |
+| `src/bibliotheque.js`, `src/parent.js`, `src/midi.js` | la bibliothèque, la zone parent, l'import MIDI, voir leur section |
 | `sw.js`, `manifest.webmanifest` | le hors ligne et l'installation, voir leur section |
 | `test/phase1.html` | le banc d'écoute, interface minimale, gardé pour le diagnostic |
 
@@ -192,6 +193,63 @@ Positions en notation Tone.js `mesure:temps:doubles-croches`, durées en notatio
 
 Les 13 clés de `parties` sont toujours présentes, éventuellement vides. Frappes autorisées : `kick`, `snare`, `tom_bas`, `tom_med`, `tom_haut` pour la batterie ; `charley`, `charley_ouvert`, `crash`, `ride` pour les cymbales.
 
+## La bibliothèque, l'import et l'export
+
+Deux origines de morceaux, et l'app n'a besoin de rien savoir de plus :
+
+| Origine | Où | Portée |
+|---|---|---|
+| `depot` | `songs/` plus `songs/index.json` | les mêmes sur tous les appareils, mis à jour par un déploiement |
+| `importe` | `localStorage`, une clé par morceau | seulement sur l'appareil où l'import a eu lieu |
+
+| Fichier | Rôle |
+|---|---|
+| `src/bibliotheque.js` | la liste, l'ordre, les masques, l'ajout, la suppression, l'export. Ne touche ni au DOM ni au moteur |
+| `src/midi.js` | lecture d'un MIDI standard et conversion au format du projet |
+| `src/parent.js` | les trois pages de la zone parent : bibliothèque, import, à propos |
+
+**Une clé de rangement par morceau importé**, pas un seul gros objet : un morceau pèse 30 à
+60 Ko, tout réécrire à chaque changement d'ordre gaspillerait le quota, et un quota dépassé
+ne fait ainsi perdre que le morceau qu'on ajoute.
+
+**Deux invariants que l'interface tient, et qui sont dans les tests :**
+
+1. **Jamais zéro morceau visible.** Masquer le dernier est refusé, avec un message. Sinon
+   l'enfant se retrouve devant une app muette sans savoir pourquoi.
+2. **Un morceau du dépôt ne se supprime pas**, il se masque. Il reviendrait au prochain
+   déploiement de toute façon.
+
+Le morceau en cours est suivi par son **identifiant** et non par son rang : la liste se
+réordonne et se masque, donc un rang enregistré désignerait un autre morceau au lancement
+suivant.
+
+**L'import MIDI.** `analyse(octets)` lit le fichier et rend des **voix** sans rien décider ;
+l'écran de correspondance montre la proposition ; `construis()` applique le choix du parent.
+Ce qu'il faut savoir :
+
+- la proposition vient des **numéros de programme General MIDI**, par famille (cordes vers le
+  violon, basses vers le tuba, flûtes vers la flûte). C'est mon estimation, pas une vérité
+- le **canal 10 donne deux voix**, une batterie et une cymbales, parce que ce sont deux
+  instruments distincts de la scène. Une seule voix en perdrait la moitié
+- les positions sont calées sur la **double-croche** et les durées ramenées à la notation de
+  Tone la plus proche, parce que le format n'accepte que celle-là
+- les hauteurs hors de la tessiture rapatriée (`A0` à `C8`) sont **ramenées par octaves**, et
+  le compte rendu le dit. Une note à 40 demi-tons du plus proche échantillon ne serait qu'un
+  grondement
+- pas de dièses : la banque n'en a pas, les noms s'écrivent en bémols
+- **les notes restées ouvertes sont fermées à la fin de la piste.** Un `note on` sans
+  `note off` arrive pour de vrai (fichier tronqué, export bâclé) et les jeter ferait
+  disparaître une mélodie sans aucune erreur
+- refusés avec un motif lisible : division SMPTE, format 2, fichier qui n'est pas un MIDI
+
+Le contrôle qui compte, et qui ne se remplace pas par une inspection d'état : **un morceau
+importé doit sortir du haut-parleur**, mesuré au `Tone.Meter` après l'avoir importé et choisi
+au clic dans le DOM.
+
+**Point d'honnêteté à répéter à Mathieu** (il est déjà dans le cadrage section 7.2) : un MIDI
+trouvé sur le web n'a pas été écrit pour cette scène. Ça jouera, mais rarement aussi bien
+qu'un arrangement où chaque instrument a un rôle pensé pour toutes les combinaisons.
+
 ## Rôles des instruments
 
 Règle de fond : chaque instrument garde le même rôle d'un morceau à l'autre, pour que **n'importe quel sous-ensemble de 1 à 6 instruments sonne juste**. Deux instruments d'une même famille ne jouent jamais la même chose.
@@ -236,13 +294,22 @@ Un état voulu ne dépend pas de l'ordre d'arrivée des événements, une bascul
 agréable : l'icône montre ce que l'enfant a **demandé**, pas l'état de l'horloge, donc le
 bouton répond dans le geste au lieu d'attendre la fin du chargement des treize instruments.
 
-Le premier geste lance la lecture quel qu'il soit, sauf sur le bouton de lecture (il bascule,
-c'est son rôle) et dans la zone parent (un parent qui ouvre les réglages n'appelle pas de
-musique).
+Le **premier geste qui exprime une intention** lance la lecture. Deux endroits n'en expriment
+aucune : le bouton de lecture (il bascule, c'est son rôle) et la zone parent (un parent qui
+importe un morceau n'appelle pas de musique). La condition porte donc sur « une intention
+a-t-elle déjà été dite », et **pas** sur « est-ce le premier geste » : écrite comme ça, elle
+laissait l'app muette dès qu'un parent avait touché au panneau avant de jouer, parce que
+l'amorçage avait déjà eu lieu et que le geste suivant n'était plus le premier. Deuxième fois
+que ce même piège mord au même endroit.
 
-### `hidden` sur un SVG
+### `hidden` en CSS, et `hidden` sur un SVG
 
-**`hidden` est une propriété de `HTMLElement`, pas de `SVGElement`.** Poser `svg.hidden = true` ne fait **absolument rien** : la propriété est créée sur l'objet JS, l'attribut n'est pas écrit, et l'élément reste visible. Le bouton de lecture affichait donc les icônes play **et** pause en même temps.
+**L'attribut `hidden` n'est qu'un `display: none` de la feuille du navigateur : la moindre
+règle d'auteur qui pose un `display` le bat.** Les boutons de l'import restaient visibles
+malgré `hidden`, parce qu'ils vivent dans un `.menu` en `display: flex`. Corrigé une fois pour
+toutes en haut de `src/app.css` par `[hidden] { display: none !important; }`.
+
+**Et `hidden` est une propriété de `HTMLElement`, pas de `SVGElement`.** Poser `svg.hidden = true` ne fait **absolument rien** : la propriété est créée sur l'objet JS, l'attribut n'est pas écrit, et l'élément reste visible. Le bouton de lecture affichait donc les icônes play **et** pause en même temps.
 
 Rien dans le code ne le laissait voir, et aucune erreur n'était levée. C'est une capture d'écran qui l'a montré. Deux leçons : basculer une icône SVG passe par une **classe** et du CSS, jamais par `hidden`, et **regarder l'image reste la seule vérification qui attrape ce genre de chose.**
 
@@ -301,6 +368,7 @@ Trois zones : contrôles en haut (sélecteur de morceau, play/pause, tempo, volu
 - **Réserve portrait à cinq colonnes**, pas les quatre du cadrage. Mesuré : en quatre colonnes les 13 jetons prennent une rangée de plus, soit 148 px pris à la scène, et l'emplacement tombe à 67 px sur un iPhone 390 et à 16 px sur un SE. La cible tactile de 64 px gagne contre le nombre de colonnes.
 - Tempo de 60 % à 140 %, aimanté sur trois repères illustrés : **tortue, noire, lapin**, dessinés dans `src/instruments.js` sous les identifiants `r-lent`, `r-normal`, `r-rapide`. Ce ne sont pas des instruments, ils ne sont donc pas dans `INSTRUMENTS`. Vérifiés lisibles à 26 px.
 - Cibles tactiles de 64 px minimum. Aucun texte nécessaire pour jouer.
+- Dans la **zone parent**, les actions d'une ligne de bibliothèque font aussi 64 px de haut, ce qui dicte la forme de la ligne : titre sur une ligne, actions en dessous. Cinq boutons de 64 px et un titre ne tiennent pas côte à côte sur la largeur d'un iPhone (mesuré : 344 px nécessaires pour 310 px utiles). Les onglets et les boutons secondaires descendent à 56 px, seul écart assumé, et c'est du texte qu'un adulte lit.
 - Zone parent derrière un appui long de 2 s sur un engrenage : bibliothèque, import, export, licences.
 - **Trois sorties de la zone parent**, et ce n'est pas du luxe : le bouton du bas, le voile, la touche d'échappement. Mesuré : sur un iPhone le panneau fait 743 px pour une vue de 664, donc le bouton « Retour au jeu » est hors de l'écran, et comme `html` et `body` sont en `overflow: hidden`, la zone parent était un **cul-de-sac** dont on ne sortait qu'en rechargeant. Le voile défile maintenant, et le centrage passe par `margin: auto` : `place-items: center` rogne le **haut** du contenu dès qu'il dépasse, sans barre de défilement pour le rattraper.
 
@@ -443,7 +511,7 @@ pas de persistance des données (voir piège iOS n° 4).
 
 - **Phase 0** : choix du kit de percussion, écoute comparée des timbres, maquette fixe des deux mises en page, chaîne de déploiement vérifiée de bout en bout. Fait : le son sur iOS, le kit (FluidR3_GM), le déploiement en HTTPS, le nom, les 13 illustrations et les deux maquettes fixes. **Reste le jugement de Mathieu**, sur les illustrations (`test/svg.html`) et sur les maquettes (`test/maquette.html`).
 - **Phase 1** : **finie**, reste à la tester avec Grégoire et Louis. Ordre fixé par Mathieu : le son d'abord (moteur dans `src/`, 13 instruments échantillonnés, trois morceaux en 13 parties, arrangements validés à l'oreille le 15 septembre 2026), puis l'interaction (l'app à la racine, les deux gestes, le minimum vivant). Deux écarts au tableau des phases, tranchés par Mathieu : le **glisser-déposer** et les **animations** sont montés en phase 1 au lieu de la 2, parce que l'objectif de la phase est de valider la sensation de jeu et qu'une interface figée la sous-vend.
-- **Phase 2** : reste la **zone parent complète**, bibliothèque, import (dont `.mid`, avec un écran de correspondance des pistes) et export. Faits : la mise en page adaptative, le glisser-déposer, les animations, les illustrations, les crédits (règle dure n° 3, exigés dès que l'app est la porte d'entrée), et le **hors ligne** : manifeste, service worker, icônes, installation sur l'écran d'accueil, persistance de la scène, du morceau, du tempo et du volume. Voir la section « Hors ligne et installation ».
+- **Phase 2** : **finie.** Mise en page adaptative, glisser-déposer, animations, illustrations, crédits (règle dure n° 3, exigés dès que l'app est la porte d'entrée), **hors ligne** (manifeste, service worker, icônes, installation, persistance de la scène, du morceau, du tempo et du volume) et **zone parent complète** : bibliothèque (masquer, réordonner, supprimer), import d'un fichier du projet ou d'un MIDI avec écran de correspondance des pistes, export par la feuille de partage. Voir « Hors ligne et installation » et « La bibliothèque, l'import et l'export ».
 - **Phase 3** : le reste de la bibliothèque.
 - **Phase 4** : réglage des mixages morceau par morceau, retours des enfants.
 

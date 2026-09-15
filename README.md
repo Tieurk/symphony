@@ -9,11 +9,11 @@ En ligne : https://symphony.kinefitlabs.com
 
 ## État
 
-**Phase 1 finie.** L'app existe, elle est à la racine, et elle se joue au doigt : on pose un
-instrument sur la scène, l'arrangement se transforme en direct.
+**Phases 1 et 2 finies.** L'app existe, elle est à la racine, elle se joue au doigt, elle
+s'installe sur l'écran d'accueil et elle marche sans réseau.
 
-Ce qui reste de la phase 1 n'est pas technique : **la tester avec Grégoire et Louis.** C'est
-son objectif, et c'est le seul juge de la sensation de jeu.
+Ce qui reste n'est pas technique : **la tester avec Grégoire et Louis.** C'est l'objectif de
+la phase 1, et c'est le seul juge de la sensation de jeu.
 
 Fait :
 
@@ -28,11 +28,15 @@ Fait :
 - le **hors ligne** : l'app s'installe sur l'écran d'accueil, garde ses 2,6 Mo de sons et
   joue sans réseau ; la scène, le morceau, le tempo et le volume sont retrouvés au
   rechargement
+- la **zone parent** : bibliothèque (masquer, réordonner, supprimer), import d'un fichier du
+  projet ou d'un **MIDI** avec écran de correspondance des pistes, export par la feuille de
+  partage, crédits des banques de sons
 
 Un point encore ouvert : **Alouette**, dont la mélodie n'a pas pu être vérifiée depuis le
 conteneur de développement. Voir `docs/points-ouverts.md`.
 
-Reste pour la phase 2 : la zone parent complète, bibliothèque, import et export.
+Reste pour la phase 3 : le reste de la bibliothèque de morceaux. Et pour la phase 4, le
+réglage des mixages morceau par morceau, à l'oreille.
 
 ## Où regarder
 
@@ -48,6 +52,9 @@ index.html            l'app
 manifest.webmanifest  nom et icones pour l'installation sur l'ecran d'accueil
 sw.js                 le service worker : deux caches, l'app joue sans reseau
 src/app.js            l'interaction : l'etat, le toucher, le glisser, les animations
+src/parent.js         la zone parent : bibliotheque, import, credits
+src/bibliotheque.js   les morceaux du depot et les importes, l'ordre, les masques
+src/midi.js           lecture d'un MIDI standard, conversion au format du projet
 src/app.css           la mise en page, feuille UNIQUE partagee avec la maquette
 src/moteur.js         le graphe audio, l'horloge, les 13 canaux
 src/echantillons.js   quelles notes existent, pour chaque instrument
@@ -83,9 +90,16 @@ qu'après un toucher, et le bouton silencieux de l'iPhone se contourne dans le m
 Toucher un instrument suffit à amorcer, le bouton de lecture montre le chargement des 13
 instruments pendant les premières secondes.
 
-Derrière un **appui long de 2 s sur l'engrenage** : les crédits des banques de sons, l'état
-du hors ligne, et deux boutons, « Tout garder hors ligne » et « Vider la scène et les
-réglages ».
+Derrière un **appui long de 2 s sur l'engrenage**, trois pages :
+
+- **Bibliothèque**, pour masquer un morceau du choix de l'enfant, changer l'ordre, exporter
+  un morceau ou supprimer un morceau importé
+- **Importer**, un fichier au format du projet (`.json`) ou un **MIDI standard** (`.mid`),
+  dont tu répartis les pistes sur les instruments à l'écran suivant
+- **À propos**, les crédits des banques de sons, l'état du hors ligne, « Tout garder hors
+  ligne » et « Vider la scène et les réglages »
+
+Trois sorties : le bouton du bas, un appui sur le fond sombre, la touche d'échappement.
 
 **À installer sur l'écran d'accueil**, dans Safari, bouton Partager puis « Sur l'écran
 d'accueil ». Deux raisons : l'app s'ouvre en plein écran sans la barre d'adresse, et les

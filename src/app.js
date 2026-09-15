@@ -11,8 +11,9 @@
 // pas de desynchronisation possible entre la scene et la reserve.
 
 import { INSTRUMENTS, injecteSprite, instrument } from "./instruments.js";
-import { urlsDesEchantillons } from "./echantillons.js";
 import * as moteur from "./moteur.js";
+import * as biblio from "./bibliotheque.js";
+import * as parent from "./parent.js";
 
 injecteSprite();
 
@@ -28,6 +29,7 @@ let morceaux = [];
 let choisi = 0;
 let amorcage = null;          // la promesse d'amorcage, une seule fois
 let veutJouer = false;        // l'intention de lecture, voir plus bas
+let intentionDite = false;    // un geste a-t-il DEJA dit ce qu'il voulait ?
 
 const $ = (id) => document.getElementById(id);
 const zScene = $("scene"), zPlaces = $("places"), zMorceaux = $("morceaux");
@@ -89,7 +91,11 @@ function rend() {
 function sauve() {
   try {
     localStorage.setItem(CLE, JSON.stringify({
-      v: 1, emplacements, choisi,
+      v: 2, emplacements,
+      // L'IDENTIFIANT et pas le rang : la bibliotheque se reordonne et se
+      // masque, donc un rang enregistre designerait un autre morceau au
+      // prochain lancement.
+      choisiId: morceaux[choisi] ? morceaux[choisi].id : null,
       tempo: +$("tempo").value, volume: +$("volume").value,
     }));
   } catch (e) { /* navigation privee, quota plein : on continue sans */ }
@@ -98,7 +104,7 @@ function sauve() {
 function restaure() {
   let d = null;
   try { d = JSON.parse(localStorage.getItem(CLE) || "null"); } catch (e) { return; }
-  if (!d || d.v !== 1) return;
+  if (!d || d.v !== 2) return;
   // On valide TOUT : localStorage peut contenir n'importe quoi, une version
   // precedente du format, ou une saisie a la main. Un identifiant inconnu
   // poserait un instrument fantome sur la scene.
@@ -112,7 +118,8 @@ function restaure() {
       }
     });
   }
-  if (Number.isInteger(d.choisi) && d.choisi >= 0 && d.choisi < morceaux.length) choisi = d.choisi;
+  const n = morceaux.findIndex((m) => m.id === d.choisiId);
+  if (n >= 0) choisi = n;
   if (Number.isFinite(d.tempo) && d.tempo >= 60 && d.tempo <= 140) $("tempo").value = d.tempo;
   if (Number.isFinite(d.volume) && d.volume >= 0 && d.volume <= 100) $("volume").value = d.volume;
 }
@@ -230,6 +237,16 @@ function amorce() {
   return amorcage;
 }
 
+// LA SEULE PORTE pour changer l'intention, et elle applique toujours. Poser
+// le drapeau sans appliquer a ete la deuxieme morsure du meme piege : le geste
+// disait « joue », le moteur etait deja pret, et personne ne le lui
+// transmettait. Horloge « stopped », crete SILENCE.
+function veut(jouer) {
+  veutJouer = jouer;
+  intentionDite = true;
+  appliqueLecture();
+}
+
 // Appelable a tout moment. Avant l'amorcage, ca ne fait que repondre a
 // l'oeil : l'etat voulu partira au moteur des qu'il existe.
 function appliqueLecture() {
@@ -270,10 +287,15 @@ function origine(el) {
 }
 
 document.addEventListener("pointerdown", (e) => {
-  // Le premier geste lance la lecture, sauf la ou on n'appelle pas de
-  // musique : le bouton de lecture (il bascule, c'est son role) et tout ce
-  // qui tient a la zone parent, l'engrenage compris.
-  if (!amorcage && !e.target.closest("#play, #engrenage, #parent")) veutJouer = true;
+  // Le PREMIER geste qui exprime une intention lance la lecture : un enfant
+  // qui touche un instrument attend du son. Deux endroits n'expriment aucune
+  // intention, et c'est pour ca qu'on regarde « intentionDite » et pas
+  // « amorcage » : le bouton de lecture (il bascule, c'est son role) et la
+  // zone parent. Mesure faite avec la condition sur amorcage : un parent qui
+  // importait un morceau amorcait l'audio dans le panneau, donc le geste
+  // suivant n'etait plus « le premier », et l'app restait muette jusqu'a ce
+  // qu'on appuie sur lecture. Crete SILENCE, 0 echantillon audible sur 120.
+  if (!intentionDite && !e.target.closest("#play, #engrenage, #parent")) veut(true);
   amorce();
   const el = origine(e.target.closest("[data-inst]"));
   if (!el) return;
@@ -346,8 +368,7 @@ function effaceCibles() {
 // --- controles --------------------------------------------------------------
 
 $("play").addEventListener("click", async () => {
-  veutJouer = !veutJouer;
-  appliqueLecture();          // l'icone repond dans le geste
+  veut(!veutJouer);           // l'icone repond dans le geste
   await amorce();             // amorce, ou attend l'amorcage deja en cours
   appliqueLecture();          // et le moteur suit des qu'il existe
 });
@@ -398,7 +419,14 @@ let minuteur = null;
 const eng = $("engrenage");
 eng.addEventListener("pointerdown", (e) => {
   eng.classList.add("presse");
-  minuteur = setTimeout(() => { $("parent").hidden = false; annule(); }, APPUI_LONG);
+  minuteur = setTimeout(() => {
+    // Rafraichir AVANT d'afficher : la liste et le compte des sons en cache
+    // ont pu changer depuis la derniere ouverture.
+    parent.rafraichis();
+    parent.majHorsLigne();
+    $("parent").hidden = false;
+    annule();
+  }, APPUI_LONG);
   try { eng.setPointerCapture(e.pointerId); } catch (err) { /* rien */ }
 });
 function annule() {
@@ -424,7 +452,6 @@ document.addEventListener("keydown", (e) => { if (e.key === "Escape") fermeParen
 // Le service worker garantit mecaniquement la regle dure n° 4 du projet :
 // aucun appel reseau au moment de jouer.
 
-let sw = null;
 if ("serviceWorker" in navigator) {
   // Y avait-il DEJA un service worker au chargement ? C'est ce qui distingue
   // une premiere visite d'une mise a jour, plus bas.
@@ -432,8 +459,7 @@ if ("serviceWorker" in navigator) {
 
   navigator.serviceWorker.register("./sw.js")
     .then((reg) => {
-      sw = reg;
-      majHorsLigne();
+      parent.majHorsLigne();
       // Demander la verification tout de suite : sans ca, mesure faite, il
       // fallait TROIS ouvertures de l'app pour qu'une correction arrive.
       reg.update().catch(() => { /* hors ligne, ce sera pour la prochaine fois */ });
@@ -451,48 +477,7 @@ if ("serviceWorker" in navigator) {
     rechargee = true;
     location.reload();
   });
-  navigator.serviceWorker.addEventListener("message", (e) => {
-    const m = e.data || {};
-    if (m.type === "hors-ligne-avance") {
-      $("etat-hors-ligne").textContent = `Enregistrement : ${m.fait} sur ${m.total}...`;
-    } else if (m.type === "hors-ligne-fini") {
-      $("hors-ligne").disabled = false;
-      $("etat-hors-ligne").textContent = m.rates
-        ? `${m.fait} fichiers gardes, ${m.rates} en echec. Reessaie avec du reseau.`
-        : "Tout est garde. L'app marche sans reseau.";
-    }
-  });
 }
-
-// Combien d'echantillons sont deja en cache : la seule facon honnete de dire
-// si le hors ligne est pret, plutot que d'afficher une intention.
-async function majHorsLigne() {
-  const zone = $("etat-hors-ligne");
-  if (!("caches" in window)) { zone.textContent = "Ce navigateur ne sait pas garder hors ligne."; return; }
-  const attendus = urlsDesEchantillons();
-  let en = 0;
-  for (const u of attendus) if (await caches.match(u, { ignoreSearch: true })) en++;
-  const installee = matchMedia("(display-mode: standalone)").matches;
-  zone.textContent = en >= attendus.length
-    ? `Les ${attendus.length} sons sont gardes, l'app marche sans reseau.`
-    : `${en} sons gardes sur ${attendus.length}. Ils s'enregistrent a l'usage, ou d'un coup avec le bouton.`;
-  $("version").textContent = VERSION + (installee ? ", installee" : ", dans le navigateur");
-}
-
-$("hors-ligne").addEventListener("click", async () => {
-  if (!("serviceWorker" in navigator)) return;
-  $("hors-ligne").disabled = true;
-  $("etat-hors-ligne").textContent = "Enregistrement...";
-  const reg = await navigator.serviceWorker.ready;
-  const actif = reg.active || (sw && sw.active);
-  if (!actif) { $("hors-ligne").disabled = false; $("etat-hors-ligne").textContent = "Reessaie dans un instant."; return; }
-  // La liste vient de src/echantillons.js, la source unique. Le service
-  // worker ne la connait pas et n'a pas a la connaitre.
-  actif.postMessage({
-    type: "garde-hors-ligne",
-    urls: [...urlsDesEchantillons(), ...morceaux.map((m) => `songs/${m.id}.json`)],
-  });
-});
 
 $("reinit").addEventListener("click", () => {
   try { localStorage.removeItem(CLE); } catch (e) { /* rien */ }
@@ -533,16 +518,36 @@ moteur.surMesure(() => {
 
 moteur.surErreur((texte) => console.error("moteur : " + texte));
 
+// --- le selecteur de morceaux ----------------------------------------------
+// Il se reconstruit a chaque changement de bibliotheque : un morceau importe,
+// masque, supprime ou deplace change la liste que voit l'enfant.
+
+function rendSelecteur() {
+  zMorceaux.innerHTML = morceaux.map((m, i) =>
+    `<button class="morceau" data-morceau="${i}" style="background:${m.couleur}">
+       <span>${m.titre}</span></button>`).join("");
+}
+
+// Appele par la zone parent. Garde le morceau en cours s'il est toujours
+// visible, sinon retombe sur le premier : l'enfant ne doit pas se retrouver
+// devant une app muette parce qu'un morceau a ete masque pendant qu'il jouait.
+function recompose() {
+  const avant = morceaux[choisi] ? morceaux[choisi].id : null;
+  morceaux = biblio.visibles();
+  const n = morceaux.findIndex((m) => m.id === avant);
+  choisi = n >= 0 ? n : 0;
+  rendSelecteur();
+  rend();
+  if (n < 0 && morceaux[choisi] && moteur.estPret()) moteur.chargeMorceau(morceaux[choisi]);
+}
+
 // --- demarrage --------------------------------------------------------------
 // Les morceaux se chargent sans geste : c'est du reseau, pas de l'audio.
 
-const index = await (await fetch("songs/index.json")).json();
-morceaux = await Promise.all(index.morceaux.map(async (id) =>
-  (await fetch(`songs/${id}.json`)).json()));
-
-zMorceaux.innerHTML = morceaux.map((m, i) =>
-  `<button class="morceau" data-morceau="${i}" style="background:${m.couleur}">
-     <span>${m.titre}</span></button>`).join("");
+await biblio.charge();
+morceaux = biblio.visibles();
+rendSelecteur();
+parent.installe({ version: VERSION, surChangement: recompose });
 
 // Apres le chargement des morceaux, parce que la restauration verifie que le
 // morceau enregistre existe encore.
@@ -553,7 +558,7 @@ majReperes(+$("tempo").value);
 
 // Pour la verification en navigateur sans tete. L'app n'en a pas besoin.
 window.app = {
-  emplacements, moteur,
+  emplacements, moteur, biblio,
   enReserve: () => INSTRUMENTS.map((i) => i.id).filter((id) => !surScene(id)),
   morceaux: () => morceaux,
   choisi: () => choisi,

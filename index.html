@@ -80,29 +80,60 @@
      sinon il se masquerait lui-meme a elementFromPoint. -->
 <div id="fantome" hidden></div>
 
-<!-- La zone parent, derriere un appui long de 2 s sur l'engrenage. Version
-     minimale : les credits, que la regle dure n° 3 du projet exige des que
-     l'app est la porte d'entree. La bibliotheque, l'import et l'export
-     viennent en phase 2. -->
+<!-- La zone parent, derriere un appui long de 2 s sur l'engrenage. Trois
+     pages : la bibliotheque, l'import, et « a propos » avec les credits que la
+     regle dure n° 3 du projet exige. Tout le code est dans src/parent.js. -->
 <div id="parent" hidden>
   <div class="panneau">
-    <h2>À propos</h2>
-    <p><strong>Mon premier orchestre</strong>, phase 1. Un orchestre à poser sur une scène.</p>
-    <p>Les sons viennent de <strong>FluidR3_GM</strong>, sous licence
-    <strong>Creative Commons Attribution 3.0</strong>, via le projet
-    <em>midi-js-soundfonts</em>. La batterie et les cymbales sont extraites de la même banque,
-    donc un seul crédit couvre les treize instruments.</p>
-    <p>Le moteur audio est <strong>Tone.js</strong> 15.1.22, sous licence MIT, copié dans
-    l'app : aucun appel réseau pendant que ça joue.</p>
-    <p>Les illustrations sont originales, dessinées pour ce projet.</p>
+    <nav class="onglets" id="onglets">
+      <button class="onglet actif" data-page="biblio">Bibliothèque</button>
+      <button class="onglet" data-page="import">Importer</button>
+      <button class="onglet" data-page="propos">À propos</button>
+    </nav>
 
-    <h2>Hors ligne</h2>
-    <p id="etat-hors-ligne">…</p>
-    <p class="menu">
-      <button id="hors-ligne" class="secondaire">Tout garder hors ligne</button>
-      <button id="reinit" class="secondaire">Vider la scène et les réglages</button>
-    </p>
-    <p class="fin"><a href="test/">Bancs d'essai</a> &middot; <span id="version"></span></p>
+    <section class="page" id="p-biblio">
+      <p class="aide">Masquer un morceau le retire du choix de l'enfant sans le
+      supprimer. Les flèches changent l'ordre.</p>
+      <ul class="liste" id="liste-biblio"></ul>
+      <p id="biblio-etat" class="etat"></p>
+    </section>
+
+    <section class="page" id="p-import" hidden>
+      <p>Deux sortes de fichiers : un morceau au <strong>format du projet</strong>
+      (<code>.json</code>), ou un <strong>MIDI standard</strong> (<code>.mid</code>),
+      dont tu répartis les pistes sur les instruments.</p>
+      <p class="menu">
+        <label class="secondaire fichier">Choisir un fichier
+          <input type="file" id="fichier" accept=".json,.mid,.midi,application/json,audio/midi,audio/x-midi">
+        </label>
+      </p>
+      <p id="import-etat" class="etat"></p>
+      <div id="import-pistes" hidden></div>
+      <p class="menu" id="import-actions" hidden>
+        <button id="import-valide" class="secondaire">Ajouter à la bibliothèque</button>
+        <button id="import-annule" class="secondaire">Annuler</button>
+      </p>
+    </section>
+
+    <section class="page" id="p-propos" hidden>
+      <p><strong>Mon premier orchestre</strong>. Un orchestre à poser sur une scène.</p>
+      <p>Les sons viennent de <strong>FluidR3_GM</strong>, sous licence
+      <strong>Creative Commons Attribution 3.0</strong>, via le projet
+      <em>midi-js-soundfonts</em>. La batterie et les cymbales sont extraites de la même banque,
+      donc un seul crédit couvre les treize instruments.</p>
+      <p>Le moteur audio est <strong>Tone.js</strong> 15.1.22, sous licence MIT, copié dans
+      l'app : aucun appel réseau pendant que ça joue.</p>
+      <p>Les illustrations sont originales, dessinées pour ce projet.</p>
+
+      <h2>Hors ligne</h2>
+      <p id="etat-hors-ligne" class="etat">…</p>
+      <p class="menu">
+        <button id="hors-ligne" class="secondaire">Tout garder hors ligne</button>
+        <button id="reinit" class="secondaire">Vider la scène et les réglages</button>
+      </p>
+      <p class="fin"><a href="test/">Bancs d'essai</a> &middot; <span id="version"></span></p>
+    </section>
+
     <button id="ferme-parent">Retour au jeu</button>
   </div>
 </div>
