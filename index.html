@@ -2,20 +2,53 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="icon" href="data:,">
 <title>Mon premier orchestre</title>
 <style>
-  body { margin:0; min-height:100vh; display:grid; place-items:center;
-         background:#141b2e; color:#f5e9d7; font:16px/1.6 system-ui, sans-serif;
-         text-align:center; padding:24px; box-sizing:border-box; }
+  :root { --nuit:#141b2e; --carte:#1e2740; --bord:#33405e; --texte:#f5e9d7;
+          --doux:#9fb0d0; --accent:#f2a65a; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--nuit); color:var(--texte);
+         font:16px/1.6 -apple-system, system-ui, sans-serif;
+         padding:32px calc(20px + env(safe-area-inset-left)) 48px;
+         display:flex; justify-content:center; }
+  main { max-width: 620px; width: 100%; }
+  h1 { font-size:26px; margin:0 0 6px; }
+  p { color:var(--doux); font-size:15px; margin:0 0 20px; }
+  ul { list-style:none; margin:0; padding:0; }
+  li { margin:0 0 10px; }
+  a { display:block; background:var(--carte); border:1px solid var(--bord);
+      border-radius:12px; padding:14px 16px; min-height:64px;
+      color:var(--texte); text-decoration:none; }
+  a b { display:block; color:var(--accent); font-size:16px; }
+  a span { font-size:13px; color:var(--doux); }
+  footer { margin-top:28px; font-size:13px; color:var(--doux); }
 </style>
 </head>
 <body>
-  <main>
-    <h1>Mon premier orchestre</h1>
-    <p>Chantier en cours.</p>
-    <p style="font-size:14px;opacity:.7">Un orchestre a poser sur une scene, pour les enfants.</p>
-  </main>
+<main>
+  <h1>Mon premier orchestre</h1>
+  <p>Chantier en cours. L'app n'a pas encore son interface : en attendant, voici les pages
+  a ouvrir, sur l'iPad de preference.</p>
+  <ul>
+    <li><a href="test/phase1.html">
+      <b>Banc d'ecoute</b>
+      <span>Le moteur audio complet et les trois morceaux. C'est ici que ca s'ecoute.</span></a></li>
+    <li><a href="test/maquette.html">
+      <b>Maquette</b>
+      <span>Les deux mises en page, en plein ecran. Bascule a 900 px de large.</span></a></li>
+    <li><a href="test/maquettes.html">
+      <b>Les deux mises en page cote a cote</b>
+      <span>A regarder sur l'iPad, pour les juger d'un coup.</span></a></li>
+    <li><a href="test/svg.html">
+      <b>Les 13 instruments</b>
+      <span>Les illustrations, et les six paires a risque de confusion a 64 px.</span></a></li>
+    <li><a href="test/phase0.html">
+      <b>Banc d'essai phase 0</b>
+      <span>L'ancien banc audio, garde pour la non-regression.</span></a></li>
+  </ul>
+  <footer>Sons : FluidR3_GM, Creative Commons Attribution 3.0. Moteur : Tone.js, licence MIT.</footer>
+</main>
 </body>
 </html>

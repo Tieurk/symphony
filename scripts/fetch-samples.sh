@@ -28,19 +28,21 @@ DEST="assets/samples"
 # Elargir une tessiture = ajouter des notes sur la ligne, rien d'autre a toucher.
 # 4 a 6 notes suffisent, le Tone.Sampler transpose le reste.
 #
-# Les 9 instruments restants de CLAUDE.md sont en commentaire, prets pour la phase 1.
+# Les 13 instruments de la scene. Ce tableau est le MIROIR de src/echantillons.js :
+# le moteur lit le module, ce script lit ce tableau, et les deux doivent rester
+# d'accord. Si tu ajoutes une note ici, ajoute-la la-bas.
 INSTRUMENTS=(
   "violon      violin                  G3 C4 E4 A4 C5 E5"
+  "guitare     acoustic_guitar_nylon   E2 A2 D3 G3 B3 E4"
+  "koto        koto                    D3 G3 C4 F4 Bb4 Eb5"
+  "sitar       sitar                   C3 F3 Bb3 Eb4 G4 C5"
+  "flute       flute                   C4 F4 A4 D5 G5 C6"
+  "clarinette  clarinet                D3 G3 C4 F4 Bb4 Eb5"
+  "trompette   trumpet                 Bb3 Eb4 G4 C5 F5 Bb5"
   "tuba        tuba                    E1 A1 D2 G2 C3 F3"
-# "flute       flute                   C4 F4 A4 D5 G5 C6"
-# "clarinette  clarinet                D3 G3 C4 F4 Bb4 Eb5"
-# "trompette   trumpet                 Bb3 Eb4 G4 C5 F5 Bb5"
-# "xylophone   xylophone               F4 Bb4 D5 G5 C6 F6"
-# "piano       acoustic_grand_piano    C2 G2 D3 A3 E4 C5 G5"
-# "guitare     acoustic_guitar_nylon   E2 A2 D3 G3 B3 E4"
-# "accordeon   accordion               F2 C3 G3 D4 A4 E5"
-# "koto        koto                    D3 G3 C4 F4 Bb4 Eb5"
-# "sitar       sitar                   C3 F3 Bb3 Eb4 G4 C5"
+  "xylophone   xylophone               F4 Bb4 D5 G5 C6 F6"
+  "piano       acoustic_grand_piano    C2 G2 D3 A3 E4 C5 G5"
+  "accordeon   accordion               F2 C3 G3 D4 A4 E5"
 )
 
 total=0

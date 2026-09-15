@@ -2,7 +2,7 @@
 
 À trancher avec Mathieu. Les réponses vont dans `CLAUDE.md`, pas ici.
 
-## À trancher en phase 0
+## À trancher maintenant
 
 ### 1. Les illustrations. Les 13 livrés, en attente de jugement.
 
@@ -127,16 +127,83 @@ Deux réserves que je signale plutôt que de les cacher :
   cadrage dit « repères illustrés ». Trois petits dessins feraient mieux, mais c'est trois
   dessins de plus et ça ne bloque pas le jugement de la mise en page.
 
+### 3. Les arrangements. Trois morceaux livrés, en attente d'écoute.
+
+C'est le seul risque de la phase 1 qu'aucune mesure ne peut lever : aucun modèle n'entend le
+résultat. Page à ouvrir : `test/phase1.html`.
+
+| Morceau | Mesure | Tempo | Longueur | Événements |
+|---|---|---|---|---|
+| Ah ! vous dirai-je, maman | 4/4 | 100 | 12 mesures | 577 |
+| Row, row, row your boat | **6/8** | 112 | 8 mesures | 304 |
+| Frère Jacques | 4/4 | 104 | 8 mesures | 330 |
+
+Les trois sont écrits en **13 parties pleines**, aucune vide. C'est la condition pour que la
+règle de fond tienne : n'importe quel sous-ensemble de 1 à 6 instruments doit sonner juste.
+Les rôles suivent le tableau de `CLAUDE.md` et ne bougent pas d'un morceau à l'autre.
+
+Ce qui est mesuré, et donc sûr :
+
+- **scène vide, horloge lancée : SILENCE** sur les trois morceaux, 0 instant audible sur 100
+- **les 13 instruments seuls produisent du son**, sur les trois morceaux, soit 39 mesures au
+  `Tone.Meter` branché sur la sortie réelle
+- tout refermé redevient SILENCE, l'horloge tournant toujours
+- changer de morceau garde les instruments en place, conserve l'état de lecture et repart de
+  la mesure 0
+- le tempo à 60, 100 et 140 % s'applique au dixième de battement près, et la boucle reboucle
+- aucune note coupée par la limite de 3,16 s de l'échantillon, aucune transposition de plus
+  de 5 demi-tons
+
+**Ce que je ne peux pas dire : si ça sonne.** « Audible » n'est pas « écoutable », et la
+mesure ne franchit pas cet écart. Les trois tests de `CLAUDE.md` sont donc à faire à
+l'oreille, et il y a un bouton pour chacun sur la page : le violon seul, le tuba seul, et
+violon + tuba + batterie.
+
+Un chiffre à connaître avant d'écouter : le sitar seul plafonne à **14 dB sous le violon**,
+le koto à 13 dB. C'est voulu, leurs rôles sont un bourdon et des broderies d'arrière-plan,
+mais écoutés seuls ils paraîtront discrets. Première version, ils étaient à 22 dB sous le
+violon, ce qui donnait l'impression qu'ils étaient cassés : leurs vélocités ont été remontées.
+
+**Les niveaux de mixage des trois fichiers sont mon estimation, jamais validée.** Mélodie en
+avant (violon -3 dB), accompagnement en arrière, décoratif bien en arrière (sitar -11 dB).
+`CLAUDE.md` place ce réglage en phase 4, à l'écoute.
+
+Deux questions ouvertes sur la page :
+
+1. **L'anticipation** (`lookAhead`). Trois boutons, 100, 50 et 20 ms. `CLAUDE.md` dit que ça
+   se tranche à la main sur l'iPad et pas à l'aveugle : joue le trio, appuie sur un
+   instrument, et écoute si ça décroche. À 100 ms la réaction perçue est d'environ 108 ms.
+2. **La densité.** Le piano fait 96 événements sur 12 mesures, la guitare aussi. C'est peut
+   être trop pour une comptine. Se juge à l'écoute, pas au compteur.
+
+### 4. Alouette. Mélodie non vérifiée, morceau non écrit.
+
+Alouette était l'un des trois morceaux prévus en phase 1. Je ne l'ai pas écrite, et je
+préfère le dire que livrer une approximation : **je ne suis pas assez sûr de sa mélodie de
+mémoire**, et le réseau de ce conteneur bloque Wikipédia comme les sites de partitions, donc
+je n'ai pas pu la vérifier. Écrire une fausse mélodie sur une chanson que Grégoire et Louis
+connaissent serait un vrai défaut, pas un détail.
+
+Frère Jacques la remplace pour ce batch. Ce n'est pas un pis-aller : le cadrage le prévoit
+déjà en remplacement d'Alphabet Song (section 7.4), il est déjà dans la liste du sélecteur de
+la maquette, et sa mélodie ne laisse aucun doute.
+
+Deux façons de débloquer Alouette, au choix :
+
+- tu me confirmes la mélodie, en solfège ou en notes (do ré mi, ou C D E), avec le rythme
+- je la trouve dans une source que le mandataire laisse passer, `raw.githubusercontent.com`
+  fonctionne, il existe des recueils de notation ABC sur GitHub
+
 ## À trancher avant la phase 2
 
-3. **Import MIDI.** Confirmer que le bouton Importer accepte aussi les fichiers `.mid` avec écran de correspondance des pistes, ou seulement les fichiers au format du projet.
+5. **Import MIDI.** Confirmer que le bouton Importer accepte aussi les fichiers `.mid` avec écran de correspondance des pistes, ou seulement les fichiers au format du projet.
 
-4. **Accès à la zone parent.** Appui long de 2 s sur l'engrenage, ou un autre geste.
+6. **Accès à la zone parent.** Appui long de 2 s sur l'engrenage, ou un autre geste.
 
 ## À trancher avant la phase 3
 
-5. **Les trois remplacements** dans la liste des 15 morceaux du jouet : The Wheels on the Bus (encore protégé en Europe), Alphabet Song (même mélodie qu'Ah ! vous dirai-je maman), Come Little Leaves (statut à vérifier). Voir `docs/cadrage.md` section 7.4.
-6. **La deuxième série de morceaux.** Voir `docs/cadrage.md` section 7.5.
+7. **Les trois remplacements** dans la liste des 15 morceaux du jouet : The Wheels on the Bus (encore protégé en Europe), Alphabet Song (même mélodie qu'Ah ! vous dirai-je maman), Come Little Leaves (statut à vérifier). Voir `docs/cadrage.md` section 7.4.
+8. **La deuxième série de morceaux.** Voir `docs/cadrage.md` section 7.5.
 
 ## Tranché en phase 0
 

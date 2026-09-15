@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" href="data:,">
+<title>Mon premier orchestre, banc d'ecoute phase 1</title>
+<style>
+  :root {
+    --nuit: #141b2e; --carte: #1e2740; --bord: #33405e;
+    --texte: #f5e9d7; --doux: #9fb0d0; --accent: #f2a65a;
+    --vert: #63c88a; --rouge: #e05c5c;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0; background: var(--nuit); color: var(--texte);
+    font: 15px/1.5 -apple-system, system-ui, sans-serif;
+    padding: 16px calc(16px + env(safe-area-inset-left)) 210px;
+  }
+  h1 { font-size: 19px; margin: 0 0 4px; }
+  h2 { font-size: 16px; margin: 0 0 10px; color: var(--accent); }
+  p { color: var(--doux); font-size: 14px; margin: 0 0 12px; max-width: 78ch; }
+  section {
+    background: var(--carte); border: 1px solid var(--bord); border-radius: 12px;
+    padding: 14px; margin: 0 0 14px; max-width: 1100px;
+  }
+  section[disabled] { opacity: .45; pointer-events: none; }
+  .note { border-left: 3px solid var(--accent); padding-left: 12px; font-size: 13px; }
+
+  button {
+    font: inherit; color: var(--texte); background: #2b3654;
+    border: 1px solid var(--bord); border-radius: 10px;
+    padding: 12px 16px; min-height: 48px; cursor: pointer;
+  }
+  button.principal {
+    background: var(--accent); color: #22160c; border-color: #c97f33;
+    font-weight: 700; font-size: 17px; min-height: 64px; padding: 14px 24px;
+  }
+  button.actif { background: var(--vert); color: #10321f; border-color: #3d9c66; font-weight: 600; }
+  .rangee { display: flex; flex-wrap: wrap; gap: 8px 26px; align-items: center; margin-bottom: 10px; }
+  .rangee:last-child { margin-bottom: 0; }
+
+  /* --- morceaux --- */
+  .morceau { display: flex; align-items: center; gap: 8px; }
+  .pastille { width: 18px; height: 18px; border-radius: 5px; flex: 0 0 auto; }
+
+  /* --- les 13 canaux --- */
+  .canaux { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px; }
+  .canal {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    padding: 8px 4px; min-height: 104px;
+  }
+  .canal svg { width: 52px; height: 52px; }
+  .canal span { font-size: 11px; }
+  .canal .db { font-size: 10px; color: var(--doux); font-family: ui-monospace, Menlo, monospace; }
+  .canal.actif .db { color: #10321f; }
+
+  /* --- curseurs --- */
+  label.champ { display: flex; align-items: center; gap: 10px; flex: 1 1 260px; min-width: 240px; }
+  label.champ > span:first-child { flex: 0 0 74px; font-size: 13px; color: var(--doux); }
+  input[type=range] { flex: 1 1 auto; min-width: 120px; height: 40px; accent-color: var(--accent); }
+  .valeur { flex: 0 0 66px; text-align: right; font-family: ui-monospace, Menlo, monospace; font-size: 13px; }
+  .reperes { display: flex; justify-content: space-between; font-size: 11px; color: var(--doux); }
+
+  /* --- verdicts et diagnostic --- */
+  pre {
+    margin: 0; font: 12px/1.45 ui-monospace, Menlo, monospace;
+    white-space: pre-wrap; color: var(--doux);
+  }
+  .ok { color: var(--vert); }
+  .ko { color: var(--rouge); }
+  #diag {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 9;
+    background: #0b0f1a; border-top: 1px solid var(--bord);
+    padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+    font: 11px/1.4 ui-monospace, Menlo, monospace; color: var(--doux);
+    max-height: 200px; overflow: auto;
+  }
+  #diag b { color: var(--texte); }
+</style>
+</head>
+<body>
+
+<h1>Banc d'ecoute, phase 1</h1>
+<p>Le moteur audio complet et les trois morceaux, avec une interface volontairement
+minimale : ce qui se juge ici, <strong>c'est l'oreille</strong>, pas la mise en page. La vraie
+interface au toucher vient au batch suivant, sur la maquette.</p>
+
+<section>
+  <button id="amorce" class="principal">Demarrer l'audio</button>
+  <p style="margin:10px 0 0">Aucun son avant cet appui : le contexte audio d'iOS ne demarre
+  qu'apres un geste, et le bouton silencieux de l'iPhone se contourne dans le meme geste.</p>
+</section>
+
+<section id="bloc-morceau" disabled>
+  <h2>1. Le morceau et l'horloge</h2>
+  <p>Changer de morceau <strong>garde les instruments en place</strong> et repart du debut dans
+  le meme etat de lecture. C'est le cahier des charges, et c'est ce qu'il faut verifier a
+  l'oreille : aucun clic, aucune coupure sur un instrument qui n'a pas bouge.</p>
+  <div class="rangee" id="morceaux"></div>
+  <div class="rangee">
+    <button id="transport" class="principal" style="min-width:190px">Lecture</button>
+    <button id="tousFermes">Tout retirer de la scene</button>
+  </div>
+  <div class="rangee">
+    <label class="champ">
+      <span>Tempo</span>
+      <input type="range" id="tempo" min="60" max="140" step="1" value="100">
+      <span class="valeur" id="vTempo">100 %</span>
+    </label>
+    <label class="champ">
+      <span>Volume</span>
+      <input type="range" id="volume" min="0" max="100" step="1" value="80">
+      <span class="valeur" id="vVolume">80</span>
+    </label>
+  </div>
+  <div class="reperes" style="max-width:340px">
+    <span>60 %, tortue</span><span>100 %, normal</span><span>140 %, lapin</span>
+  </div>
+  <p class="note" style="margin-top:10px">Le curseur de tempo s'aimante sur les trois reperes
+  (a moins de 4 % il colle). La hauteur des notes ne bouge pas quand le tempo change : l'app
+  joue des partitions, pas des enregistrements.</p>
+</section>
+
+<section id="bloc-canaux" disabled>
+  <h2>2. Les 13 canaux</h2>
+  <p>Un appui ouvre ou ferme le canal. Ca ne lance et n'arrete rien : les 13 parties tournent
+  en permanence, y compris celles des instruments fermes. <strong>Scene vide, aucun son, et
+  l'horloge continue de tourner.</strong></p>
+  <div class="canaux" id="canaux"></div>
+  <div class="rangee" style="margin-top:12px">
+    <button data-essai="violon">Violon seul</button>
+    <button data-essai="tuba">Tuba seul</button>
+    <button data-essai="violon,tuba,batterie" class="principal" style="min-height:48px;font-size:15px">
+      Violon + tuba + batterie</button>
+  </div>
+  <p class="note" style="margin-top:10px">Les trois tests de <code>CLAUDE.md</code> : le violon
+  seul doit etre ecoutable, le tuba seul doit etre ecoutable, et le trio doit sonner comme un
+  vrai petit arrangement. C'est toi qui tranches, je ne peux mesurer que la presence du son.</p>
+</section>
+
+<section id="bloc-anticipation" disabled>
+  <h2>3. L'anticipation, a trancher a l'oreille sur l'iPad</h2>
+  <p><code>lookAhead</code> vaut 0,1 s par defaut. Mesure en phase 0 : la rampe de mute fait
+  son travail en 11 ms, mais le son ne s'arrete que 125 ms apres l'appui a cause de cette
+  anticipation. Descendre accelere la reaction au prix d'un risque d'accrocs audio sur les
+  appareils faibles. <strong>Ca ne se tranche pas a l'aveugle</strong> : joue le trio, appuie
+  sur un instrument, et ecoute si ca decroche.</p>
+  <div class="rangee" id="anticipations"></div>
+</section>
+
+<section>
+  <h2>4. Verdict du format sur les trois morceaux</h2>
+  <p>Le meme validateur servira a l'import d'un fichier depuis l'appareil, en phase 2. Il
+  verifie les 13 cles, les positions dans la boucle, les noms de notes (la banque n'a pas de
+  dieses), les frappes sur le bon canal, et deux contraintes propres a ce projet : aucune note
+  au dela des 3,16 s de l'echantillon, et aucune transposition de plus de 5 demi-tons.</p>
+  <pre id="verdict">lecture des morceaux...</pre>
+</section>
+
+<section>
+  <h2>Ce que je ne peux pas te dire</h2>
+  <p class="note">Si ca sonne. Je peux mesurer que chaque instrument produit du son, qu'aucune
+  note n'est coupee, que la transposition reste courte et que les 13 parties tournent ensemble
+  sans erreur. <strong>Savoir si l'arrangement est musical et si le mixage tient, c'est ton
+  oreille et elle seule.</strong> Les niveaux de mixage des trois fichiers sont mon estimation,
+  jamais validee.</p>
+  <p class="note">Alouette manque, et c'est volontaire : je ne suis pas assez sur de sa melodie
+  de memoire, et le reseau d'ici bloque Wikipedia et les sites de partitions, donc je n'ai pas
+  pu la verifier. Ecrire une fausse melodie sur une chanson que les garcons connaissent serait
+  un vrai defaut. Frere Jacques la remplace pour ce batch, il est deja dans la liste du cadrage.</p>
+</section>
+
+<div id="diag">diagnostic...</div>
+
+<script src="../src/vendor/tone.js"></script>
+<script type="module">
+  import { INSTRUMENTS, injecteSprite, instrument } from "../src/instruments.js";
+  import { valide, resume } from "../src/format-morceau.js";
+  import * as moteur from "../src/moteur.js";
+
+  injecteSprite();
+
+  const journal = [];
+  moteur.surErreur((t) => { journal.unshift("ERREUR " + t); if (journal.length > 6) journal.pop(); });
+  const dis = (t) => { journal.unshift(t); if (journal.length > 6) journal.pop(); };
+
+  // --- les morceaux, charges et valides avant tout audio -------------------
+  const index = await (await fetch("../songs/index.json")).json();
+  const morceaux = [];
+  const lignes = [];
+  for (const id of index.morceaux) {
+    const m = await (await fetch(`../songs/${id}.json`)).json();
+    const b = valide(m);
+    morceaux.push(m);
+    const etat = b.erreurs.length ? "ko" : "ok";
+    lignes.push(`<span class="${etat}">${resume(id, b)}</span>  ${m.titre}, ${m.bpm} a la noire, ${m.mesure}, ${m.longueur} mesures`);
+    for (const e of b.erreurs) lignes.push("    ERREUR   " + e);
+    for (const r of b.reserves) lignes.push("    reserve  " + r);
+    const n = Object.entries(m.parties).map(([k, v]) => `${k} ${v.length}`).join(", ");
+    lignes.push("    evenements : " + n);
+  }
+  document.getElementById("verdict").innerHTML = lignes.join("\n");
+
+  let choisi = 0;
+
+  // --- selecteur de morceau ------------------------------------------------
+  const zoneM = document.getElementById("morceaux");
+  zoneM.innerHTML = morceaux.map((m, i) =>
+    `<button class="morceau" data-morceau="${i}">
+       <span class="pastille" style="background:${m.couleur}"></span>${m.titre}</button>`).join("");
+
+  zoneM.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-morceau]");
+    if (!b) return;
+    choisi = +b.dataset.morceau;
+    moteur.chargeMorceau(morceaux[choisi]);
+    dis("morceau charge : " + morceaux[choisi].id);
+    majMorceau();
+    majCanaux();
+  });
+
+  function majMorceau() {
+    for (const b of zoneM.querySelectorAll("[data-morceau]")) {
+      b.classList.toggle("actif", +b.dataset.morceau === choisi);
+    }
+  }
+
+  // --- les 13 canaux -------------------------------------------------------
+  const zoneC = document.getElementById("canaux");
+  zoneC.innerHTML = INSTRUMENTS.map((i) =>
+    `<button class="canal" data-canal="${i.id}">
+       <svg class="f-${i.famille}"><use href="#i-${i.id}"/></svg>
+       <span>${i.nom}</span><span class="db" data-db="${i.id}"></span>
+     </button>`).join("");
+
+  zoneC.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-canal]");
+    if (!b) return;
+    moteur.basculer(b.dataset.canal);
+    majCanaux();
+  });
+
+  function majCanaux() {
+    const m = morceaux[choisi];
+    for (const b of zoneC.querySelectorAll("[data-canal]")) {
+      const id = b.dataset.canal;
+      b.classList.toggle("actif", moteur.estOuvert(id));
+      const db = m && m.mix && typeof m.mix[id] === "number" ? m.mix[id] : 0;
+      const n = m ? m.parties[id].length : 0;
+      b.querySelector("[data-db]").textContent = `${db} dB, ${n} ev.`;
+    }
+  }
+
+  document.body.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-essai]");
+    if (!b) return;
+    moteur.fermeTout();
+    for (const id of b.dataset.essai.split(",")) moteur.ouvre(id);
+    majCanaux();
+  });
+
+  document.getElementById("tousFermes").addEventListener("click", () => {
+    moteur.fermeTout();
+    majCanaux();
+  });
+
+  // --- transport, tempo, volume --------------------------------------------
+  const btT = document.getElementById("transport");
+  btT.addEventListener("click", () => {
+    const enCours = moteur.basculeLecture();
+    btT.textContent = enCours ? "Pause" : "Lecture";
+  });
+
+  // Aimantation sur les trois reperes : a moins de 4 %, le curseur colle.
+  const REPERES = [60, 100, 140];
+  const cTempo = document.getElementById("tempo");
+  cTempo.addEventListener("input", () => {
+    let v = +cTempo.value;
+    for (const r of REPERES) if (Math.abs(v - r) <= 4) v = r;
+    cTempo.value = v;
+    const applique = moteur.tempo(v);
+    document.getElementById("vTempo").textContent = applique + " %";
+  });
+
+  const cVol = document.getElementById("volume");
+  cVol.addEventListener("input", () => {
+    moteur.volume(+cVol.value / 100);
+    document.getElementById("vVolume").textContent = cVol.value;
+  });
+
+  // --- anticipation ---------------------------------------------------------
+  const ANTICIPATIONS = [0.1, 0.05, 0.02];
+  const zoneA = document.getElementById("anticipations");
+  zoneA.innerHTML = ANTICIPATIONS.map((s, i) =>
+    `<button data-anticipation="${s}" class="${i === 0 ? "actif" : ""}">${s * 1000} ms${i === 0 ? ", defaut" : ""}</button>`).join("");
+  zoneA.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-anticipation]");
+    if (!b) return;
+    moteur.anticipation(+b.dataset.anticipation);
+    for (const x of zoneA.children) x.classList.toggle("actif", x === b);
+    dis("anticipation : " + b.dataset.anticipation + " s");
+  });
+
+  // --- amorcage -------------------------------------------------------------
+  const btA = document.getElementById("amorce");
+  btA.addEventListener("click", async () => {
+    if (moteur.estPret()) return;
+    btA.disabled = true;
+    btA.textContent = "Chargement des 13 instruments...";
+    try {
+      const { sessionIos } = await moteur.demarre();
+      dis("13 instruments charges");
+      if (!sessionIos) dis("session iOS a verifier, le bouton silencieux peut couper");
+      moteur.chargeMorceau(morceaux[choisi]);
+      moteur.volume(+cVol.value / 100);
+      for (const id of ["bloc-morceau", "bloc-canaux", "bloc-anticipation"]) {
+        document.getElementById(id).removeAttribute("disabled");
+      }
+      majMorceau();
+      majCanaux();
+      btA.textContent = sessionIos ? "Audio pret" : "Audio pret, session iOS a verifier";
+      btA.classList.remove("principal");
+      btA.classList.add("actif");
+    } catch (e) {
+      dis("ECHEC a l'amorcage : " + (e && e.message ? e.message : e));
+      btA.disabled = false;
+      btA.textContent = "Reessayer";
+    }
+  });
+
+  // --- diagnostic, en permanence -------------------------------------------
+  function rafraichis() {
+    const d = moteur.diagnostic();
+    const l = [];
+    l.push(`<b>contexte</b> ${d.contexte}   <b>horloge</b> ${d.horloge}   <b>position</b> ${d.position}`);
+    l.push(`<b>morceau</b> ${d.morceau || "aucun"}   <b>bpm</b> ${d.bpm}   <b>mesure</b> ${d.signature || "?"} (${d.tempsParMesure} noires)   <b>tempo</b> ${d.tempo} %   <b>boucle</b> ${d.boucle}`);
+    l.push(`<b>parties programmees</b> ${d.parties}/13   <b>anticipation</b> ${d.anticipation} s, soit environ ${d.reactionMs} ms de reaction percue`);
+    l.push(`<b>sur la scene</b> ${d.poses.length ? d.poses.join(", ") : "rien, donc silence"}`);
+    if (journal.length) l.push("<b>journal</b> " + journal.join("  |  "));
+    document.getElementById("diag").innerHTML = l.join("\n");
+  }
+  setInterval(rafraichis, 250);
+  rafraichis();
+
+  window.moteur = moteur;   // pour la verification en navigateur sans tete
+  window.morceaux = morceaux;
+  window.pret = true;
+</script>
+
+</body>
+</html>

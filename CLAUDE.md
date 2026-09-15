@@ -60,7 +60,8 @@ change.
 | Orientation | Adaptative : paysage sur iPad et Mac, portrait sur iPhone |
 | Scène | 6 emplacements maximum, 13 instruments en réserve |
 | Hébergement | GitHub Pages sur `symphony.kinefitlabs.com` |
-| Morceaux | Fichiers JSON dans `songs/`, plus import local depuis l'appareil |
+| Morceaux | Fichiers JSON dans `songs/`, plus `songs/index.json` qui donne l'ordre, plus import local depuis l'appareil |
+| Trois morceaux de la phase 1 | Ah ! vous dirai-je maman, Row Your Boat, **Frère Jacques**. Alouette était prévue et n'est pas écrite : sa mélodie n'a pas pu être vérifiée depuis ce conteneur (Wikipédia et les sites de partitions sont bloqués par le mandataire de sortie), et l'écrire de mémoire approximative serait un défaut sur une chanson que les garçons connaissent |
 
 ## Architecture audio
 
@@ -76,7 +77,20 @@ Scène vide, aucun son : les 13 canaux sont fermés, l'horloge continue de tourn
 
 Transition de mute : une rampe très courte (5 à 10 ms) pour éviter le clic, pas un saut brutal ni un fondu long qui ferait rater l'attaque.
 
+**Où vit ce moteur, depuis la phase 1 :**
+
+| Fichier | Rôle |
+|---|---|
+| `src/moteur.js` | le graphe, l'horloge, les 13 canaux, le tempo, le volume, l'anticipation |
+| `src/echantillons.js` | pour chaque instrument, son nom General MIDI et les notes réellement rapatriées |
+| `src/format-morceau.js` | `valide(morceau)`, partagé avec l'import de la phase 2 |
+| `test/phase1.html` | le banc d'écoute, interface minimale et explicitement provisoire |
+
+Les chemins des échantillons sont résolus depuis l'emplacement du **module** (`import.meta.url`), pas depuis celui de la page. Une page à la racine et une page dans `test/` chargent donc les mêmes fichiers sans que le moteur sache d'où on l'appelle.
+
 **Mesuré en phase 0 :** la rampe de 8 ms fait son travail, le gain atteint zéro en 11 ms. Mais le son ne s'arrête que 125 ms après l'appui, parce que `Tone.getContext().lookAhead` vaut 0,1 s par défaut en mode `interactive`. La réaction perçue à un geste est donc d'environ 110 ms, pas de 8. Descendre `lookAhead` accélère la réaction au prix d'un risque d'accrocs audio sur les appareils faibles. À trancher à la main sur l'iPad, pas à l'aveugle.
+
+**Piège des mesures composées.** Tone compte en **noires**, pas en unités de la signature : il ramène `[n, d]` à `n / (d / 4)`, donc une mesure de **6/8 vaut 3 temps, pas 6**. Les positions se notent en noires et en doubles-croches, jamais en croches de 6/8, et le `bpm` d'un morceau en 6/8 reste un tempo à la noire. Row Your Boat est en 6/8 précisément pour exercer ce chemin.
 
 **Piège de programmation :** `Tone.Part` exige que la clé du temps d'un événement s'appelle `time`. Le format de morceau du projet utilise `t`. La conversion se fait à la frontière, dans le moteur. Sans elle, `Part` programme tout au tick 0 avec une valeur indéfinie, le rappel plante, et on n'entend rien sans voir aucune erreur : l'exception se perd dans l'horloge audio. Entourer les rappels de partie d'un garde-fou qui remonte l'erreur.
 
@@ -315,7 +329,7 @@ pas de persistance des données (voir piège iOS n° 4).
 ## Phases
 
 - **Phase 0** : choix du kit de percussion, écoute comparée des timbres, maquette fixe des deux mises en page, chaîne de déploiement vérifiée de bout en bout. Fait : le son sur iOS, le kit (FluidR3_GM), le déploiement en HTTPS, le nom, les 13 illustrations et les deux maquettes fixes. **Reste le jugement de Mathieu**, sur les illustrations (`test/svg.html`) et sur les maquettes (`test/maquette.html`).
-- **Phase 1** : tranche verticale. Moteur audio complet, trois morceaux (Ah ! vous dirai-je maman, Alouette, Row Your Boat), scène et réserve au toucher, visuels provisoires, testée sur l'iPad. Objectif : valider la sensation de jeu avec les enfants avant d'aller plus loin.
+- **Phase 1** : tranche verticale. Ordre fixé par Mathieu le 15 septembre 2026 : **le son d'abord, l'interaction ensuite**, parce que les arrangements sont le seul risque qu'aucune mesure ne peut lever. Premier batch fait : moteur audio complet dans `src/`, les 13 instruments échantillonnés (2,9 Mo), trois morceaux en 13 parties, banc d'écoute `test/phase1.html`. **Reste : l'interface au toucher**, sur la maquette validée, et le verdict de Mathieu à l'écoute.
 - **Phase 2** : mise en page adaptative, glisser-déposer, animations, illustrations finales, zone parent, import et export, PWA hors ligne.
 - **Phase 3** : le reste de la bibliothèque.
 - **Phase 4** : réglage des mixages morceau par morceau, retours des enfants.
