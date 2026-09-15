@@ -90,4 +90,6 @@ tranche verticale avec des visuels provisoires.
   renvoie l'erreur 60, et « Enforce HTTPS » est donc inactive. Cause identifiée, GitHub n'a
   pas revérifié le DNS. Marche à suivre dans `CLAUDE.md`, section Déploiement, elle passe
   par l'interface web donc elle est à Mathieu. Sans conséquence pour l'écoute, bloquant
-  avant la phase 2.
+  avant la phase 2. La manipulation a été faite le 14 septembre à 05h18 UTC (deux commits
+  `CNAME` de GitHub sur `main`, vérifiés), il reste à relire la réponse HTTPS et à cocher
+  « Enforce HTTPS ».

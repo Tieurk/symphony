@@ -172,6 +172,35 @@ Une fois le certificat émis, cocher « Enforce HTTPS » dans les réglages Page
 branche, et toute mise en ligne passe par une fusion vers `main`. Ne jamais fusionner sans
 que Mathieu l'ait demandé explicitement.
 
+**Piège qui a mordu le 14 septembre 2026.** Toute action dans l'interface web de GitHub
+écrit un commit **directement sur `main`** : les réglages Pages, l'édition d'un fichier en
+ligne. La manipulation qui force l'émission du certificat en a produit deux à 30 secondes
+d'intervalle, `Delete CNAME` puis `Create CNAME`. `main` s'est donc retrouvé avec des
+commits que la branche de travail n'avait pas, les deux lignes ont divergé, et le `git pull`
+suivant a échoué chez Mathieu sur `Need to specify how to reconcile divergent branches`.
+
+L'invariant à tenir : **la branche de travail est toujours en avance sur `main`**, sinon la
+mise en ligne n'est plus une avance rapide. Après toute action dans l'interface, ramener
+`main` dans la branche tout de suite :
+
+```bash
+git fetch origin main && git merge origin/main
+```
+
+Une fusion, jamais un rebase : la branche est publiée et Mathieu l'a en local, réécrire son
+historique casserait sa copie. Vérification formelle que l'invariant est rétabli :
+
+```bash
+git merge-base --is-ancestor origin/main HEAD    # doit retourner 0
+```
+
+Et chez Mathieu, `git config pull.ff only`, pour qu'un `git pull` échoue bruyamment au lieu
+de fabriquer un commit de fusion en silence.
+
+Détail sans conséquence, à ne pas corriger : l'interface réécrit `CNAME` sans saut de ligne
+final, 24 octets au lieu de 25. Pages s'en moque, et le remettre ferait réapparaître la
+différence à la prochaine manipulation.
+
 **État constaté le 14 septembre 2026.** DNS correct, domaine bien enregistré côté Pages, le
 site répond en `http://`. Mais le certificat TLS n'est pas émis : la poignée de main réussit
 et GitHub présente son joker `*.github.io`, qui ne couvre pas le domaine (`curl` erreur 60).
