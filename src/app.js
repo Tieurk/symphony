@@ -414,31 +414,107 @@ $("volume").addEventListener("input", async (e) => {
 for (const id of ["tempo", "volume"]) $(id).addEventListener("change", sauve);
 
 // --- zone parent, appui long de 2 s -----------------------------------------
+//
+// « Marche pas », rapporte par Mathieu sur l'iPad le 15 septembre 2026. Rien
+// ne se voyait dans un navigateur sans tete, et il y avait TROIS defauts
+// empiles sur un geste de deux secondes :
+//
+// 1. RIEN NE SE VOYAIT PENDANT L'APPUI. Deux secondes sans retour visuel, on
+//    lache avant la fin, et il ne se passe rien. Un anneau se remplit
+//    maintenant sur l'engrenage, et sa duree vient de APPUI_LONG.
+// 2. iOS PRENAIT LA MAIN SUR LE GESTE. L'engrenage n'avait ni
+//    -webkit-touch-callout: none ni user-select: none, seuls les jetons et les
+//    emplacements les avaient. Un doigt pose deux secondes sur un element
+//    selectionnable declenche le menu systeme, donc un pointercancel, donc
+//    l'annulation du minuteur. Corrige dans src/app.css, sur .rond.
+// 3. LE MINUTEUR POUVAIT ARRIVER APRES LE DOIGT. Le premier geste de la
+//    session declenche aussi l'amorcage audio : 2,6 Mo a telecharger et a
+//    decoder, ce qui retarde un setTimeout. Si le doigt se leve avant que le
+//    minuteur ne tire, l'ancien code annulait tout. On DECIDE DONC SUR LE
+//    TEMPS ECOULE et plus sur l'ordre des rappels, comme pour l'intention de
+//    lecture : un etat mesure ne depend pas de qui repond le premier.
+//
+// Le mouvement se mesure depuis le point de depart et plus par movementX, qui
+// n'est pas fiable sur un evenement tactile de Safari et qui comparait de
+// toute facon un pas entre deux evenements, pas une distance parcourue.
 
 let minuteur = null;
+let debutAppui = 0;
+let departAppui = null;
 const eng = $("engrenage");
-eng.addEventListener("pointerdown", (e) => {
-  eng.classList.add("presse");
-  minuteur = setTimeout(() => {
-    // Rafraichir AVANT d'afficher : la liste et le compte des sons en cache
-    // ont pu changer depuis la derniere ouverture.
-    parent.rafraichis();
-    parent.majHorsLigne();
-    $("parent").hidden = false;
-    annule();
-  }, APPUI_LONG);
-  try { eng.setPointerCapture(e.pointerId); } catch (err) { /* rien */ }
-});
+const SEUIL_ENGRENAGE = 16;     // px de derapage toleres avant d'abandonner
+eng.style.setProperty("--appui", APPUI_LONG + "ms");
+
+function ouvreParent() {
+  // Rafraichir AVANT d'afficher : la liste et le compte des sons en cache ont
+  // pu changer depuis la derniere ouverture.
+  parent.rafraichis();
+  parent.majHorsLigne();
+  $("parent").hidden = false;
+  annule();
+}
+
 function annule() {
   if (minuteur) { clearTimeout(minuteur); minuteur = null; }
+  debutAppui = 0;
+  departAppui = null;
   eng.classList.remove("presse");
 }
-eng.addEventListener("pointerup", annule);
-eng.addEventListener("pointercancel", annule);
+
+let minuteurAstuce = null;
+function astuce(texte) {
+  const z = $("astuce");
+  z.textContent = texte;
+  z.hidden = false;
+  if (minuteurAstuce) clearTimeout(minuteurAstuce);
+  minuteurAstuce = setTimeout(() => { z.hidden = true; }, 2600);
+}
+
+eng.addEventListener("pointerdown", (e) => {
+  debutAppui = performance.now();
+  departAppui = { x: e.clientX, y: e.clientY };
+  // Retirer puis remettre la classe, sinon l'animation de l'anneau ne repart
+  // pas au deuxieme appui.
+  eng.classList.remove("presse");
+  void eng.offsetWidth;
+  eng.classList.add("presse");
+  minuteur = setTimeout(ouvreParent, APPUI_LONG);
+  try { eng.setPointerCapture(e.pointerId); } catch (err) { /* souris hors capture */ }
+});
+
+// TROIS APPUIS DE SUITE OUVRENT AUSSI, et c'est une porte de secours
+// assumee. Si iOS mange encore le maintien sur un appareil que je ne peux pas
+// essayer, un parent reste enferme dehors : la zone parent porte les credits,
+// le hors ligne et la bibliotheque. Compter trois lachers en 1,5 s ne depend
+// d'aucun maintien, donc d'aucun comportement systeme, et reste hors de
+// portee d'un geste de jeu : un enfant touche les instruments, pas trois fois
+// de suite un engrenage de 68 px. Ca donne aussi un diagnostic : si les trois
+// appuis marchent et que le maintien non, c'est le maintien qui est mange.
+const FENETRE_TRIPLE = 1500;
+let appuis = [];
+
+function relache() {
+  if (!debutAppui) return;
+  const tenu = performance.now() - debutAppui;
+  // minuteur non nul veut dire qu'il n'a pas encore tire : s'il est en retard
+  // alors que le temps est fait, on ouvre quand meme.
+  if (minuteur !== null && tenu >= APPUI_LONG) { ouvreParent(); appuis = []; return; }
+  annule();
+
+  const t = performance.now();
+  appuis = appuis.filter((x) => t - x < FENETRE_TRIPLE);
+  appuis.push(t);
+  if (appuis.length >= 3) { appuis = []; ouvreParent(); return; }
+  astuce("Garde le doigt appuyé 2 secondes sur l'engrenage, ou appuie trois fois de suite.");
+}
+eng.addEventListener("pointerup", relache);
+eng.addEventListener("pointercancel", relache);
 eng.addEventListener("pointermove", (e) => {
-  // un doigt qui derape annule : sinon l'appui long se declencherait pendant
-  // un glisser qui passe sur l'engrenage
-  if (minuteur && (Math.abs(e.movementX) > 6 || Math.abs(e.movementY) > 6)) annule();
+  // Un doigt qui derape abandonne : sinon l'appui long se declencherait
+  // pendant un glisser qui passe sur l'engrenage. Sans astuce ici, ce n'est
+  // pas un appui rate mais un autre geste.
+  if (!minuteur || !departAppui) return;
+  if (Math.hypot(e.clientX - departAppui.x, e.clientY - departAppui.y) > SEUIL_ENGRENAGE) annule();
 });
 const fermeParent = () => { $("parent").hidden = true; };
 $("ferme-parent").addEventListener("click", fermeParent);

@@ -337,6 +337,37 @@ laissait l'app muette dès qu'un parent avait touché au panneau avant de jouer,
 l'amorçage avait déjà eu lieu et que le geste suivant n'était plus le premier. Deuxième fois
 que ce même piège mord au même endroit.
 
+### Un appui long de 2 s, trois façons de le rater
+
+**« Marche pas »**, rapporté par Mathieu sur l'iPad le 15 septembre 2026, sur l'appui long de
+l'engrenage. Rien ne se voyait dans un navigateur sans tête, et il y avait **trois défauts
+empilés** sur un seul geste :
+
+1. **Rien ne se voyait pendant l'appui.** Deux secondes sans retour visuel, on lâche avant la
+   fin, et il ne se passe rien. Un anneau se remplit maintenant sur l'engrenage, et sa durée
+   vient de `APPUI_LONG` par la variable CSS `--appui`, donc le CSS et le JS ne peuvent pas
+   dériver.
+2. **iOS prenait la main sur le geste.** `touch-action: none`, `-webkit-touch-callout: none` et
+   `user-select: none` ne portaient que sur `.jeton` et `.place`. Un doigt posé deux secondes
+   sur un élément sélectionnable déclenche le menu système, donc un `pointercancel`, donc
+   l'annulation du minuteur. La règle porte maintenant sur `.rond`.
+3. **Le minuteur pouvait arriver après le doigt.** Le premier geste de la session déclenche
+   aussi l'amorçage audio : 2,6 Mo à télécharger et à décoder, ce qui retarde un `setTimeout`.
+   Si le doigt se levait avant que le minuteur ne tire, l'ancien code annulait tout. **On décide
+   donc sur le temps écoulé**, pas sur l'ordre des rappels. Troisième fois que ce même principe
+   corrige un bug dans ce projet, après l'intention de lecture.
+
+Deux ajouts de robustesse, parce qu'un parent enfermé dehors n'a plus accès aux crédits, au
+hors ligne ni à la bibliothèque : un **appui trop court affiche quoi faire** au lieu de ne
+rien dire, et **trois appuis de suite en moins de 1,5 s ouvrent aussi**. Le triple appui ne
+dépend d'aucun maintien, donc d'aucun comportement système, et reste hors de portée d'un geste
+de jeu. Il donne en plus un diagnostic : si les trois appuis marchent et que le maintien non,
+c'est le maintien qui est mangé.
+
+Le dérapage se mesure depuis le point de départ (16 px) et plus par `movementX`, qui n'est pas
+fiable sur un événement tactile de Safari et qui comparait de toute façon un pas entre deux
+événements, pas une distance parcourue.
+
 ### `hidden` en CSS, et `hidden` sur un SVG
 
 **L'attribut `hidden` n'est qu'un `display: none` de la feuille du navigateur : la moindre
@@ -404,7 +435,7 @@ Trois zones : contrôles en haut (sélecteur de morceau, play/pause, tempo, volu
 - Tempo de 60 % à 140 %, aimanté sur trois repères illustrés : **tortue, noire, lapin**, dessinés dans `src/instruments.js` sous les identifiants `r-lent`, `r-normal`, `r-rapide`. Ce ne sont pas des instruments, ils ne sont donc pas dans `INSTRUMENTS`. Vérifiés lisibles à 26 px.
 - Cibles tactiles de 64 px minimum. Aucun texte nécessaire pour jouer.
 - Dans la **zone parent**, les actions d'une ligne de bibliothèque font aussi 64 px de haut, ce qui dicte la forme de la ligne : titre sur une ligne, actions en dessous. Cinq boutons de 64 px et un titre ne tiennent pas côte à côte sur la largeur d'un iPhone (mesuré : 344 px nécessaires pour 310 px utiles). Les onglets et les boutons secondaires descendent à 56 px, seul écart assumé, et c'est du texte qu'un adulte lit.
-- Zone parent derrière un appui long de 2 s sur un engrenage : bibliothèque, import, export, licences.
+- Zone parent derrière un appui long de 2 s sur un engrenage : bibliothèque, import, export, licences. **Trois appuis de suite l'ouvrent aussi**, porte de secours assumée : voir le piège ci-dessous.
 - **Trois sorties de la zone parent**, et ce n'est pas du luxe : le bouton du bas, le voile, la touche d'échappement. Mesuré : sur un iPhone le panneau fait 743 px pour une vue de 664, donc le bouton « Retour au jeu » est hors de l'écran, et comme `html` et `body` sont en `overflow: hidden`, la zone parent était un **cul-de-sac** dont on ne sortait qu'en rechargeant. Le voile défile maintenant, et le centrage passe par `margin: auto` : `place-items: center` rogne le **haut** du contenu dès qu'il dépasse, sans barre de défilement pour le rattraper.
 
 ## Pièges iOS, à traiter en phase 1

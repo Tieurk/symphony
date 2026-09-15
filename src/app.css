@@ -294,7 +294,7 @@ body {
 /* Un appui sur un jeton ou un emplacement ne doit JAMAIS faire defiler la page
    ni ouvrir le menu systeme d'iOS. touch-action seulement sur les elements
    attrapables, pas sur l'app : sinon le selecteur de morceau ne defile plus. */
-.jeton, .place {
+.jeton, .place, .rond {
   touch-action: none;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
@@ -426,7 +426,35 @@ body {
   background: var(--accent); color: #22160c; border: 0; border-radius: 12px;
   font-weight: 700; font-size: 16px;
 }
+/* L'ENGRENAGE ET SON APPUI DE DEUX SECONDES.
+   Deux secondes sans aucun retour visuel, c'est un bouton casse : on lache
+   avant la fin et il ne se passe rien. L'anneau se remplit du bas vers le haut
+   pendant l'appui, et sa duree vient de APPUI_LONG par --appui, donc le CSS et
+   le JS ne peuvent pas deriver. clip-path plutot qu'un degrade conique, qui
+   demanderait @property pour s'animer. */
+.rond.engrenage { position: relative; }
 .rond.engrenage.presse { color: var(--accent); background: rgba(242,166,90,.18); }
+.rond.engrenage.presse::after {
+  content: ""; position: absolute; inset: -4px; border-radius: 50%;
+  border: 3px solid var(--accent); pointer-events: none;
+  animation: remplir var(--appui, 2000ms) linear forwards;
+}
+@keyframes remplir {
+  from { clip-path: inset(100% 0 0 0); }
+  to   { clip-path: inset(0 0 0 0); }
+}
+
+/* L'astuce, montree quand on lache l'engrenage trop tot. Sans elle, un appui
+   trop court ne dit rien du tout, et c'est exactement ce qui s'est passe. */
+#astuce {
+  position: fixed; z-index: 70; right: 12px;
+  top: calc(10px + env(safe-area-inset-top));
+  max-width: min(60vw, 260px); pointer-events: none;
+  background: var(--nuit-clair); border: 1px solid var(--accent);
+  color: var(--texte); border-radius: 10px; padding: 8px 10px;
+  font: 13px/1.35 -apple-system, system-ui, sans-serif;
+  box-shadow: 0 6px 18px rgba(0,0,0,.4);
+}
 
 /* ===========================================================================
    LA BIBLIOTHEQUE ET L'IMPORT, dans la zone parent. Trois pages derriere un

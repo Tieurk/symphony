@@ -92,7 +92,7 @@ qu'après un toucher, et le bouton silencieux de l'iPhone se contourne dans le m
 Toucher un instrument suffit à amorcer, le bouton de lecture montre le chargement des 13
 instruments pendant les premières secondes.
 
-Derrière un **appui long de 2 s sur l'engrenage**, trois pages :
+Derrière un **appui long de 2 s sur l'engrenage**, ou **trois appuis de suite**, trois pages :
 
 - **Bibliothèque**, pour masquer un morceau du choix de l'enfant, changer l'ordre, exporter
   un morceau ou supprimer un morceau importé
@@ -100,6 +100,9 @@ Derrière un **appui long de 2 s sur l'engrenage**, trois pages :
   dont tu répartis les pistes sur les instruments à l'écran suivant
 - **À propos**, les crédits des banques de sons, l'état du hors ligne, « Tout garder hors
   ligne » et « Vider la scène et les réglages »
+
+Un anneau se remplit sur l'engrenage pendant l'appui : c'est lui qui dit quand lâcher. Un
+appui trop court affiche quoi faire au lieu de ne rien dire.
 
 Trois sorties : le bouton du bas, un appui sur le fond sombre, la touche d'échappement.
 
