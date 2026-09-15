@@ -2,6 +2,9 @@
 
 Orchestre interactif pour enfants, en PWA. On pose des instruments sur la scène, l'arrangement du morceau se transforme en direct.
 
+Le nom affiché aux enfants est **Mon premier orchestre**. `symphony` reste le nom du dépôt
+et du sous-domaine.
+
 En ligne : https://symphony.kinefitlabs.com
 
 ## État
@@ -9,9 +12,13 @@ En ligne : https://symphony.kinefitlabs.com
 Phase 0 en cours. Pas encore d'app : ce qui existe est de l'outillage et un banc d'essai du
 moteur audio, `test/phase0.html`.
 
-Tranché : le son sort sur iOS, la percussion est choisie (FluidR3_GM), et la chaîne de
-déploiement fonctionne en HTTPS. Reste le nom de l'app et le choix entre maquette fixe et
-tranche verticale directe, tous deux dans `docs/points-ouverts.md`.
+Tranché : le son sort sur iOS, la percussion est choisie (FluidR3_GM), la chaîne de
+déploiement fonctionne en HTTPS, le nom est choisi, et l'ordre de travail est fixé (maquette
+fixe des deux mises en page avant la tranche verticale).
+
+Reste le style des illustrations. Un test est livré, `test/svg.html`, quatre instruments
+dessinés en SVG à la main, à juger avant de dessiner les neuf autres. Voir
+`docs/points-ouverts.md`.
 
 ## Où regarder
 
@@ -37,7 +44,8 @@ docs/      cadrage et spécifications
 Le plus court, rien à lancer, ouvrir directement sur l'iPad :
 
 ```
-https://symphony.kinefitlabs.com/test/phase0.html
+https://symphony.kinefitlabs.com/test/phase0.html     le banc d'essai audio
+https://symphony.kinefitlabs.com/test/svg.html        le test des illustrations
 ```
 
 En `https://`, le certificat est émis depuis le 15 septembre 2026.

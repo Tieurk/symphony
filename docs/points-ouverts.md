@@ -4,34 +4,64 @@
 
 ## À trancher en phase 0
 
-### 1. Le nom de l'app.
-
-« Symphony » est le nom du dépôt et du sous-domaine, pas forcément celui affiché aux
-enfants. Pistes : Mon Orchestre, Maestro !, La Fosse, Symphonie de poche.
-"Mon premier orchestre"
-
-### 2. Les illustrations.
+### 1. Les illustrations. Test SVG livré, en attente de jugement.
 
 SVG dessinés en code, ou images générées puis détourées. Les 13 instruments, plus la scène
 et l'icône.
-Je veux bien voir un test svg d'abord avant de trancher
 
-### 3. Maquette avant code.
+Mathieu a demandé à voir un test SVG avant de trancher. Livré : `test/svg.html`, quatre
+instruments dessinés en code, choisis pour couvrir l'éventail de difficulté.
 
-Produire les deux mises en page en fixe pour validation, ou partir directement sur la
-tranche verticale avec des visuels provisoires.
-d'abord mise en page
+| Instrument | Famille | Ce qu'il teste |
+|---|---|---|
+| Violon | Cordes | la taille de guêpe, qui distingue un violon d'une guitare |
+| Tuba | Cuivres | le cas le plus dur, pavillon évasé et tube enroulé |
+| Xylophone | Claviers | le cas facile, purement géométrique |
+| Batterie | Percussions | le multi-objet, quatre fûts et une cymbale |
+
+Chacun est montré à 64, 96 et 140 px (64 px est la cible tactile minimale du cahier des
+charges), puis en jeton de réserve sur le bleu nuit, puis sur la scène en bois clair avec
+les rideaux rouges. Un seul jeu de symboles SVG, teinté par famille en CSS via des variables
+qui traversent le shadow tree de `<use>`. C'est le mécanisme que l'app utiliserait.
+
+Deux passes de correction ont été nécessaires, et c'est instructif : **le tuba de la
+première version lisait comme un cor**, pavillon trop petit et boucle trop serrée. Ce qui
+fait un tuba pour un enfant, c'est un pavillon énorme tourné vers le haut. Le violon a
+gagné les pointes de sa taille, sans quoi il lisait « ukulélé ». Le xylophone n'occupait que
+la moitié de la hauteur de sa boîte, donc il gaspillait la cible tactile.
+
+Les trois questions posées à Mathieu, dans l'ordre d'importance :
+
+1. **Un enfant de 6 ans reconnaît-il les quatre à 64 px, sans étiquette ?** Si oui, les neuf
+   autres se dessinent de la même main. Si non, il faut passer aux images générées puis
+   détourées, et il faudra les produire, les détourer et les optimiser.
+2. La palette des six familles tient-elle ensemble, et tient-elle sur le bois clair de la
+   scène autant que sur le bleu nuit ?
+3. Le style à plat, sans dégradé ni contour, est-il trop sec pour des enfants de 6 et 8 ans ?
+
+Palette provisoire, à valider avec le reste : cordes `#E2724A`, bois `#63C88A`, cuivres
+`#F4C844`, claviers `#6FB3D8`, vent `#B98BD9`, percussions `#E05C5C`.
+
+**Contradiction du cadrage à trancher au passage** : la section 8 annonce cinq familles
+(cordes, bois, cuivres, claviers, percussions), le tableau de la section 6 en utilise six,
+avec l'accordéon seul dans « Vent ». Soit six couleurs, soit l'accordéon rejoint les bois.
+Ça change une couleur, pas l'architecture.
+
+Une dernière chose que je n'ai pas faite et qui viendra si le style est validé :
+l'équilibrage optique entre les 13. Un violon est naturellement étroit et une batterie
+large, donc à taille de boîte égale ils ne pèsent pas pareil à l'oeil. Ça se règle instrument
+par instrument, et ça ne se juge qu'une fois les 13 côte à côte.
 
 ## À trancher avant la phase 2
 
-4. **Import MIDI.** Confirmer que le bouton Importer accepte aussi les fichiers `.mid` avec écran de correspondance des pistes, ou seulement les fichiers au format du projet.
+2. **Import MIDI.** Confirmer que le bouton Importer accepte aussi les fichiers `.mid` avec écran de correspondance des pistes, ou seulement les fichiers au format du projet.
 
-5. **Accès à la zone parent.** Appui long de 2 s sur l'engrenage, ou un autre geste.
+3. **Accès à la zone parent.** Appui long de 2 s sur l'engrenage, ou un autre geste.
 
 ## À trancher avant la phase 3
 
-6. **Les trois remplacements** dans la liste des 15 morceaux du jouet : The Wheels on the Bus (encore protégé en Europe), Alphabet Song (même mélodie qu'Ah ! vous dirai-je maman), Come Little Leaves (statut à vérifier). Voir `docs/cadrage.md` section 7.4.
-7. **La deuxième série de morceaux.** Voir `docs/cadrage.md` section 7.5.
+4. **Les trois remplacements** dans la liste des 15 morceaux du jouet : The Wheels on the Bus (encore protégé en Europe), Alphabet Song (même mélodie qu'Ah ! vous dirai-je maman), Come Little Leaves (statut à vérifier). Voir `docs/cadrage.md` section 7.4.
+5. **La deuxième série de morceaux.** Voir `docs/cadrage.md` section 7.5.
 
 ## Tranché en phase 0
 
@@ -74,6 +104,18 @@ Niveau des cymbales, à valider : réglé à -10 dB, de ma main, jamais validé.
 sont au même niveau que la batterie quand on les écoute seules (0,3 dB d'écart) et
 n'ajoutent que 0,4 dB au mix complet, donc elles sont masquées plutôt que trop basses.
 C'est l'oreille de Mathieu qui tranchera, en phase 4.
+
+### Nom affiché aux enfants : « Mon premier orchestre ». Tranché le 15 septembre 2026.
+
+Le dépôt et le sous-domaine restent `symphony`, ce sont deux choses différentes. Le cadrage
+proposait « Mon Orchestre », « Maestro ! », « La Fosse » et « Symphonie de poche ».
+
+### Ordre de travail : la maquette fixe d'abord. Tranché le 15 septembre 2026.
+
+Les deux mises en page produites en fixe pour validation, puis la tranche verticale. C'est
+l'inverse de ce que je recommandais (partir directement sur la tranche verticale avec des
+visuels provisoires, puisque le moteur audio est déjà debout et validé à l'oreille). Décision
+de Mathieu, c'est son projet.
 
 - **Convention de nommage des échantillons FluidR3_GM.** Confirmée fichier par fichier le
   13 septembre 2026, écrite dans `CLAUDE.md`.

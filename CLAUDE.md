@@ -27,6 +27,8 @@ Mathieu, kinésithérapeute, pas développeur de métier mais a déjà déployé
 
 | Sujet | Choix |
 |---|---|
+| Nom affiché aux enfants | **Mon premier orchestre**, tranché le 15 septembre 2026. Le dépôt et le sous-domaine restent `symphony` |
+| Ordre de travail | **Maquette fixe des deux mises en page d'abord**, tranché le 15 septembre 2026, puis la tranche verticale. Ne pas partir sur la tranche verticale avec des visuels provisoires |
 | Sons | Instruments échantillonnés, pas de synthèse pure |
 | Moteur | Tone.js, copié dans `src/vendor/` |
 | Orientation | Adaptative : paysage sur iPad et Mac, portrait sur iPhone |
@@ -248,7 +250,7 @@ pas de persistance des données (voir piège iOS n° 4).
 
 ## Phases
 
-- **Phase 0** : choix du kit de percussion, écoute comparée des timbres, maquette fixe des deux mises en page, chaîne de déploiement vérifiée de bout en bout.
+- **Phase 0** : choix du kit de percussion, écoute comparée des timbres, maquette fixe des deux mises en page, chaîne de déploiement vérifiée de bout en bout. Fait : le son sur iOS, le kit (FluidR3_GM), le déploiement en HTTPS, le nom. Reste : le style des illustrations puis la maquette fixe.
 - **Phase 1** : tranche verticale. Moteur audio complet, trois morceaux (Ah ! vous dirai-je maman, Alouette, Row Your Boat), scène et réserve au toucher, visuels provisoires, testée sur l'iPad. Objectif : valider la sensation de jeu avec les enfants avant d'aller plus loin.
 - **Phase 2** : mise en page adaptative, glisser-déposer, animations, illustrations finales, zone parent, import et export, PWA hors ligne.
 - **Phase 3** : le reste de la bibliothèque.
