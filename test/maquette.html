@@ -129,10 +129,13 @@
     position: absolute; top: 50%; width: 32px; height: 32px; margin: -16px 0 0 -16px;
     border-radius: 50%; background: var(--texte); border: 3px solid var(--accent);
   }
-  .reperes { display: flex; justify-content: space-between; padding: 0 2px; color: var(--doux); }
-  .reperes svg { width: 22px; height: 16px; fill: none; stroke: currentColor;
-                 stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
-  .reperes .actif { color: var(--accent); }
+  .reperes { display: flex; justify-content: space-between; align-items: center; padding: 0 2px; }
+  .reperes svg {
+    width: 30px; height: 30px;
+    --base: var(--doux); --clair: #c3d0e6; --sombre: #5b6a8a; --fil: var(--texte);
+  }
+  /* le repere courant, en accent */
+  .reperes .actif { --base: var(--accent); --clair: #ffd49a; --sombre: #a8681f; }
   .ligne-volume { display: flex; align-items: center; gap: 8px; flex: 1 1 120px; min-width: 0; }
   .ligne-volume svg { width: 24px; height: 24px; flex: 0 0 auto; fill: var(--doux); }
 
@@ -234,7 +237,22 @@
     .res-a { grid-area: resg; }
     .res-b { grid-area: resd; }
     .scene { padding: 34px 46px 20px; }
-    .places { gap: 16px; grid-template-rows: repeat(2, minmax(0, 300px)); }
+
+    /* la scene en demi-cercle, voir docs/cadrage.md section 4.5 */
+    .places {
+      display: block; position: relative;
+      --place: clamp(64px, 15%, 150px);
+    }
+    .place {
+      position: absolute; width: var(--place); height: auto; aspect-ratio: 1;
+      transform: translate(-50%, -50%); min-width: 64px;
+    }
+    .place:nth-child(1) { left:  8%; top: 82%; }
+    .place:nth-child(2) { left: 24.8%; top: 46%; }
+    .place:nth-child(3) { left: 41.6%; top: 28%; }
+    .place:nth-child(4) { left: 58.4%; top: 28%; }
+    .place:nth-child(5) { left: 75.2%; top: 46%; }
+    .place:nth-child(6) { left: 92%; top: 82%; }
   }
 
   /* Pas assez de hauteur pour sept jetons de 64 px en une colonne : deux
@@ -311,8 +329,10 @@
     </div>
 
     <!-- rangee 2 : le gros bouton de lecture et le tempo, aimante sur trois
-         reperes illustres. Un, deux, trois chevrons : lent, normal, rapide.
-         Pas de texte, pas d'emoji, conformement au cahier des charges. -->
+         reperes illustres : tortue, noire, lapin, comme le veut le cadrage
+         section 4.2. Dessines, pas des emoji, dont le rendu varie selon
+         l'appareil. En phase 1 ils seront tapables, avec une zone sensible de
+         64 px autour d'un dessin de 30. -->
     <div class="rangee">
       <div class="rond play" aria-label="lecture">
         <svg viewBox="0 0 24 24"><path d="M6 3l16 9-16 9z"/></svg>
@@ -320,9 +340,9 @@
       <div class="curseur">
         <div class="piste"><i style="left:50%"></i></div>
         <div class="reperes">
-          <svg viewBox="0 0 24 16"><path d="M9 3l6 5-6 5"/></svg>
-          <svg class="actif" viewBox="0 0 24 16"><path d="M5 3l6 5-6 5"/><path d="M13 3l6 5-6 5"/></svg>
-          <svg viewBox="0 0 24 16"><path d="M2 3l6 5-6 5"/><path d="M9 3l6 5-6 5"/><path d="M16 3l6 5-6 5"/></svg>
+          <svg aria-label="lent"><use href="#r-lent"/></svg>
+          <svg class="actif" aria-label="normal"><use href="#r-normal"/></svg>
+          <svg aria-label="rapide"><use href="#r-rapide"/></svg>
         </div>
       </div>
     </div>

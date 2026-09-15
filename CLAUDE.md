@@ -244,7 +244,9 @@ Trois zones : contrôles en haut (sélecteur de morceau, play/pause, tempo, volu
 - Scène pleine : l'instrument touché tremble, les 6 emplacements clignotent une fois. Pas de remplacement automatique.
 - Glisser sur un emplacement occupé : échange.
 - Changement de morceau : les instruments restent en place, le nouveau morceau repart du début dans le même état de lecture.
-- Tempo de 60 % à 140 %, aimanté sur trois repères illustrés.
+- **Scène en demi-cercle en paysage**, tranché le 15 septembre 2026 contre une grille 3x2 : six emplacements en arc face au public, extrémités basses et milieu haut. Coût mesuré, l'emplacement passe de 275 px à 129 px sur l'iPad. La grille 3x2 reste en portrait, faute de largeur.
+- **Réserve portrait à cinq colonnes**, pas les quatre du cadrage. Mesuré : en quatre colonnes les 13 jetons prennent une rangée de plus, soit 148 px pris à la scène, et l'emplacement tombe à 67 px sur un iPhone 390 et à 16 px sur un SE. La cible tactile de 64 px gagne contre le nombre de colonnes.
+- Tempo de 60 % à 140 %, aimanté sur trois repères illustrés : **tortue, noire, lapin**, dessinés dans `src/instruments.js` sous les identifiants `r-lent`, `r-normal`, `r-rapide`. Ce ne sont pas des instruments, ils ne sont donc pas dans `INSTRUMENTS`. Vérifiés lisibles à 26 px.
 - Cibles tactiles de 64 px minimum. Aucun texte nécessaire pour jouer.
 - Zone parent derrière un appui long de 2 s sur un engrenage : bibliothèque, import, export, licences.
 

@@ -456,6 +456,71 @@ export const SPRITE = `
     </g>
   </symbol>
 
+
+  <!-- ================= REPERES DE TEMPO ================= -->
+  <!-- Ce ne sont PAS des instruments : absents de INSTRUMENTS, presents ici
+       pour n'avoir qu'un seul sprite et un seul mecanisme d'injection. -->
+
+  <!-- TORTUE, le repere lent (60 %). A 26 px il ne reste que le dome et la
+       tete : c'est exactement ce qu'il faut pour que ca lise. -->
+  <symbol id="r-lent" viewBox="0 0 100 100">
+    <!-- queue -->
+    <path d="M20 60l-9 3 9 5z" fill="var(--sombre)"/>
+    <!-- pattes -->
+    <g fill="var(--sombre)">
+      <rect x="26" y="62" width="14" height="13" rx="6"/>
+      <rect x="58" y="62" width="14" height="13" rx="6"/>
+    </g>
+    <!-- tete -->
+    <path d="M78 48c9-3 17 1 17 8s-8 11-17 8z" fill="var(--clair)"/>
+    <circle cx="88" cy="54" r="2.2" fill="var(--sombre)"/>
+    <!-- carapace -->
+    <path d="M16 64c0-23 15-38 34-38s34 15 34 38z" fill="var(--base)"/>
+    <ellipse cx="50" cy="64" rx="34" ry="5" fill="var(--sombre)"/>
+    <!-- ecailles -->
+    <g fill="var(--sombre)" opacity=".45">
+      <path d="M50 32l13 9-5 15H42l-5-15z"/>
+      <path d="M26 52l8-6 4 12-4 6h-9z"/>
+      <path d="M74 52l-8-6-4 12 4 6h9z"/>
+    </g>
+  </symbol>
+
+  <!-- NORMAL, le repere du milieu (100 %). Pas un animal : le tempo ecrit,
+       donc une noire. -->
+  <symbol id="r-normal" viewBox="0 0 100 100">
+    <rect x="58" y="14" width="9" height="56" rx="3" fill="var(--base)"/>
+    <ellipse cx="42" cy="68" rx="24" ry="17" fill="var(--base)"
+             transform="rotate(-18 42 68)"/>
+    <ellipse cx="42" cy="66" rx="14" ry="9" fill="var(--clair)" opacity=".5"
+             transform="rotate(-18 42 66)"/>
+  </symbol>
+
+  <!-- LAPIN, le repere rapide (140 %). Ce qui le signe a 26 px, ce sont les
+       deux longues oreilles : tout le reste est secondaire. -->
+  <symbol id="r-rapide" viewBox="0 0 100 100">
+    <!-- oreilles, ecartees -->
+    <g fill="var(--base)">
+      <ellipse cx="56" cy="24" rx="7" ry="20" transform="rotate(-14 56 24)"/>
+      <ellipse cx="74" cy="26" rx="7" ry="20" transform="rotate(10 74 26)"/>
+    </g>
+    <g fill="var(--clair)">
+      <ellipse cx="56" cy="24" rx="3.2" ry="13" transform="rotate(-14 56 24)"/>
+      <ellipse cx="74" cy="26" rx="3.2" ry="13" transform="rotate(10 74 26)"/>
+    </g>
+    <!-- corps -->
+    <ellipse cx="40" cy="68" rx="28" ry="21" fill="var(--base)"/>
+    <!-- queue -->
+    <circle cx="13" cy="62" r="8" fill="var(--clair)"/>
+    <!-- tete -->
+    <circle cx="68" cy="53" r="16" fill="var(--base)"/>
+    <circle cx="74" cy="49" r="2.6" fill="var(--sombre)"/>
+    <!-- pattes -->
+    <g fill="var(--sombre)">
+      <rect x="28" y="80" width="18" height="10" rx="5"/>
+      <rect x="54" y="78" width="16" height="10" rx="5"/>
+    </g>
+  </symbol>
+
 </defs>
 </svg>`;
 

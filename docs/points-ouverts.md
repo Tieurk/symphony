@@ -118,14 +118,40 @@ Trois choix de mise en page sont à valider, et ce sont des choix, pas des évid
 3. **Le sélecteur de morceau défile** horizontalement, avec un fondu à droite qui dit qu'il y
    a une suite. Il y aura quinze morceaux, ils ne tiennent pas de front.
 
-Deux réserves que je signale plutôt que de les cacher :
+Une réserve qui reste : **la zone sensible des curseurs.** La piste fait 18 px de haut à
+l'écran. C'est bien visuellement, mais ça ne s'attrape pas au doigt. En phase 1 il faudra une
+zone sensible haute autour d'une piste fine, pas une piste épaisse.
 
-- **La zone sensible des curseurs.** La piste fait 18 px de haut à l'écran. C'est bien
-  visuellement, mais ça ne s'attrape pas au doigt. En phase 1 il faudra une zone sensible
-  haute autour d'une piste fine, pas une piste épaisse.
-- **Les repères de tempo sont des chevrons** (un, deux, trois), pas des illustrations. Le
-  cadrage dit « repères illustrés ». Trois petits dessins feraient mieux, mais c'est trois
-  dessins de plus et ça ne bloque pas le jugement de la mise en page.
+**Trois écarts au cadrage, trouvés après la première livraison et maintenant résolus.** Je
+ne les avais pas vus en construisant la maquette : je l'avais faite depuis `CLAUDE.md` sans
+relire la section 4.5 du cadrage d'assez près.
+
+1. **La scène en paysage est passée en demi-cercle**, décision de Mathieu contre la grille
+   3x2. Six emplacements en arc face au public, les extrémités basses (près du public) et le
+   milieu haut (au fond), positionnés en CSS pur par six règles `nth-child`. Le coût est réel
+   et il faut le voir : **l'emplacement passe de 275 px à 129 px** sur l'iPad, parce qu'un
+   seul arc de six ne peut pas être aussi large qu'une grille de trois sur deux rangées. Deux
+   fois plus petit, mais toujours le double du plancher tactile. La grille 3x2 reste en
+   portrait, faute de largeur.
+
+   Trois réglages ont été nécessaires, et c'est instructif : un arc peu creusé occupe une
+   bande horizontale et laisse un tiers de scène vide, en haut ou en bas selon où on le pose.
+   Une scène presque carrée ne se remplit pas avec un arc plat. Creusé à fond (les extrémités
+   à 82 % de la hauteur, le milieu à 28 %), il prend toute la hauteur et lit enfin comme un
+   demi-cercle.
+
+2. **La réserve portrait reste à cinq colonnes**, contre les quatre que demande le cadrage.
+   Ce n'est pas un refus, c'est une mesure : en quatre colonnes, les 13 jetons prennent quatre
+   rangées au lieu de trois, soit 148 px de plus, pris à la scène. **L'emplacement de scène
+   tombe alors à 67 px sur un iPhone 390 et à 16 px sur un iPhone SE**, où il est en plus
+   rogné. Le cadrage demande quatre colonnes ET des cibles de 64 px minimum : les deux ne
+   tiennent pas ensemble sur un téléphone, et c'est la cible tactile qui gagne. À trancher,
+   mais avec ce chiffre sous les yeux.
+
+3. **Les repères de tempo sont maintenant une tortue, une noire et un lapin**, comme le dit
+   la section 4.2, au lieu de mes chevrons. Dessinés, pas des emoji, dont le rendu varie selon
+   l'appareil. Le repère du milieu n'est pas un animal : c'est le tempo écrit, donc une noire.
+   Vérifiés lisibles à 26 px, leur taille réelle dans le bandeau.
 
 ### 3. Les arrangements. Trois morceaux livrés, en attente d'écoute.
 
