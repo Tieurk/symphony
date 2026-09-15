@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "allow": [
+      "Read", "Glob", "Grep", "Edit", "Write",
+      "Bash(git *)",
+      "Bash(ls *)", "Bash(cat *)", "Bash(head *)", "Bash(tail *)", "Bash(grep *)",
+      "Bash(find *)", "Bash(sed *)", "Bash(awk *)", "Bash(sort *)", "Bash(uniq *)",
+      "Bash(tr *)", "Bash(wc *)", "Bash(du *)", "Bash(diff *)", "Bash(md5sum *)",
+      "Bash(od *)", "Bash(base64 *)", "Bash(echo *)", "Bash(printf *)", "Bash(test *)",
+      "Bash(mkdir *)", "Bash(cp *)", "Bash(mv *)", "Bash(chmod *)", "Bash(tar *)",
+      "Bash(mktemp *)", "Bash(command -v *)",
+      "Bash(python3 *)", "Bash(node *)", "Bash(npm *)", "Bash(npx *)",
+      "Bash(bash scripts/*)",
+      "Bash(curl *)",
+      "mcp__github__list_commits", "mcp__github__list_branches",
+      "mcp__github__get_commit", "mcp__github__get_file_contents",
+      "mcp__github__actions_list", "mcp__github__actions_get",
+      "mcp__github__get_job_logs"
+    ],
+    "deny": [
+      "Bash(sudo *)", "Bash(su *)", "Bash(chown *)",
+      "Bash(rm -rf /)", "Bash(rm -rf /*)", "Bash(rm -rf ~)", "Bash(rm -rf ~/*)",
+      "Bash(git push --force *)", "Bash(git push -f *)",
+      "Bash(git push --force-with-lease *)"
+    ]
+  }
+}
