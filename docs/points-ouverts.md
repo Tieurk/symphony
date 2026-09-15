@@ -8,20 +8,24 @@
 
 « Symphony » est le nom du dépôt et du sous-domaine, pas forcément celui affiché aux
 enfants. Pistes : Mon Orchestre, Maestro !, La Fosse, Symphonie de poche.
+"Mon premier orchestre"
 
 ### 2. Les illustrations.
 
 SVG dessinés en code, ou images générées puis détourées. Les 13 instruments, plus la scène
 et l'icône.
+Je veux bien voir un test svg d'abord avant de trancher
 
 ### 3. Maquette avant code.
 
 Produire les deux mises en page en fixe pour validation, ou partir directement sur la
 tranche verticale avec des visuels provisoires.
+d'abord mise en page
 
 ## À trancher avant la phase 2
 
 4. **Import MIDI.** Confirmer que le bouton Importer accepte aussi les fichiers `.mid` avec écran de correspondance des pistes, ou seulement les fichiers au format du projet.
+
 5. **Accès à la zone parent.** Appui long de 2 s sur l'engrenage, ou un autre geste.
 
 ## À trancher avant la phase 3
