@@ -1,11 +1,16 @@
 // LE SERVICE WORKER. Ce qui rend l'app installable sur l'ecran d'accueil et
 // utilisable sans reseau.
 //
-// Deux caches separes, et c'est volontaire :
-//   COQUE  le code et les pages. Change a chaque livraison, donc versionne.
-//   SONS   les 2,6 Mo d'echantillons et les morceaux. Ne change presque
-//          jamais. Les separer evite de retelecharger 2,6 Mo a chaque
-//          correction d'une ligne de CSS.
+// TROIS caches separes, et c'est volontaire. Chacun a sa propre version,
+// parce que chacun change a un rythme different :
+//   COQUE     le code et les pages. Change a chaque livraison.
+//   MORCEAUX  les JSON de songs/. Changent quand j'ajoute ou corrige un
+//             morceau, soit quelques dizaines de Ko.
+//   SONS      les 2,6 Mo d'echantillons. Ne changent quasiment jamais.
+// Tout mettre ensemble ferait retelecharger 2,6 Mo a chaque correction d'une
+// ligne de CSS. Mettre les morceaux avec les sons ferait l'inverse : un
+// morceau corrige ne redescendrait JAMAIS, parce que la strategie est cache
+// d'abord sans revalidation.
 //
 // Regle dure n° 4 du projet : aucun appel reseau au moment de jouer. Le
 // service worker en est la garantie mecanique, pas seulement une intention.
@@ -24,9 +29,12 @@
 // indefiniment, et la correction n'arriverait jamais chez l'enfant. Changer ce
 // numero change aussi les octets de ce fichier-ci, ce qui est justement ce qui
 // declenche l'installation d'un nouveau service worker.
-const VERSION_COQUE = "v3";
+const VERSION_COQUE = "v4";
+const VERSION_MORCEAUX = "v1";   // a monter quand un fichier de songs/ change
+const VERSION_SONS = "v1";       // a monter quand un echantillon change
 const COQUE = "orchestre-coque-" + VERSION_COQUE;
-const SONS = "orchestre-sons-v1";
+const MORCEAUX = "orchestre-morceaux-" + VERSION_MORCEAUX;
+const SONS = "orchestre-sons-" + VERSION_SONS;
 
 // La coque, mise en cache a l'installation. Tout ce qu'il faut pour que l'app
 // s'affiche et reponde au doigt, meme sans reseau et meme sans avoir jamais
@@ -53,8 +61,11 @@ const FICHIERS_COQUE = [
   "songs/index.json",
 ];
 
-const estSon = (url) =>
-  url.pathname.includes("/assets/samples/") || url.pathname.includes("/songs/");
+const cachePour = (url) => {
+  if (url.pathname.includes("/assets/samples/")) return SONS;
+  if (url.pathname.includes("/songs/")) return MORCEAUX;
+  return COQUE;
+};
 
 self.addEventListener("install", (e) => {
   e.waitUntil((async () => {
@@ -67,8 +78,9 @@ self.addEventListener("install", (e) => {
     // miroir a garder d'accord avec songs/index.json.
     try {
       const index = await (await fetch("songs/index.json", { cache: "no-cache" })).json();
-      const s = await caches.open(SONS);
-      await s.addAll(index.morceaux.map((id) => `songs/${id}.json`));
+      const s = await caches.open(MORCEAUX);
+      await Promise.all(index.morceaux.map((id) =>
+        s.add(new Request(`songs/${id}.json`, { cache: "reload" }))));
     } catch (err) {
       // Pas bloquant : les morceaux seront mis en cache a la premiere lecture.
     }
@@ -78,7 +90,7 @@ self.addEventListener("install", (e) => {
 
 self.addEventListener("activate", (e) => {
   e.waitUntil((async () => {
-    const garder = [COQUE, SONS];
+    const garder = [COQUE, MORCEAUX, SONS];
     for (const nom of await caches.keys()) {
       if (nom.startsWith("orchestre-") && !garder.includes(nom)) await caches.delete(nom);
     }
@@ -101,7 +113,7 @@ self.addEventListener("fetch", (e) => {
     try {
       const rep = await fetch(req);
       if (rep && rep.ok && rep.type === "basic") {
-        const c = await caches.open(estSon(url) ? SONS : COQUE);
+        const c = await caches.open(cachePour(url));
         c.put(req, rep.clone());
       }
       return rep;
@@ -126,9 +138,10 @@ self.addEventListener("message", (e) => {
   if (msg.type !== "garde-hors-ligne" || !Array.isArray(msg.urls)) return;
   const source = e.source;
   e.waitUntil((async () => {
-    const c = await caches.open(SONS);
+    const sons = await caches.open(SONS), morceaux = await caches.open(MORCEAUX);
     let fait = 0, rates = 0;
     for (const u of msg.urls) {
+      const c = String(u).includes("/songs/") ? morceaux : sons;
       try {
         if (await c.match(u)) { fait++; }
         else { await c.add(u); fait++; }

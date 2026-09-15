@@ -36,7 +36,9 @@ let enAttente = null;       // l'import en cours, en attente de confirmation
 // --- Bibliotheque -----------------------------------------------------------
 
 function ligne(e, i, total) {
-  const couleur = e.morceau.couleur || "#7C8CC4";
+  // La couleur part dans un attribut style : on ne fait confiance a rien qui
+  // vienne d'un fichier importe, meme si le validateur l'a deja vue passer.
+  const couleur = /^#[0-9A-Fa-f]{6}$/.test(String(e.morceau.couleur)) ? e.morceau.couleur : "#7C8CC4";
   const etiquette = e.origine === "importe" ? "importé" : "du dépôt";
   const boutons = [
     ["haut", ICONES.haut, "monter", i === 0],
@@ -65,6 +67,12 @@ export function rafraichis() {
   const tout = biblio.tout();
   $("liste-biblio").innerHTML = tout.map((e, i) => ligne(e, i, tout.length)).join("")
     || '<li class="vide">Aucun morceau. Importe un fichier.</li>';
+  // Un importe ecarte par le validateur ne doit pas disparaitre en silence :
+  // il est toujours dans l'appareil, il ne joue simplement pas.
+  const hs = biblio.ecartes();
+  dis(hs.length
+    ? `${hs.length} morceau(x) importe(s) ne passent plus le validateur et sont ecartes : ${hs.join(", ")}.`
+    : "", "biblio-etat");
 }
 
 function dis(quoi, zone = "import-etat") {

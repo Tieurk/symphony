@@ -62,6 +62,7 @@ change.
 | Hébergement | GitHub Pages sur `symphony.kinefitlabs.com` |
 | Morceaux | Fichiers JSON dans `songs/`, plus `songs/index.json` qui donne l'ordre, plus import local depuis l'appareil |
 | Trois morceaux de la phase 1 | Ah ! vous dirai-je maman, Row Your Boat, **Frère Jacques**. Alouette était prévue et n'est pas écrite : sa mélodie n'a pas pu être vérifiée depuis ce conteneur (Wikipédia et les sites de partitions sont bloqués par le mandataire de sortie), et l'écrire de mémoire approximative serait un défaut sur une chanson que les garçons connaissent |
+| Trois morceaux de la phase 3 | Au clair de la lune (le remplaçant de The Wheels on the Bus prévu au cadrage), La Lettre à Élise, Cinquième Symphonie (thème). Choisis sur un seul critère : **je suis sûr de leur matière**. Voir la règle ci-dessous |
 
 ## Architecture audio
 
@@ -250,6 +251,40 @@ au clic dans le DOM.
 trouvé sur le web n'a pas été écrit pour cette scène. Ça jouera, mais rarement aussi bien
 qu'un arrangement où chaque instrument a un rôle pensé pour toutes les combinaisons.
 
+## Écrire un morceau : la règle que je me donne
+
+Elle vient de la décision sur Alouette, et elle vaut pour tous les morceaux à venir.
+
+**Je n'écris que des phrases dont je suis sûr.** Quand je ne suis pas sûr de la suite d'un
+morceau, la boucle s'arrête à ce que je sais au lieu d'être complétée de mémoire
+approximative. Une comptine que Grégoire et Louis connaissent, dont une phrase sonne faux,
+est un défaut et pas un détail. Conséquences concrètes :
+
+- **Au clair de la lune** ne prend que les deux premières lignes. La troisième
+  (« Ma chandelle est morte ») monte à la dominante et je ne suis pas certain de son contour
+  exact : elle n'est pas écrite. Huit mesures qui tournent, c'est exactement ce que fait une
+  boîte à musique
+- **La Lettre à Élise** : je suis sûr de la suite de hauteurs de la section A. Le rythme exact
+  de la partition est reconstruit, pas recopié, et c'est dit dans le générateur
+- **Cinquième Symphonie** : les deux énoncés du motif, deux fois à la hauteur d'origine puis
+  deux fois à l'octave. La suite du mouvement part en développement et n'est pas écrite.
+  L'octave et la reprise sont des choix d'arrangement assumés, pas une citation. Huit mesures
+  et non quatre : mesuré, une boucle de quatre ne laissait que quatre notes à la plupart des
+  instruments, et un enfant qui pose la clarinette seule n'entendait presque rien
+
+Deux détails techniques appris en écrivant ces trois-là :
+
+1. **La flûte ne double pas toujours à l'octave.** Son plus haut échantillon est `C6`, et
+   au-delà de 5 demi-tons de transposition le timbre change pour de bon. Quand l'octave
+   supérieure sortirait de la tessiture, elle double à l'unisson. Le validateur signalait
+   trois réserves sur la Cinquième avant cette correction
+2. **La gamme du koto est un paramètre du morceau.** `do ré mi sol la` jure avec un morceau
+   en do mineur, où le mi est bémol
+
+Et un garde-fou ajouté au validateur : **un instrument qui joue mais qui n'est pas dans
+`mix` sort à 0 dB**, donc plus fort que tout le reste (voir `niveau()` dans `src/moteur.js`).
+C'est une omission invisible dans le fichier et qui s'entend tout de suite.
+
 ## Rôles des instruments
 
 Règle de fond : chaque instrument garde le même rôle d'un morceau à l'autre, pour que **n'importe quel sous-ensemble de 1 à 6 instruments sonne juste**. Deux instruments d'une même famille ne jouent jamais la même chose.
@@ -392,10 +427,19 @@ persistantes sur iOS, voir le piège n° 4 ci-dessus.
 | `sw.js` | le service worker : deux caches, la stratégie, la mise en cache à la demande |
 | `assets/img/icone-{32,180,192,512}.png` | rendus de `ICONE`, voir la section Illustrations |
 
-**Deux caches, et c'est volontaire.** `orchestre-coque-v1` porte le code et les pages, il
-change à chaque livraison, donc il est versionné. `orchestre-sons-v1` porte les 2,6 Mo
-d'échantillons et les morceaux, qui ne changent presque jamais. Les séparer évite de
-retélécharger 2,6 Mo à chaque correction d'une ligne de CSS.
+**Trois caches, et c'est volontaire :** chacun change à un rythme différent, donc chacun a sa
+propre version.
+
+| Cache | Contenu | Quand monter sa version |
+|---|---|---|
+| `orchestre-coque-vN` | le code, les pages, `songs/index.json` | à chaque livraison qui touche un fichier de la coque |
+| `orchestre-morceaux-vN` | les JSON de `songs/` | quand un morceau est **corrigé** (ajouter un morceau n'a pas besoin de bump : c'est une URL neuve) |
+| `orchestre-sons-vN` | les 2,6 Mo d'échantillons | quand un échantillon change, autant dire jamais |
+
+Tout mettre ensemble ferait retélécharger 2,6 Mo à chaque correction d'une ligne de CSS.
+Et mettre les morceaux avec les sons ferait l'inverse : comme la stratégie est « cache
+d'abord, sans revalidation », **un morceau corrigé ne redescendrait jamais** sur un appareil
+qui l'a déjà.
 
 **La liste des 76 échantillons n'est pas dans `sw.js`, et ne doit pas y arriver.** Elle vit
 dans `src/echantillons.js`, qui l'expose par `urlsDesEchantillons()`. La page, qui importe ce
@@ -512,7 +556,7 @@ pas de persistance des données (voir piège iOS n° 4).
 - **Phase 0** : choix du kit de percussion, écoute comparée des timbres, maquette fixe des deux mises en page, chaîne de déploiement vérifiée de bout en bout. Fait : le son sur iOS, le kit (FluidR3_GM), le déploiement en HTTPS, le nom, les 13 illustrations et les deux maquettes fixes. **Reste le jugement de Mathieu**, sur les illustrations (`test/svg.html`) et sur les maquettes (`test/maquette.html`).
 - **Phase 1** : **finie**, reste à la tester avec Grégoire et Louis. Ordre fixé par Mathieu : le son d'abord (moteur dans `src/`, 13 instruments échantillonnés, trois morceaux en 13 parties, arrangements validés à l'oreille le 15 septembre 2026), puis l'interaction (l'app à la racine, les deux gestes, le minimum vivant). Deux écarts au tableau des phases, tranchés par Mathieu : le **glisser-déposer** et les **animations** sont montés en phase 1 au lieu de la 2, parce que l'objectif de la phase est de valider la sensation de jeu et qu'une interface figée la sous-vend.
 - **Phase 2** : **finie.** Mise en page adaptative, glisser-déposer, animations, illustrations, crédits (règle dure n° 3, exigés dès que l'app est la porte d'entrée), **hors ligne** (manifeste, service worker, icônes, installation, persistance de la scène, du morceau, du tempo et du volume) et **zone parent complète** : bibliothèque (masquer, réordonner, supprimer), import d'un fichier du projet ou d'un MIDI avec écran de correspondance des pistes, export par la feuille de partage. Voir « Hors ligne et installation » et « La bibliothèque, l'import et l'export ».
-- **Phase 3** : le reste de la bibliothèque.
+- **Phase 3** : en cours. Trois morceaux ajoutés (Au clair de la lune, La Lettre à Élise, Cinquième Symphonie), six en tout. Restent ceux du tableau 7.4 dont je ne suis pas sûr de la mélodie (Le Cancan, la Berceuse de Brahms, B-I-N-G-O, L'araignée Gipsy, Baby Bumblebee, Pop! Goes the Weasel, l'Entrée des gladiateurs) et la deuxième série du 7.5, que Mathieu doit cocher. Voir `docs/points-ouverts.md`.
 - **Phase 4** : réglage des mixages morceau par morceau, retours des enfants.
 
 Chaque phase se termine par une version en ligne testable.

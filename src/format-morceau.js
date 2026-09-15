@@ -117,6 +117,18 @@ export function valide(morceau) {
     if (!INSTRUMENTS_ATTENDUS.includes(cle)) ko(`parties.${cle} : « ${cle} » n'est pas un instrument de la scene`);
   }
 
+  // Un instrument qui joue mais qui n'est pas dans le mix sort a 0 dB, donc
+  // PLUS FORT que tous les autres (voir niveau() dans src/moteur.js). C'est
+  // une omission qui ne se voit pas dans le fichier et qui s'entend tout de
+  // suite : l'instrument ecrase l'orchestre.
+  for (const inst of INSTRUMENTS_ATTENDUS) {
+    const evts = parties[inst];
+    if (Array.isArray(evts) && evts.length
+        && !(morceau.mix && typeof morceau.mix[inst] === "number")) {
+      hmm(`${inst} joue ${evts.length} evenement(s) mais n'est pas dans mix : il sortira a 0 dB, donc plus fort que tout le reste`);
+    }
+  }
+
   const secondeParTemps = morceau.bpm > 0 ? 60 / morceau.bpm : null;
   const finDeBoucle = parMesure !== null && morceau.longueur > 0
     ? morceau.longueur * parMesure : null;

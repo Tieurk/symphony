@@ -24,6 +24,13 @@ const PREFIXE = "orchestre-morceau-";
 // memoire, reconstruite a chaque chargement.
 let entrees = [];
 let masques = new Set();
+// Les importes qui ne passent plus le validateur. On ne les charge pas, et on
+// ne les EFFACE PAS non plus : ce serait perdre le seul exemplaire d'un
+// morceau qui n'existe que sur cet appareil, sur un simple desaccord de
+// format. On garde leur identifiant dans les reglages pour qu'ils soient
+// reessayes au prochain lancement, sinon la cle resterait orpheline a occuper
+// le quota sans que rien ne la retrouve.
+let invalides = [];
 
 const lis = (cle) => { try { return localStorage.getItem(cle); } catch (e) { return null; } };
 const ecris = (cle, val) => { localStorage.setItem(cle, val); };   // laisse remonter le quota
@@ -43,7 +50,7 @@ function enregistreReglages() {
       v: 1,
       ordre: entrees.map((e) => e.id),
       masques: [...masques],
-      importes: entrees.filter((e) => e.origine === "importe").map((e) => e.id),
+      importes: [...entrees.filter((e) => e.origine === "importe").map((e) => e.id), ...invalides],
     }));
   } catch (e) { /* plus de place pour les reglages : on continue en memoire */ }
 }
@@ -75,12 +82,13 @@ export async function charge() {
   } catch (e) { /* index illisible : il reste les importes */ }
 
   const importes = [];
+  invalides = [];
   for (const id of Array.isArray(r.importes) ? r.importes : []) {
-    try {
-      const m = JSON.parse(lis(PREFIXE + id) || "null");
-      if (m && valide(m).erreurs.length === 0) importes.push({ id, morceau: m, origine: "importe" });
-      else oublie(PREFIXE + id);
-    } catch (e) { /* entree pourrie : on la laisse tomber */ }
+    let m = null;
+    try { m = JSON.parse(lis(PREFIXE + id) || "null"); } catch (e) { m = null; }
+    if (m && valide(m).erreurs.length === 0) importes.push({ id, morceau: m, origine: "importe" });
+    else if (lis(PREFIXE + id) !== null) invalides.push(id);
+    else oublie(PREFIXE + id);     // la cle a disparu : rien a garder
   }
 
   entrees = ordonne([...depot, ...importes], Array.isArray(r.ordre) ? r.ordre : []);
@@ -163,6 +171,7 @@ export function ajoute(morceau) {
 export function supprime(id) {
   const i = entrees.findIndex((e) => e.id === id);
   if (i < 0 || entrees[i].origine !== "importe") return false;
+  invalides = invalides.filter((x) => x !== id);
   oublie(PREFIXE + id);
   entrees.splice(i, 1);
   masques.delete(id);
@@ -186,7 +195,13 @@ export function exporte(id) {
 // Tout effacer, pour le bouton de remise a zero.
 export function vide() {
   for (const e of entrees) if (e.origine === "importe") oublie(PREFIXE + e.id);
+  for (const id of invalides) oublie(PREFIXE + id);
   oublie(CLE);
   entrees = [];
   masques = new Set();
+  invalides = [];
 }
+
+// Les importes ecartes parce qu'ils ne passent plus le validateur. Rien a en
+// faire pour l'instant sinon pouvoir le dire dans la zone parent.
+export function ecartes() { return invalides.slice(); }

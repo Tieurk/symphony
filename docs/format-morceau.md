@@ -2,7 +2,7 @@
 
 Un morceau est un fichier JSON dans `songs/`. C'est le contrat entre les morceaux écrits à la main, l'import depuis l'appareil et le moteur audio. Le changer impose de mettre à jour les deux côtés.
 
-**Ce contrat est vérifié par du code**, pas seulement par la relecture : `src/format-morceau.js` exporte `valide(morceau)`, qui rend la liste de ce qui cloche sans jamais lever d'exception. Le banc d'écoute `test/phase1.html` l'exécute sur les trois morceaux du dépôt et affiche son verdict, et l'import de la phase 2 l'exécutera sur le fichier choisi. Un seul validateur, deux usages.
+**Ce contrat est vérifié par du code**, pas seulement par la relecture : `src/format-morceau.js` exporte `valide(morceau)`, qui rend la liste de ce qui cloche sans jamais lever d'exception. Le banc d'écoute `test/phase1.html` l'exécute sur les morceaux du dépôt et affiche son verdict, et **l'import de la zone parent l'exécute sur le fichier choisi** : une erreur refuse l'import, une réserve le laisse passer en le disant. Un seul validateur, trois usages avec l'import MIDI, qui produit lui aussi ce format.
 
 ## L'index de la bibliothèque
 
@@ -12,7 +12,9 @@ Une page web ne peut pas lister un dossier. `songs/index.json` donne donc la lis
 { "morceaux": ["ah-vous-dirai-je-maman", "row-your-boat", "frere-jacques"] }
 ```
 
-Ajouter un morceau au dépôt, c'est donc deux gestes : poser le fichier `songs/<id>.json` et ajouter son `id` à cette liste. En phase 2, la zone parent réordonnera cette liste.
+Ajouter un morceau au dépôt, c'est donc deux gestes : poser le fichier `songs/<id>.json` et ajouter son `id` à cette liste. **Troisième geste, à ne pas oublier :** monter `VERSION_COQUE` dans `sw.js`, parce que `songs/index.json` fait partie de la coque mise en cache, et qu'un appareil déjà installé continuerait sinon de lire l'ancienne liste. Corriger un morceau existant demande, lui, de monter `VERSION_MORCEAUX`.
+
+La zone parent réordonne et masque cette liste par appareil, sans toucher au fichier : c'est l'ordre du dépôt qui sert de départ.
 
 ## Exemple commenté
 
@@ -58,7 +60,7 @@ Ajouter un morceau au dépôt, c'est donc deux gestes : poser le fichier `songs/
 | `bpm` | Tempo d'origine, celui du repère « normal » du curseur |
 | `mesure` | Signature rythmique, `4/4`, `3/4`, `6/8` |
 | `longueur` | Longueur de la boucle en mesures, typiquement 8 à 16 |
-| `mix` | Niveau en décibels par instrument, valeurs négatives, 0 par défaut |
+| `mix` | Niveau en décibels par instrument, valeurs négatives, 0 par défaut. **À renseigner pour tout instrument qui joue** : 0 dB veut dire plus fort que tout le reste, et le validateur le signale en réserve |
 | `parties` | Les 13 clés, toujours présentes, éventuellement vides |
 
 ## Les 13 clés de `parties`

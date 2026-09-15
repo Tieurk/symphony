@@ -4,22 +4,37 @@
 
 ## À trancher maintenant
 
-### 1. Alouette. Mélodie non vérifiée, morceau non écrit.
+### 1. Les mélodies dont je ne suis pas sûr. Alouette et sept autres.
 
-C'est le seul point encore ouvert de la phase 1. Alouette était l'un des trois morceaux
-prévus, et je ne l'ai pas écrite : **je ne suis pas assez sûr de sa mélodie de mémoire**, et
-le réseau de ce conteneur bloque Wikipédia comme les sites de partitions, donc je n'ai pas pu
-la vérifier. Écrire une fausse mélodie sur une chanson que Grégoire et Louis connaissent
-serait un vrai défaut.
+**Six morceaux sont en ligne** : Ah ! vous dirai-je maman, Row Your Boat, Frère Jacques, Au
+clair de la lune, La Lettre à Élise, Cinquième Symphonie. Je n'écris que des phrases dont je
+suis sûr, et c'est ce qui bloque la suite.
 
-Frère Jacques la remplace. Ce n'est pas un pis-aller : le cadrage le prévoit déjà en
-remplacement d'Alphabet Song (section 7.4), et sa mélodie ne laisse aucun doute.
+Ce qui reste du tableau 7.4, et pourquoi je ne l'ai pas écrit : **je ne suis pas assez sûr de
+la mélodie de mémoire**, et le réseau de ce conteneur bloque Wikipédia, les sites de
+partitions et les bases de données de morceaux. J'ai cherché des recueils libres sur GitHub :
+ceux que j'ai trouvés sont soit vides de comptines françaises, soit sous une licence
+non commerciale et à partage identique, que je préfère ne pas mêler au dépôt.
 
-Deux façons de la débloquer, au choix :
+| Morceau | Ce qui me manque |
+|---|---|
+| Alouette | le contour exact des reprises, la partie qui énumère |
+| Le Cancan (Offenbach) | je reconnais l'air, je ne saurais pas l'écrire note à note |
+| Berceuse de Brahms | j'hésite entre deux versions du premier intervalle |
+| B-I-N-G-O | le rythme des lettres épelées |
+| L'araignée Gipsy | la fin de la phrase |
+| Baby Bumblebee | l'air d'Arkansas Traveler, dont je ne suis pas sûr |
+| Pop! Goes the Weasel | l'endroit exact du « Pop » |
+| Entrée des gladiateurs (Fučík) | la descente chromatique |
 
-- tu me confirmes la mélodie, en solfège ou en notes (do ré mi, ou C D E), avec le rythme
-- je la cherche dans une source que le mandataire laisse passer, `raw.githubusercontent.com`
-  fonctionne et il existe des recueils de notation ABC sur GitHub
+Deux façons de débloquer, et la première est beaucoup plus rapide pour toi :
+
+1. **Tu importes un MIDI toi-même.** C'est exactement le circuit 2 du cadrage, et il marche
+   depuis ce matin : tu trouves un `.mid` du morceau, tu l'importes dans la zone parent, tu
+   répartis les pistes, et il est dans la bibliothèque. Si le résultat te plaît, tu me
+   l'exportes et je le reprends proprement en arrangement pour la scène
+2. **Tu me confirmes la mélodie**, en solfège ou en notes (do ré mi, ou C D E), avec le
+   rythme. Une ligne par phrase suffit
 
 ### 2. Le test avec les enfants.
 
@@ -79,8 +94,8 @@ dessus par hasard, et toi tu ne dois pas avoir à t'y reprendre à trois fois.
 
 ## À trancher avant la phase 3
 
-6. **Les trois remplacements** dans la liste des 15 morceaux du jouet : The Wheels on the Bus (encore protégé en Europe), Alphabet Song (même mélodie qu'Ah ! vous dirai-je maman), Come Little Leaves (statut à vérifier). Voir `docs/cadrage.md` section 7.4.
-7. **La deuxième série de morceaux.** Voir `docs/cadrage.md` section 7.5.
+6. **Le dernier remplacement.** The Wheels on the Bus est remplacé et écrit (Au clair de la lune), Alphabet Song est remplacé et écrit (Frère Jacques). Reste **Come Little Leaves**, dont le statut est à vérifier : musique attribuée à Thomas J. Crawford, date incertaine, donc je ne l'écris pas. Le cadrage propose Une souris verte à la place. À confirmer.
+7. **La deuxième série de morceaux.** Voir `docs/cadrage.md` section 7.5. Tu coches, je fais, avec la même règle : seulement ce dont je suis sûr, le reste par un MIDI que tu importes.
 
 ## Tranché en phase 1
 

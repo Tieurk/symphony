@@ -19,7 +19,7 @@ Fait :
 
 - le **moteur audio** dans `src/moteur.js`, une horloge, 13 canaux, anticipation à 20 ms
 - les **13 instruments échantillonnés**, 2,6 Mo, banque FluidR3_GM
-- **trois morceaux** en 13 parties pleines, validés à l'écoute
+- **six morceaux** en 13 parties pleines, dont trois validés à l'écoute par Mathieu
 - les **13 illustrations** et les **deux mises en page**, validées
 - l'**interaction** : appui simple et glisser-déposer, échange sur emplacement occupé, scène
   pleine qui refuse sans remplacer
@@ -35,8 +35,10 @@ Fait :
 Un point encore ouvert : **Alouette**, dont la mélodie n'a pas pu être vérifiée depuis le
 conteneur de développement. Voir `docs/points-ouverts.md`.
 
-Reste pour la phase 3 : le reste de la bibliothèque de morceaux. Et pour la phase 4, le
-réglage des mixages morceau par morceau, à l'oreille.
+Phase 3 en cours : six morceaux sur les quinze du jouet. Les suivants attendent soit une
+mélodie que je puisse vérifier, soit un MIDI importé depuis l'appareil, soit les coches de
+Mathieu sur la deuxième série. Voir `docs/points-ouverts.md`. Et pour la phase 4, le réglage
+des mixages morceau par morceau, à l'oreille.
 
 ## Où regarder
 
