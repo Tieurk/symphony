@@ -22,7 +22,7 @@ const SEUIL_GLISSER = 8;      // px avant qu'un appui devienne un glisser
 const APPUI_LONG = 2000;      // ms sur l'engrenage, comme dit le cadrage
 const BRIDE_TRESSAUT = 150;   // ms entre deux tressauts du meme instrument
 const CLE = "orchestre";      // cle de persistance
-const VERSION = "phase 1, hors ligne, 15 septembre 2026";
+const VERSION = "phase 3, neuf morceaux, 19 septembre 2026";
 
 const emplacements = new Array(NB_PLACES).fill(null);
 let morceaux = [];
@@ -30,6 +30,7 @@ let choisi = 0;
 let amorcage = null;          // la promesse d'amorcage, une seule fois
 let veutJouer = false;        // l'intention de lecture, voir plus bas
 let intentionDite = false;    // un geste a-t-il DEJA dit ce qu'il voulait ?
+let dernierAmorcage = "";     // ce que le dernier amorcage audio a donne
 
 const $ = (id) => document.getElementById(id);
 const zScene = $("scene"), zPlaces = $("places"), zMorceaux = $("morceaux");
@@ -262,8 +263,20 @@ function amorce() {
       // donc muets. On reapplique l'etat une fois le moteur pret.
       for (const id of emplacements) if (id) moteur.ouvre(id);
       appliqueLecture();
+      const d = moteur.diagnostic();
+      dernierAmorcage = `${d.instrumentsCharges} instruments sur ${d.instrumentsAttendus}` +
+        (d.manquants.length ? ", manquants : " + d.manquants.join(", ") : "");
+      majDiagnostic();
     } catch (e) {
+      // LE DEFAUT DU 19 SEPTEMBRE 2026 : ceci ne se voyait nulle part. Quand
+      // l'amorcage restait suspendu, l'anneau tournait sans fin et l'app ne
+      // disait rien du tout. Le moteur borne desormais ses attentes, et ce que
+      // l'echec a donne se lit dans la page « A propos », sans cable et sans
+      // Mac.
       console.error("amorcage audio : ", e);
+      dernierAmorcage = e && e.message ? e.message : String(e);
+      majDiagnostic();
+      astuce("Le son n'a pas démarré : " + dernierAmorcage + ". Appuie encore une fois.");
       amorcage = null;   // on pourra reessayer au geste suivant
     } finally {
       $("play").classList.remove("charge");
@@ -516,6 +529,7 @@ function surLeBouton(x, y) {
 
 function ouvreParent() {
   if (debutAppui) noteMotif("ouvert", performance.now() - debutAppui);
+  majDiagnostic();
   // Rafraichir AVANT d'afficher : la liste et le compte des sons en cache ont
   // pu changer depuis la derniere ouverture.
   parent.rafraichis();
@@ -531,9 +545,20 @@ function annule() {
   eng.classList.remove("presse");
 }
 
-// Le motif du dernier echec, garde pour la page « A propos ». Mathieu entre
-// par les trois appuis et me lit la ligne : sans Mac, c'est la seule facon de
-// savoir lequel des defauts l'a bloque.
+// L'ETAT DE L'AUDIO, dans la page « A propos ». Ecrit a chaque amorcage et a
+// chaque ouverture de la zone parent. Sans cette ligne, un appareil que je ne
+// peux pas essayer ne se diagnostique que par des questions.
+function majDiagnostic() {
+  const z = $("diagnostic-etat");
+  if (!z) return;
+  const d = moteur.diagnostic();
+  z.textContent = `Audio : contexte ${d.contexte}, ${d.instrumentsCharges} instruments `
+    + `sur ${d.instrumentsAttendus}. Dernier amorçage : ${dernierAmorcage || "pas encore fait"}.`;
+}
+
+// Le motif du dernier echec de l'appui long, garde pour la page « A propos ».
+// Mathieu entre par les trois appuis et me lit la ligne : sans Mac, c'est la
+// seule facon de savoir lequel des defauts l'a bloque.
 function noteMotif(motif, tenu) {
   const s = (tenu / 1000).toFixed(1).replace(".", ",");
   dernierMotif = `${motif} apr\u00e8s ${s} s`;
@@ -648,13 +673,20 @@ if ("serviceWorker" in navigator) {
     .catch((e) => console.warn("service worker refuse : ", e && e.message));
 
   // Quand un nouveau service worker prend la main, la page tourne encore sur
-  // l'ANCIEN code. On recharge donc une fois, mais SEULEMENT si rien n'a
-  // commence : couper la musique sous les doigts d'un enfant pour appliquer
-  // une correction serait pire que la correction. Sinon, ce sera au prochain
-  // lancement, et le service worker actif est deja le bon.
+  // l'ANCIEN code. On recharge donc une fois, mais SEULEMENT si de la musique
+  // JOUE VRAIMENT : la couper sous les doigts d'un enfant pour appliquer une
+  // correction serait pire que la correction.
+  //
+  // La condition portait sur « amorcage », c'est a dire sur « un amorcage a-t-il
+  // ete demande ». Le 19 septembre 2026 ca s'est retourne contre nous : sur un
+  // appareil ou l'amorcage restait suspendu, l'anneau tournait, amorcage etait
+  // pose, RIEN NE JOUAIT, et la correction ne s'appliquait pas. Un appareil
+  // casse refusait donc precisement la livraison qui le reparait. On regarde
+  // maintenant si du son sort, pas si une intention a ete emise.
   let rechargee = false;
   navigator.serviceWorker.addEventListener("controllerchange", () => {
-    if (rechargee || !avaitControleur || amorcage) return;
+    const joueVraiment = moteur.estPret() && veutJouer;
+    if (rechargee || !avaitControleur || joueVraiment) return;
     rechargee = true;
     location.reload();
   });

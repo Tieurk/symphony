@@ -351,7 +351,93 @@ Règle de fond : chaque instrument garde le même rôle d'un morceau à l'autre,
 
 Test à faire passer à chaque nouveau morceau : le violon seul doit être écoutable, le tuba seul doit être écoutable, et violon + tuba + batterie doit sonner comme un vrai petit arrangement.
 
-## Pièges qui ont mordu le 15 septembre 2026
+## Pièges qui ont mordu
+
+### Un fichier dans deux caches, et le mauvais gagne
+
+**« Charge à l'infini et ne joue plus de musique »**, rapporté le 19 septembre 2026 sur
+l'iPad et l'iPhone, avec un signe croisé décisif : sur le Mac l'app marchait mais **sans les
+trois morceaux ajoutés quatre jours plus tôt**. Mathieu a dit « je pense qu'il faut vider le
+cache ». Il avait raison, et c'est précisément ce qu'un utilisateur ne devrait jamais avoir à
+faire.
+
+`songs/index.json` vivait dans **deux caches à la fois** :
+
+| Où | Pourquoi | Versionné ? |
+|---|---|---|
+| `orchestre-coque-vN` | il est dans `FICHIERS_COQUE` | **oui** |
+| `orchestre-morceaux-v1` | `cachePour()` le routait sur « `/songs/` » | **non, jamais** |
+
+Et la lecture se faisait par un **`caches.match(req)` global, sans nom de cache**. Or cette
+forme parcourt les caches **dans l'ordre de création**. La copie périmée rangée dans le cache
+des morceaux masquait donc la copie fraîche de la coque, **définitivement**, et aucune montée
+de `VERSION_COQUE` ne pouvait la débloquer. Mesuré : 2 morceaux servis alors que la coque en
+contenait 9.
+
+**Le détail qui explique le retard d'apparition, et il est instructif.** Sur un appareil neuf,
+la coque naît **avant** le cache des morceaux, donc elle gagne et rien ne se voit. La panne
+n'apparaît qu'à la **deuxième livraison** : l'ancienne coque est supprimée à l'activation et la
+nouvelle naît **après** le cache des morceaux, qui prend alors la main. Un défaut qui dort
+jusqu'à la deuxième mise à jour est exactement le genre que mes bancs ne voyaient pas, parce
+qu'ils partaient d'un navigateur neuf.
+
+Trois règles en sortent, et elles sont dures :
+
+1. **Un fichier ne vit que dans un seul cache.** `cachePour()` est la seule autorité, et
+   `songs/index.json` appartient à la coque.
+2. **Ne jamais lire par `caches.match()` global.** On ouvre le cache désigné et on cherche
+   dedans : le résultat ne dépend alors plus d'un ordre de création invisible.
+3. **Une correction doit réparer les appareils déjà cassés**, pas seulement être juste pour
+   les suivants. L'activation retire donc la copie fautive du cache des morceaux, une fois
+   pour toutes. C'est vérifié par un banc qui rejoue l'histoire entière : v5, puis v6,
+   empoisonnement, puis v7.
+
+**Deux défauts voisins corrigés dans la foulée**, tous les deux capables de produire le même
+silence :
+
+- **`cache.put()` n'était pas attendu.** iOS arrête les service workers sans ménagement, et
+  une entrée à moitié écrite donne un corps qui ne finit jamais d'arriver.
+- **L'installation était tout ou rien sans le dire.** Un `Promise.all` sur 19 fichiers : un
+  seul échec faisait échouer l'installation entière, en silence, et l'appareil restait sur
+  l'ancienne coque. Elle **vérifie maintenant** que les 19 fichiers sont réellement en cache
+  avant de prendre la main. Et `new Request(u, { cache: "reload" })` est construit dans un
+  `try` : cette option n'existe pas sur toutes les versions de Safari, et sa seule
+  construction pouvait faire échouer l'installation sur cet appareil.
+
+### Aucune attente sans borne, jamais
+
+Le même jour, l'autre moitié du symptôme : **l'anneau du bouton de lecture tournait sans
+fin**. Cet anneau est posé par `amorce()` et retiré dans son `finally`. Un anneau qui tourne
+sans fin veut donc dire que la fonction est **suspendue**, ni en succès ni en erreur. Et
+suspendue, elle ne dit rien du tout.
+
+Deux `await` seulement sur ce chemin, et chacun a une façon connue de ne jamais rendre la main
+sur WebKit :
+
+| | |
+|---|---|
+| `Tone.start()` | `resume()` du contexte audio reste en attente si le système refuse le son sans le dire |
+| `Tone.loaded()` | `decodeAudioData` sur des octets qui ne sont pas de l'audio peut ne rappeler ni en succès ni en erreur. Le service worker servait justement un **503 avec un corps texte** pour un échantillon absent du cache |
+
+Les deux sont maintenant **bornées** (5 s et 25 s), avec un motif distinct, et le 503 est
+remplacé par une **erreur réseau franche** (`Response.error()`), qui fait échouer un
+chargement au lieu de le suspendre.
+
+Conséquence voulue : **un échantillon qui ne vient pas n'emporte plus les douze autres.** Le
+moteur démarre avec ce qui est arrivé, les parties dont l'échantillon manque se taisent au
+lieu de lever à chaque note, et un instrument qui finit de charger plus tard se met à jouer
+tout seul. Douze instruments valent mieux qu'une app muette.
+
+**Et ce qui manquait le plus : de quoi diagnostiquer à distance.** La page « À propos » porte
+désormais deux lignes d'état réel, lisibles à voix haute au téléphone (contexte audio,
+instruments chargés, dernier amorçage, noms et contenus des trois caches), et un bouton
+**« Réparer : vider les caches et recharger »**. Sans ce bouton, la seule issue était de
+désinstaller l'app de l'écran d'accueil.
+
+**Ce que je n'ai pas pu faire, et qu'il faut savoir :** WebKit n'est pas exécutable depuis ce
+conteneur, le téléchargement du moteur est bloqué par le mandataire. La panne iOS elle-même
+n'a donc pas été reproduite ici. Ce qui a été prouvé et corrigé, c'est le masquage de cache,
+et rendue impossible, c'est l'attente sans fin.
 
 ### Amorcer n'est pas jouer
 
@@ -554,6 +640,11 @@ Tout mettre ensemble ferait retélécharger 2,6 Mo à chaque correction d'une li
 Et mettre les morceaux avec les sons ferait l'inverse : comme la stratégie est « cache
 d'abord, sans revalidation », **un morceau corrigé ne redescendrait jamais** sur un appareil
 qui l'a déjà.
+
+**Règle qui vient d'une panne, et qui n'est pas négociable : un fichier ne vit que dans UN
+cache**, celui que `cachePour()` désigne, et la lecture se fait **dans ce cache-là**, jamais
+par un `caches.match()` global. `songs/index.json` appartient à la coque, pas aux morceaux,
+bien qu'il soit dans `songs/`. Voir « Un fichier dans deux caches, et le mauvais gagne ».
 
 **La liste des 76 échantillons n'est pas dans `sw.js`, et ne doit pas y arriver.** Elle vit
 dans `src/echantillons.js`, qui l'expose par `urlsDesEchantillons()`. La page, qui importe ce

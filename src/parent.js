@@ -311,7 +311,46 @@ export async function majHorsLigne() {
     : `${en} sons gardés sur ${attendus.length}. Ils s'enregistrent à l'usage, ou d'un coup avec le bouton.`;
   const v = $("version");
   if (v) v.textContent = versionTexte + (installee ? ", installée" : ", dans le navigateur");
+  majEtatCaches();
 }
+
+// L'ETAT REEL DES CACHES, et pas une intention. Le 19 septembre 2026, une
+// copie perimee de songs/index.json coincee dans le cache des morceaux figeait
+// la liste des morceaux sur tous les appareils, et il a fallu une demi-journee
+// pour le savoir parce que rien ne montrait cet etat. Cette ligne se lit a
+// voix haute au telephone.
+export async function majEtatCaches() {
+  const z = $("diagnostic-caches");
+  if (!z || !("caches" in window)) return;
+  try {
+    const noms = await caches.keys();
+    const bouts = [];
+    for (const n of noms.filter((x) => x.startsWith("orchestre-"))) {
+      bouts.push(`${n.replace("orchestre-", "")} (${(await (await caches.open(n)).keys()).length})`);
+    }
+    const sw = navigator.serviceWorker && navigator.serviceWorker.controller ? "actif" : "absent";
+    z.textContent = `Caches : ${bouts.join(", ") || "aucun"}. Service worker : ${sw}.`;
+  } catch (e) {
+    z.textContent = "Caches : illisibles (" + (e && e.message ? e.message : e) + ").";
+  }
+}
+
+// LA SORTIE DE SECOURS. Un cache abime ne se repare pas tout seul, et sans ce
+// bouton il faut desinstaller l'app de l'ecran d'accueil pour s'en sortir.
+$("reparer") && $("reparer").addEventListener("click", async () => {
+  const b = $("reparer");
+  b.disabled = true;
+  b.textContent = "Réparation...";
+  try {
+    if ("caches" in window) {
+      for (const n of await caches.keys()) if (n.startsWith("orchestre-")) await caches.delete(n);
+    }
+    if ("serviceWorker" in navigator) {
+      for (const reg of await navigator.serviceWorker.getRegistrations()) await reg.unregister();
+    }
+  } catch (e) { /* on recharge quand meme : c'est le but */ }
+  location.reload();
+});
 
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.addEventListener("message", (e) => {

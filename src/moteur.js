@@ -91,6 +91,47 @@ export function instruments() { return INSTRUMENTS.slice(); }
 
 // --- Amorcage ---------------------------------------------------------------
 
+// AUCUNE ATTENTE SANS BORNE. Le 19 septembre 2026, Mathieu rapporte que l'app
+// « charge a l'infini et ne joue plus de musique » sur l'iPad et l'iPhone.
+// L'anneau du bouton de lecture est pose avant cet amorcage et retire apres :
+// un anneau qui tourne sans fin veut donc dire que cette fonction est
+// SUSPENDUE, ni en succes ni en erreur. Et suspendue, elle ne dit rien.
+//
+// Les deux attentes ci-dessous ont chacune une facon connue de ne jamais
+// rendre la main sur WebKit :
+//   Tone.start()    resume() du contexte audio reste en attente si le systeme
+//                   refuse le son sans le dire
+//   Tone.loaded()   decodeAudioData sur des octets qui ne sont pas de l'audio
+//                   peut ne rappeler ni en succes ni en erreur
+// Les deux sont donc bornees, avec un motif distinct. Mieux vaut une app qui
+// dit « le son n'a pas demarre » qu'une app qui tourne dans le vide.
+const DELAI_CONTEXTE = 5000;    // ms pour que le contexte audio reprenne
+// 12 s pour les 2,6 Mo d'echantillons. Court expres : depasser ce delai ne
+// perd rien, puisque les parties verifient a chaque note si leur echantillon
+// est arrive. Un instrument en retard SE MET A JOUER TOUT SEUL des qu'il est
+// la. Mieux vaut donc un orchestre qui se remplit qu'un enfant devant un
+// anneau qui tourne.
+const DELAI_SONS = 12000;
+
+function avecDelai(promesse, ms, quoi) {
+  let minuteur = null;
+  const limite = new Promise((_, rejette) => {
+    minuteur = setTimeout(() => rejette(new Error(quoi + " : rien apres " + (ms / 1000) + " s")), ms);
+  });
+  return Promise.race([promesse, limite]).finally(() => clearTimeout(minuteur));
+}
+
+// Ce que le dernier amorcage a donne, pour la page « A propos » : sans ca,
+// diagnostiquer un appareil que je ne peux pas essayer passe par des questions.
+let dernierEchec = "";
+
+// Un instrument est-il reellement jouable ? Les melodiques sont des Sampler
+// dans « sources », les percussions des ToneAudioBuffers dans « tampons ».
+export function chargeInstrument(nom) {
+  const src = sources[nom] || tampons[nom];
+  return !!(src && src.loaded);
+}
+
 // A APPELER DEPUIS UN GESTE UTILISATEUR, sans aucun await avant.
 // Deux pieges iOS d'un coup : le contexte audio ne demarre qu'apres un geste,
 // et le bouton silencieux de l'iPhone coupe l'audio web tant qu'un element
@@ -105,15 +146,31 @@ export async function demarre() {
     rapporteErreur("session audio iOS refusee : " + e.name);
   });
 
-  await Tone.start();
+  try {
+    await avecDelai(Tone.start(), DELAI_CONTEXTE, "le contexte audio n'a pas repris");
+  } catch (e) {
+    dernierEchec = e.message;
+    throw e;
+  }
   // Tone.start() reprend le contexte existant, il ne le remplace pas, donc la
   // valeur posee au chargement tient. On la reaffirme quand meme : si une
   // version de Tone recreait le contexte, on repartirait a 0,1 s en silence.
   Tone.getContext().lookAhead = ANTICIPATION;
   construis();
-  await Tone.loaded();
+
+  // UN ECHANTILLON QUI NE VIENT PAS NE DOIT PLUS EMPORTER LES DOUZE AUTRES.
+  // On attend, borne, et on continue avec ce qui est arrive : un instrument
+  // muet vaut mieux qu'une app muette. Les manquants sont nommes dans le
+  // diagnostic, et les parties les sautent.
+  try {
+    await avecDelai(Tone.loaded(), DELAI_SONS, "les sons ne se sont pas charges");
+    dernierEchec = "";
+  } catch (e) {
+    dernierEchec = e.message;
+    rapporteErreur(e.message);
+  }
   pret = true;
-  return { sessionIos };
+  return { sessionIos, manquants: diagnostic().manquants };
 }
 
 function urlsDeNotes(notes) {
@@ -230,7 +287,15 @@ export function chargeMorceau(m) {
       ? (temps, ev) => frappe(ev.frappe, temps, voies[inst].mute, ev.vel)
       : (temps, ev) => sources[inst].triggerAttackRelease(
           ev.note, ev.duree, temps, ev.vel === undefined ? 0.8 : ev.vel);
-    const rappel = (temps, ev) => { joue(temps, ev); signaleNote(inst, temps); };
+    // Un instrument dont l'echantillon n'est pas arrive SE TAIT au lieu de
+    // lever a chaque note : depuis que l'attente des sons est bornee, le
+    // moteur peut demarrer incomplet, et douze instruments qui jouent valent
+    // mieux qu'une app qui refuse de demarrer.
+    const rappel = (temps, ev) => {
+      if (!chargeInstrument(inst)) return;
+      joue(temps, ev);
+      signaleNote(inst, temps);
+    };
 
     // La partie est programmee meme vide : les 13 tournent en permanence, et
     // une partie vide qui tourne coute zero.
@@ -315,9 +380,17 @@ export function anticipation(secondes) {
 export function diagnostic() {
   const ctx = Tone.getContext();
   const t = Tone.Transport;
+  const charges = INSTRUMENTS.filter(chargeInstrument);
   return {
     pret,
     contexte: ctx.state,
+    // Depuis que l'attente des sons est bornee, le moteur peut demarrer
+    // incomplet. Savoir QUI manque est la premiere question qu'on se pose sur
+    // un appareil qu'on ne peut pas essayer.
+    instrumentsCharges: charges.length,
+    instrumentsAttendus: INSTRUMENTS.length,
+    manquants: INSTRUMENTS.filter((n) => !charges.includes(n)),
+    dernierEchec,
     anticipation: Math.round(ctx.lookAhead * 1000) / 1000,
     reactionMs: Math.round((ctx.lookAhead + RAMPE_MUTE) * 1000),
     horloge: t.state,
