@@ -64,6 +64,7 @@ change.
 | Trois morceaux de la phase 1 | Ah ! vous dirai-je maman, Row Your Boat, **Frère Jacques**. Alouette était prévue et n'est pas écrite : sa mélodie n'a pas pu être vérifiée depuis ce conteneur (Wikipédia et les sites de partitions sont bloqués par le mandataire de sortie), et l'écrire de mémoire approximative serait un défaut sur une chanson que les garçons connaissent |
 | Trois morceaux de la phase 3 | Au clair de la lune (le remplaçant de The Wheels on the Bus prévu au cadrage), La Lettre à Élise, Cinquième Symphonie (thème). Choisis sur un seul critère : **je suis sûr de leur matière**. Voir la règle ci-dessous |
 | Trois morceaux de plus, écrits depuis une source | Berceuse de Brahms, Pop! Goes the Weasel, Arkansas Traveler (l'air du « Baby Bumblebee » du cadrage). **Neuf morceaux en tout.** Critère : une source lisible depuis ce conteneur, citée dans leur champ `source` |
+| Trois chansons d'animaux | Dans la ferme de Mathurin, Mary Had a Little Lamb, Three Blind Mice. **Douze morceaux en tout.** Demandées le 20 septembre 2026 en remplacement du Roi lion et du Livre de la jungle, que la règle dure n° 2 interdit |
 
 ## Architecture audio
 
@@ -291,18 +292,45 @@ l'oreille par Mathieu, ce qui vaut mieux qu'une partition ; les trois autres att
 écoute. Ne pas les réécrire pour aligner le champ, ce serait toucher à des fichiers validés
 pour un gain de forme.
 
-**Les sources que ce conteneur atteint, mesuré.** L'information a coûté une demi-heure à
-établir et resservira à chaque morceau, donc elle est ici :
+**Les sources que ce conteneur atteint, mesuré le 20 septembre 2026.** C'est la question qui
+revient à chaque morceau, donc la réponse est ici. Elle est plus dure qu'elle n'en avait l'air
+en septembre :
 
 | Source | État mesuré |
 |---|---|
 | IMSLP, abcnotation.com, fr.wikisource.org, commons.wikimedia.org | **bloqués**, HTTP 000 |
-| GitHub, pages et fichiers bruts | accessibles |
-| MutopiaProject (LilyPond, domaine public) | accessible |
-| Recueils ABC hébergés sur GitHub | accessibles |
+| mutopiaproject.org, partitions-domaine-public.fr, comptines.tv, thesession.org | **bloqués** au mandataire, y compris en WebFetch |
+| kern.ccarh.org | **bloqué**, 403 |
+| API GitHub et pages d'arborescence | **403**. La liste des compositeurs de Mutopia s'arrête à F et ne se pagine pas |
+| **raw.githubusercontent.com, sur un chemin connu** | **accessible**, et c'est la seule porte |
+
+Conséquence de méthode : **je ne peux lire une partition que si je connais son chemin exact
+dans un dépôt GitHub.** Trois corpus vérifiés utilisables, et il faut les connaître :
+
+| Dépôt | Contenu | Ce qu'il donne |
+|---|---|---|
+| `MutopiaProject/MutopiaProject` | LilyPond, domaine public | la Berceuse de Brahms est venue de là. Impossible à explorer, seulement à interroger sur un chemin deviné |
+| `craigsapp/joplin` | Humdrum **kern**, Scott Joplin | `kern/entertainer.krn` et `kern/mapleleaf.krn` répondent. **L'en-tête porte les dates du compositeur et de publication**, donc la preuve du domaine public est dans le fichier |
+| `cuthbertLab/music21` | corpus Essen, ABC | `music21/corpus/essenFolksong/*.abc`, chansons folkloriques allemandes et chinoises |
+
+**Le 20 septembre 2026, trois chansons d'animaux**, demandées en remplacement du Roi lion et
+du Livre de la jungle : **Dans la ferme de Mathurin**, **Mary Had a Little Lamb** et **Three
+Blind Mice** (publiée en 1609). Toutes traditionnelles, toutes dans le domaine public, et
+toutes écrites parce que **je suis sûr de leur mélodie**, pas parce qu'une source me les
+donnait : aucune n'était atteignable.
+
+Le même jour, **quatre comptines françaises n'ont pas été écrites** pour cette raison exacte :
+Une souris verte, Promenons-nous dans les bois, Un crocodile s'en allant à la guerre, Il
+court le furet. Je connais ces chansons, je ne suis pas certain de leur contour note à note,
+et ce sont précisément celles que Grégoire et Louis reconnaîtraient. Même verdict que pour
+Alouette.
 
 Ce qui reste sans source après cette passe : **Alouette, B-I-N-G-O, L'araignée Gipsy, Le
-Cancan et l'Entrée des gladiateurs.** Mutopia n'a ni Offenbach ni Fučík, et les recueils ABC
+Cancan et l'Entrée des gladiateurs**, plus les quatre comptines ci-dessus et les pièces
+orchestrales de la liste de Mathieu du 20 septembre (Marche royale du lion, Dans l'antre du
+roi de la montagne, L'Apprenti sorcier, Jupiter, Guillaume Tell, Trépak, Lac des cygnes, Fée
+Dragée). **Aucune n'est un problème de droits**, toutes sont dans le domaine public : c'est un
+problème d'accès aux partitions, et le chemin pour les débloquer est `docs/importer-un-morceau.md`. Mutopia n'a ni Offenbach ni Fučík, et les recueils ABC
 sont des corpus de danses et d'airs de session, pas de comptines. Ces cinq-là ne s'écrivent
 donc pas, et le chemin le plus rapide reste l'import MIDI de la zone parent, qui est fait
 pour ça.

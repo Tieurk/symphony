@@ -4,49 +4,50 @@
 
 ## À trancher maintenant
 
-### 1. Les mélodies dont je ne suis pas sûr. Cinq restent.
+### 1. Ce qui bloque les morceaux, et ce n'est plus ce qu'on croyait
 
-**Neuf morceaux sont en ligne** : Ah ! vous dirai-je maman, Row Your Boat, Frère Jacques, Au
-clair de la lune, La Lettre à Élise, Cinquième Symphonie, et depuis aujourd'hui **Berceuse de
-Brahms**, **Pop! Goes the Weasel** et **Arkansas Traveler**. Les trois derniers sont écrits
-parce que j'ai enfin trouvé une source lisible depuis ce conteneur, et leur champ `source` dit
-laquelle.
+**Douze morceaux sont en ligne** : Ah ! vous dirai-je maman, Row Your Boat, Frère Jacques, Au
+clair de la lune, La Lettre à Élise, Cinquième Symphonie, Berceuse de Brahms, Pop! Goes the
+Weasel, Arkansas Traveler, et depuis le 20 septembre **Dans la ferme de Mathurin**, **Mary
+Had a Little Lamb** et **Three Blind Mice**.
 
-J'ai cartographié ce que le réseau de sortie laisse passer, et c'est ça qui a débloqué la
-situation :
+**Le Roi lion et Le Livre de la jungle ne peuvent pas entrer dans le dépôt.** Elton John, Tim
+Rice, Hans Zimmer, les frères Sherman, Terry Gilkyson : tous sous droits, et le site est
+public sur ton domaine. C'est la règle dure n° 2. Elles s'importent en revanche très bien sur
+ton appareil, où elles restent, voir `docs/importer-un-morceau.md`.
 
-| Source | État mesuré |
+**Pour tout le reste, le problème n'est pas juridique.** Ta liste du 20 septembre est
+entièrement dans le domaine public, dates comprises, Holst et Dukas inclus. Le problème est
+que **je ne peux lire aucune partition depuis mon conteneur.** Mesuré ce jour-là :
+
+| Source | État |
 |---|---|
-| IMSLP, abcnotation.com, Wikisource, Wikimedia Commons | bloqués, HTTP 000 |
-| GitHub, pages et fichiers bruts | accessibles |
-| MutopiaProject, partitions LilyPond en domaine public | accessible |
-| Recueils ABC hébergés sur GitHub | accessibles |
+| mutopiaproject.org, IMSLP, abcnotation.com, kern.ccarh.org | bloqués |
+| partitions-domaine-public.fr, comptines.tv, thesession.org | bloqués |
+| API GitHub et pages d'arborescence | 403, et la liste des compositeurs de Mutopia s'arrête à F |
+| fichiers bruts de GitHub, **sur un chemin connu** | accessibles, et c'est la seule porte |
 
-Ce qui reste du tableau 7.4, après avoir cherché dans Mutopia, dans les recueils ABC libres et
-dans l'index des partitions LilyPond de GitHub. **Aucune source ne me donne ces cinq
-mélodies**, donc je ne les écris pas :
+Une bonne nouvelle quand même : **le corpus Joplin de `craigsapp` est lisible**, en notation
+Humdrum, avec les dates du compositeur dans l'en-tête du fichier. `The Entertainer` et
+`Maple Leaf Rag` sont donc à portée, et c'est exactement l'esprit ragtime que tu décrivais.
+Ils ne sont pas encore écrits : réduire une main droite de ragtime à une ligne de chant est
+un travail d'arrangement, et je préfère le faire bien que vite.
 
-| Morceau | Ce qui me manque | Ce que j'ai cherché |
-|---|---|---|
-| Alouette | le contour exact des reprises, la partie qui énumère | absente de Mutopia et des recueils ABC, qui sont des corpus de danses et d'airs de session, pas de comptines |
-| B-I-N-G-O | le rythme des lettres épelées | idem |
-| L'araignée Gipsy | la fin de la phrase | idem |
-| Le Cancan (Offenbach) | je reconnais l'air, je ne saurais pas l'écrire note à note | Mutopia n'a aucune partition d'Offenbach |
-| Entrée des gladiateurs (Fučík) | la descente chromatique | Mutopia n'a aucune partition de Fučík |
+**Ce qui attend, et qui n'attend qu'une partition :**
 
-Deux façons de débloquer, et la première est beaucoup plus rapide pour toi :
+| Ce que tu as demandé | Ce qui manque |
+|---|---|
+| Marche royale du lion, Dans l'antre du roi de la montagne, L'Apprenti sorcier, Jupiter, Guillaume Tell, Trépak, Lac des cygnes, Fée Dragée | une partition lisible. Je ne suis pas sûr de leur contour note à note, et je n'écris pas de mémoire approximative |
+| Une souris verte, Promenons-nous dans les bois, Un crocodile, Il court le furet | pareil, et ce sont justement celles que les garçons reconnaîtraient |
+| Alouette, B-I-N-G-O, L'araignée Gipsy, Le Cancan, l'Entrée des gladiateurs | pareil, depuis le début |
 
-1. **Tu importes un MIDI toi-même.** C'est exactement le circuit 2 du cadrage : tu trouves un
-   `.mid` du morceau, tu l'importes dans la zone parent, tu répartis les pistes, et il est
-   dans la bibliothèque. Si le résultat te plaît, tu me l'exportes et je le reprends
-   proprement en arrangement pour la scène
-2. **Tu me confirmes la mélodie**, en solfège ou en notes (do ré mi, ou C D E), avec le
-   rythme. Une ligne par phrase suffit
+**Deux façons de débloquer n'importe lequel, et les deux sont rapides pour toi :**
 
-Et une question de nom, qui est de ton ressort : le cadrage appelle le morceau **Baby
-Bumblebee**, alors que l'air est celui d'**Arkansas Traveler**. J'ai mis « Arkansas
-Traveler », qui est le titre de la source. Si « Baby Bumblebee » parle davantage aux garçons,
-dis-le et je renomme.
+1. **Tu en importes un MIDI** (`docs/importer-un-morceau.md`). Tu écoutes. Si le résultat te
+   plaît et que le morceau est dans le domaine public, tu me l'exportes par la feuille de
+   partage et **je le reprends en vrai arrangement à 13 parties**, avec ses notes sous les
+   yeux
+2. **Tu me confirmes la mélodie**, en notes ou en solfège, une ligne par phrase
 
 ### 2. Le test avec les enfants.
 

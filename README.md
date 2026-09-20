@@ -19,7 +19,7 @@ Fait :
 
 - le **moteur audio** dans `src/moteur.js`, une horloge, 13 canaux, anticipation à 20 ms
 - les **13 instruments échantillonnés**, 2,6 Mo, banque FluidR3_GM
-- **neuf morceaux** en 13 parties pleines, dont trois validés à l'écoute par Mathieu
+- **douze morceaux** en 13 parties pleines, dont trois validés à l'écoute par Mathieu
 - les **13 illustrations** et les **deux mises en page**, validées
 - l'**interaction** : appui simple et glisser-déposer, échange sur emplacement occupé, scène
   pleine qui refuse sans remplacer
@@ -32,11 +32,15 @@ Fait :
   projet ou d'un **MIDI** avec écran de correspondance des pistes, export par la feuille de
   partage, crédits des banques de sons
 
-Phase 3 en cours : neuf morceaux sur les quinze du jouet. Les trois derniers (Berceuse de
-Brahms, Pop! Goes the Weasel, Arkansas Traveler) sont écrits depuis une source vérifiable, et
-leur champ `source` dit laquelle. **Cinq restent sans source** : Alouette, B-I-N-G-O,
-L'araignée Gipsy, Le Cancan, l'Entrée des gladiateurs. Elles attendent soit une mélodie que
-Mathieu me confirme, soit un MIDI importé depuis l'appareil. Voir `docs/points-ouverts.md`.
+Phase 3 en cours : **douze morceaux**. Berceuse de Brahms, Pop! Goes the Weasel et Arkansas
+Traveler sont écrits depuis une source vérifiable, et leur champ `source` dit laquelle. Dans
+la ferme de Mathurin, Mary Had a Little Lamb et Three Blind Mice se sont ajoutées le
+20 septembre.
+
+Ce qui manque encore manque **faute de partition accessible, pas faute de droits** : tous les
+sites de partitions sont bloqués depuis le conteneur de développement, et je n'écris pas une
+mélodie dont je ne suis pas sûr. Le chemin pour débloquer un morceau est l'import MIDI,
+documenté dans `docs/importer-un-morceau.md`. Voir aussi `docs/points-ouverts.md`.
 Et pour la phase 4, le réglage des mixages morceau par morceau, à l'oreille.
 
 ## Où regarder
