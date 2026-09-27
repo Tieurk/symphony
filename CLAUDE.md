@@ -258,14 +258,18 @@ jamais dans l'app, donc aucune règle dure n'est touchée et aucune dépendance 
 l'exécution. Trois choses à savoir :
 
 - **`--essai` est le contrôle qui compte.** Le script fabrique lui-même un WAV dont il connaît
-  les onze notes, le passe dans la chaîne et compare. Mesuré ici : **11 hauteurs sur 11
-  exactes**, durées à 20 ms près. C'est indispensable parce que basic-pitch a **quatre
-  moteurs** (TensorFlow, CoreML, tflite, ONNX) et prend celui qui est installé : ici c'est
-  TensorFlow, sur un Mac sans TensorFlow c'est **CoreML**, un chemin de code que je ne peux pas
-  essayer d'ici
+  les onze notes, le passe dans la chaîne et compare. C'est indispensable parce que basic-pitch
+  a **quatre moteurs** (TensorFlow, CoreML, tflite, ONNX) et prend celui qui est installé : ici
+  c'est TensorFlow, sur le Mac de Mathieu c'est **CoreML**, un chemin de code différent que je
+  ne peux pas exécuter d'ici. **Les deux sont mesurés : 11 hauteurs sur 11 exactes**, ici le
+  27 septembre 2026 sur TensorFlow, et le même jour sur son Mac sur CoreML, qui affiche bien
+  `moteurs installes : CoreML` et `modele utilise : nmp.mlpackage`
 - **Le chemin CoreML écrit trois lignes de débogage par fenêtre audio**, en dur dans
   `inference.py`. Le script les retire de l'affichage, et rien d'autre : un vrai message doit
-  passer
+  passer. **Le filtrer par appel d'écriture ne suffit pas** : `print()` écrit le texte et son
+  saut de ligne en deux appels séparés, donc un filtre qui décide appel par appel laisse une
+  **ligne vide** par ligne retirée. C'est la sortie réelle de son Mac qui l'a montré, quinze
+  lignes vides. On accumule donc jusqu'au saut de ligne et on décide sur la ligne entière
 - **La panne la plus fréquente est un terminal neuf**, où l'environnement n'est plus actif et
   où `python3` est celui du système. Deux réponses, et il a fallu les deux : les commandes du
   guide appellent `~/basic-pitch/bin/python3` **par son chemin complet**, donc elles ne

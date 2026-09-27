@@ -52,15 +52,35 @@ AIGU_HZ = 1200.0       # au-dessus du chant courant
 BAVARDAGE = ("isfinite:", "shape:", "dtype:")
 
 class SansBavardage(io.TextIOBase):
+    """Retire ces lignes-la, et RIEN d'autre.
+
+    MESURE SUR LE MAC DE MATHIEU, le 27 septembre 2026 : la premiere version
+    filtrait bien le texte mais laissait UNE LIGNE VIDE par ligne retiree.
+    Raison : print() ecrit le texte et le saut de ligne en DEUX appels separes,
+    donc le filtre voyait un « \n » tout seul, qui ne commence par aucun des
+    motifs et passait. On accumule donc jusqu'au saut de ligne et on decide sur
+    la ligne entiere.
+    """
     def __init__(self, vers):
         self.vers = vers
+        self.reste = ""
     def write(self, texte):
-        for ligne in texte.splitlines(True):
+        self.reste += texte
+        while "\n" in self.reste:
+            ligne, self.reste = self.reste.split("\n", 1)
             if not ligne.lstrip().startswith(BAVARDAGE):
-                self.vers.write(ligne)
+                self.vers.write(ligne + "\n")
         return len(texte)
     def flush(self):
+        # On ne vide PAS le reste ici : un print(flush=True) appelle flush entre
+        # le texte et son saut de ligne, et emettre le morceau a ce moment-la
+        # reintroduirait exactement le defaut qu'on corrige.
         self.vers.flush()
+    def vide(self):
+        """Le dernier morceau, s'il n'a pas de saut de ligne. A la toute fin."""
+        if self.reste and not self.reste.lstrip().startswith(BAVARDAGE):
+            self.vers.write(self.reste)
+        self.reste = ""
 
 def verifie_dependances():
     """Dit CE QU'IL FAUT FAIRE au lieu de jeter une trace Python.
@@ -123,7 +143,8 @@ def ecoute(src):
     from basic_pitch.inference import predict
     from basic_pitch import ICASSP_2022_MODEL_PATH
 
-    with contextlib.redirect_stdout(SansBavardage(sys.stdout)):
+    filtre = SansBavardage(sys.stdout)
+    with contextlib.redirect_stdout(filtre):
         _, midi, _ = predict(
             str(src),
             ICASSP_2022_MODEL_PATH,
@@ -135,6 +156,7 @@ def ecoute(src):
             multiple_pitch_bends=False,
             melodia_trick=True,
         )
+    filtre.vide()
     brutes = [n for inst in midi.instruments for n in inst.notes]
     return brutes, monophonique(brutes)
 
