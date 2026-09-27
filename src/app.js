@@ -22,7 +22,10 @@ const SEUIL_GLISSER = 8;      // px avant qu'un appui devienne un glisser
 const APPUI_LONG = 2000;      // ms sur l'engrenage, comme dit le cadrage
 const BRIDE_TRESSAUT = 150;   // ms entre deux tressauts du meme instrument
 const CLE = "orchestre";      // cle de persistance
-const VERSION = "phase 3, neuf morceaux, 19 septembre 2026";
+// Affichee dans « A propos ». Elle est restee a « neuf morceaux » pendant deux
+// livraisons : c'est la ligne que Mathieu me lit au telephone, donc elle doit
+// dire la verite. A remonter a chaque morceau ajoute.
+const VERSION = "phase 3, quatorze morceaux, 27 septembre 2026";
 
 const emplacements = new Array(NB_PLACES).fill(null);
 let morceaux = [];
@@ -82,8 +85,9 @@ function rend() {
   sauve();
 }
 
-// Le ruban de morceaux defile des qu'il y en a plus que de largeur : mesure,
-// neuf morceaux font 624 px pour 193 px visibles sur un iPhone SE. Sans ce
+// Le ruban de morceaux defile des qu'il y en a plus que de largeur. Mesure sur
+// un iPhone SE : neuf morceaux faisaient 624 px pour 193 px visibles, quatorze
+// en font 974 pour les memes 193, soit cinq fois la largeur de l'ecran. Sans ce
 // recentrage, l'enfant qui enchaine avec la fleche perd de vue le morceau
 // choisi : la vignette allumee est hors de l'ecran et plus rien ne dit ou on
 // en est. Le defaut grandit a chaque morceau ajoute.

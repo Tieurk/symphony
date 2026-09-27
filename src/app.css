@@ -86,9 +86,27 @@ body {
   border-radius: 12px; border: 3px solid transparent; position: relative;
   display: flex; align-items: flex-end; padding: 5px; overflow: hidden;
 }
+/* UN TITRE NE DOIT JAMAIS ETRE ROGNE EN SILENCE. Le jeton fait 64 px sur un
+   iPhone SE, soit 48 px utiles, et un mot plus large que ca disparaissait sans
+   rien dire : « Cinquième Symphonie » perdait son « nie » depuis sa livraison,
+   et « The Entertainer » son « r ». Mesure au canvas : Symphonie 56,4 px et
+   Entertainer 57,8 px pour 48 px utiles. Ca ne se voyait pas dans le code, ca
+   sautait aux yeux sur le rendu du ruban a 375 px.
+   overflow-wrap: anywhere coupe le mot au lieu de l'escamoter. Une coupure se
+   voit et se comprend, un texte tronque ressemble a un bug.
+   ET LA TAILLE SUIT LE JETON, parce que couper ajoute des lignes : a 9 px fixes,
+   « Cinquième Symphonie (thème) » passait a CINQ lignes et sortait par le haut,
+   le jeton etant aligne en bas. Mesure : 42 controles, 14 titres sur trois
+   ecrans, aucun debordement ni en largeur ni en hauteur.
+   Pas de « hyphens: auto » : il ne fait rien dans le navigateur sans tete, qui
+   n'a pas le dictionnaire de cesure, donc je ne peux pas mesurer ce qu'il
+   ferait sur le Safari de l'iPad. Il y changerait le nombre de lignes sans que
+   le controle de hauteur l'ait vu. */
 .morceau span {
-  font-size: 9px; line-height: 1.1; color: #22160c; font-weight: 700;
+  font-size: max(8px, calc(var(--jeton) * .125)); line-height: 1.05;
+  color: #22160c; font-weight: 700;
   text-shadow: 0 1px 0 rgba(255,255,255,.35);
+  overflow-wrap: anywhere;
 }
 .morceau.choisi { border-color: var(--texte); }
 .morceau.choisi::after {

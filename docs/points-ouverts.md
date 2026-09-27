@@ -6,10 +6,10 @@
 
 ### 1. Ce qui bloque les morceaux, et ce n'est plus ce qu'on croyait
 
-**Douze morceaux sont en ligne** : Ah ! vous dirai-je maman, Row Your Boat, Frère Jacques, Au
-clair de la lune, La Lettre à Élise, Cinquième Symphonie, Berceuse de Brahms, Pop! Goes the
-Weasel, Arkansas Traveler, et depuis le 20 septembre **Dans la ferme de Mathurin**, **Mary
-Had a Little Lamb** et **Three Blind Mice**.
+**Quatorze morceaux sont en ligne** : Ah ! vous dirai-je maman, Row Your Boat, Frère Jacques,
+Au clair de la lune, La Lettre à Élise, Cinquième Symphonie, Berceuse de Brahms, Pop! Goes the
+Weasel, Arkansas Traveler, Dans la ferme de Mathurin, Mary Had a Little Lamb, Three Blind
+Mice, et depuis le 27 septembre **The Entertainer** et **Maple Leaf Rag**.
 
 **Le Roi lion et Le Livre de la jungle ne peuvent pas entrer dans le dépôt.** Elton John, Tim
 Rice, Hans Zimmer, les frères Sherman, Terry Gilkyson : tous sous droits, et le site est
@@ -18,7 +18,7 @@ ton appareil, où elles restent, voir `docs/importer-un-morceau.md`.
 
 **Pour tout le reste, le problème n'est pas juridique.** Ta liste du 20 septembre est
 entièrement dans le domaine public, dates comprises, Holst et Dukas inclus. Le problème est
-que **je ne peux lire aucune partition depuis mon conteneur.** Mesuré ce jour-là :
+que **je n'atteins presque aucune partition depuis mon conteneur.** Mesuré ce jour-là :
 
 | Source | État |
 |---|---|
@@ -27,11 +27,29 @@ que **je ne peux lire aucune partition depuis mon conteneur.** Mesuré ce jour-l
 | API GitHub et pages d'arborescence | 403, et la liste des compositeurs de Mutopia s'arrête à F |
 | fichiers bruts de GitHub, **sur un chemin connu** | accessibles, et c'est la seule porte |
 
-Une bonne nouvelle quand même : **le corpus Joplin de `craigsapp` est lisible**, en notation
-Humdrum, avec les dates du compositeur dans l'en-tête du fichier. `The Entertainer` et
-`Maple Leaf Rag` sont donc à portée, et c'est exactement l'esprit ragtime que tu décrivais.
-Ils ne sont pas encore écrits : réduire une main droite de ragtime à une ligne de chant est
-un travail d'arrangement, et je préfère le faire bien que vite.
+**Les deux Joplin sont écrits depuis le 27 septembre**, et c'était la bonne nouvelle de la
+passe précédente. Le corpus `craigsapp/joplin` est lisible en notation Humdrum, les dates du
+compositeur et de publication sont dans l'en-tête du fichier, et en kern les altérations sont
+écrites sur chaque note au lieu d'être déduites de l'armure. Donc les hauteurs viennent du
+fichier et je ne devine rien.
+
+Deux choses à savoir sur ce que tu vas entendre, parce que la réduction n'a pas la même
+réponse pour les deux :
+
+- **The Entertainer** est la section A entière avec sa première fin, seize mesures, rien
+  d'inventé. Le thème est écrit en octaves et j'en prends la voix inférieure, qui est la seule
+  à tenir dans la tessiture du violon
+- **Maple Leaf Rag** ne prend que les **six premières mesures**, plus une reprise des mesures 3
+  et 4 pour fermer une boucle de huit. La section entière ne se réduit pas à une ligne, et
+  c'est mesuré : sa mesure 7 est un croisement de mains, où la basse est écrite sur la portée
+  du haut, et ses mesures 9 à 16 montent jusqu'au la bémol6, au-dessus du plus haut échantillon
+  de xylophone. Tessiture de la section entière, 60 demi-tons. **La reprise est un choix
+  d'arrangement assumé**, comme l'octave de la Cinquième
+
+Et une réserve propre au style, que je préfère poser avant ton écoute : **la syncope est tout
+le ragtime**, et ma dérivation en 13 parties où chaque instrument garde son rôle figé peut
+l'aplatir. Ce sont les deux morceaux les plus risqués des quatorze de ce point de vue. Si ça
+sonne carré, dis-le et je reprends le placement rythmique.
 
 **Ce qui attend, et qui n'attend qu'une partition :**
 
@@ -41,13 +59,17 @@ un travail d'arrangement, et je préfère le faire bien que vite.
 | Une souris verte, Promenons-nous dans les bois, Un crocodile, Il court le furet | pareil, et ce sont justement celles que les garçons reconnaîtraient |
 | Alouette, B-I-N-G-O, L'araignée Gipsy, Le Cancan, l'Entrée des gladiateurs | pareil, depuis le début |
 
-**Deux façons de débloquer n'importe lequel, et les deux sont rapides pour toi :**
+**Trois façons de débloquer n'importe lequel, et les trois sont rapides pour toi :**
 
 1. **Tu en importes un MIDI** (`docs/importer-un-morceau.md`). Tu écoutes. Si le résultat te
    plaît et que le morceau est dans le domaine public, tu me l'exportes par la feuille de
    partage et **je le reprends en vrai arrangement à 13 parties**, avec ses notes sous les
    yeux
-2. **Tu me confirmes la mélodie**, en notes ou en solfège, une ligne par phrase
+2. **Tu me donnes un enregistrement audio** et `scripts/melodie.py` en tire une ligne de chant,
+   que tu importes de la même façon. Nouveau depuis le 27 septembre, même document. Commence
+   par `python3 scripts/melodie.py --essai`, qui vérifie la chaîne sur ta machine en une
+   commande
+3. **Tu me confirmes la mélodie**, en notes ou en solfège, une ligne par phrase
 
 ### 2. Le test avec les enfants.
 

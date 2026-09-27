@@ -65,6 +65,7 @@ change.
 | Trois morceaux de la phase 3 | Au clair de la lune (le remplaçant de The Wheels on the Bus prévu au cadrage), La Lettre à Élise, Cinquième Symphonie (thème). Choisis sur un seul critère : **je suis sûr de leur matière**. Voir la règle ci-dessous |
 | Trois morceaux de plus, écrits depuis une source | Berceuse de Brahms, Pop! Goes the Weasel, Arkansas Traveler (l'air du « Baby Bumblebee » du cadrage). **Neuf morceaux en tout.** Critère : une source lisible depuis ce conteneur, citée dans leur champ `source` |
 | Trois chansons d'animaux | Dans la ferme de Mathurin, Mary Had a Little Lamb, Three Blind Mice. **Douze morceaux en tout.** Demandées le 20 septembre 2026 en remplacement du Roi lion et du Livre de la jungle, que la règle dure n° 2 interdit |
+| Deux rags de Scott Joplin | The Entertainer et Maple Leaf Rag, relevés le 27 septembre 2026 sur `craigsapp/joplin`. **Quatorze morceaux en tout.** Demandés le 20 septembre, refusés ce jour-là faute de méthode de réduction, écrits depuis que la partition est lisible |
 
 ## Architecture audio
 
@@ -249,6 +250,26 @@ Le contrôle qui compte, et qui ne se remplace pas par une inspection d'état : 
 importé doit sortir du haut-parleur**, mesuré au `Tone.Meter` après l'avoir importé et choisi
 au clic dans le DOM.
 
+**Et depuis le 27 septembre 2026, un deuxième circuit d'entrée : `scripts/melodie.py`.** D'un
+fichier audio vers un MIDI d'**une seule ligne de chant**, par Basic Pitch (Spotify,
+Apache 2.0). Une seule ligne parce que l'app dérive les 13 instruments d'une mélodie : un MIDI
+qui contient tout l'orchestre ne lui sert à rien. Le script tourne sur le Mac de Mathieu,
+jamais dans l'app, donc aucune règle dure n'est touchée et aucune dépendance n'entre à
+l'exécution. Trois choses à savoir :
+
+- **`--essai` est le contrôle qui compte.** Le script fabrique lui-même un WAV dont il connaît
+  les onze notes, le passe dans la chaîne et compare. Mesuré ici : **11 hauteurs sur 11
+  exactes**, durées à 20 ms près. C'est indispensable parce que basic-pitch a **quatre
+  moteurs** (TensorFlow, CoreML, tflite, ONNX) et prend celui qui est installé : ici c'est
+  TensorFlow, sur un Mac sans TensorFlow c'est **CoreML**, un chemin de code que je ne peux pas
+  essayer d'ici
+- **Le chemin CoreML écrit trois lignes de débogage par fenêtre audio**, en dur dans
+  `inference.py`. Le script les retire de l'affichage, et rien d'autre : un vrai message doit
+  passer
+- **Ce qui sort d'un enregistrement sous droits reste sur sa machine.** Jamais dans le dépôt,
+  jamais en ligne. Pour un morceau du domaine public, au contraire, il me le renvoie et je
+  l'écris en arrangement à 13 parties
+
 **Point d'honnêteté à répéter à Mathieu** (il est déjà dans le cadrage section 7.2) : un MIDI
 trouvé sur le web n'a pas été écrit pour cette scène. Ça jouera, mais rarement aussi bien
 qu'un arrangement où chaque instrument a un rôle pensé pour toutes les combinaisons.
@@ -286,9 +307,36 @@ public » :
   16 mesures. C'est l'air que le cadrage appelle **Baby Bumblebee** : le titre affiché est
   celui de la source, Mathieu renomme s'il préfère l'autre
 
-Les six morceaux plus anciens gardent `source: "Domaine public"`, ce qui est exact, mais
+**Et le 27 septembre 2026, deux rags de Scott Joplin, relevés sur une partition complète.**
+Ils avaient été refusés le 20, faute de méthode de réduction. Ce qui a changé : `craigsapp/joplin`
+répond sur un chemin connu, **la preuve du domaine public est dans l'en-tête du fichier**
+(`!!!CDT: 1868/11/24-1917/04/01`, `!!!ODT: 1902` et `1899`), et le kern écrit ses altérations
+sur chaque note.
+
+- **The Entertainer**, section A avec sa **première fin**. Do majeur, 2/4, 16 mesures, à 100 à
+  la noire comme la source, qui porte même l'indication de Joplin : « Not fast. » La première
+  fin et pas la seconde, et ce n'est pas un détail : A1 ramène à la reprise, A2 part vers la
+  section suivante. Pour une boucle c'est A1 qu'il faut, sinon chaque tour se rabote sur une
+  cadence qui voulait aller ailleurs. Contrôle qui compte : la somme des durées de mélodie fait
+  exactement **32,0 noires pour 16 mesures de 2/4**, donc le relevé des liaisons est juste
+- **Maple Leaf Rag**, les **six premières mesures** de la section A plus une reprise des
+  mesures 3 et 4. La bémol majeur, 2/4, 8 mesures. **La section entière ne se réduit pas à une
+  ligne, et c'est mesuré** : sa mesure 7 est un croisement de mains, la basse y est écrite sur
+  la portée du haut (la bémol1 à sol2), et ses mesures 9 à 16 vivent entre la bémol5 et la
+  bémol6, au-dessus du plus haut échantillon de xylophone. Tessiture de la section entière :
+  60 demi-tons, 12 notes hors tessiture sur 78. Les six premières mesures tiennent dans **neuf
+  demi-tons**. **La reprise des mesures 3 et 4 est un choix d'arrangement assumé**, pas une
+  citation, comme l'octave et la reprise de la Cinquième : elle ferme une période de huit
+  mesures au lieu d'une boucle de quatre, dont il est dit plus haut qu'elle ne laisse presque
+  rien à entendre
+
+Deux écarts à la source, déclarés dans le générateur et inaudibles : un do5 tenu de 7
+doubles-croches et un mi bémol5 de 5 doubles-croches, qui n'ont pas de notation Tone, écrits à
+6 et 4 doubles-croches.
+
+Les **neuf** morceaux plus anciens gardent `source: "Domaine public"`, ce qui est exact, mais
 **leur mélodie vient de ma mémoire et pas d'une source**. Trois d'entre eux ont été validés à
-l'oreille par Mathieu, ce qui vaut mieux qu'une partition ; les trois autres attendent son
+l'oreille par Mathieu, ce qui vaut mieux qu'une partition ; les six autres attendent son
 écoute. Ne pas les réécrire pour aligner le champ, ce serait toucher à des fichiers validés
 pour un gain de forme.
 
@@ -335,7 +383,7 @@ sont des corpus de danses et d'airs de session, pas de comptines. Ces cinq-là n
 donc pas, et le chemin le plus rapide reste l'import MIDI de la zone parent, qui est fait
 pour ça.
 
-Quatre détails techniques appris en écrivant ces six-là :
+Six détails techniques appris en écrivant ces huit-là :
 
 1. **La flûte ne double pas toujours à l'octave.** Son plus haut échantillon est `C6`, et
    au-delà de 5 demi-tons de transposition le timbre change pour de bon. Quand l'octave
@@ -352,6 +400,18 @@ Quatre détails techniques appris en écrivant ces six-là :
    bémols s'écrivent en néerlandais (`es` pour mi bémol, `aes` pour la bémol). Une lecture
    littérale des noms de notes, sans dérouler les octaves relatives, transpose des fragments
    entiers d'une octave sans prévenir
+5. **En kern, au contraire, les altérations sont écrites sur chaque note**, jamais déduites de
+   l'armure. Compté sur Maple Leaf Rag, qui est en la bémol majeur : les tokens portent `ee-`
+   77 fois, `aa-` 66, `b-` 34, `dd-` 21, et les `a` et `dd` nus qui restent sont de vraies
+   altérations chromatiques du rag. C'est le seul des trois formats où une lecture littérale
+   donne la bonne hauteur, et c'est ce qui rend le corpus Joplin utilisable
+6. **Réduire une main droite de piano à une ligne de chant n'a pas de règle unique**, et le
+   choix se mesure. The Entertainer écrit son thème en octaves avec une tierce au milieu
+   (`16ccc ee cc` = do5 mi5 do6) : c'est la **voix inférieure** qu'il faut prendre, 0 note hors
+   tessiture sur 74 contre 47 sur 74 pour la voix supérieure, le plus haut échantillon de
+   violon étant mi5. Maple Leaf Rag ne double pas à l'octave : c'est la **voix supérieure**,
+   sinon le contour du motif ascendant est cassé. Prendre systématiquement le haut ou
+   systématiquement le bas se trompe une fois sur deux
 
 Et un garde-fou ajouté au validateur : **un instrument qui joue mais qui n'est pas dans
 `mix` sort à 0 dB**, donc plus fort que tout le reste (voir `niveau()` dans `src/moteur.js`).
@@ -556,6 +616,53 @@ Deux conséquences dans le code, pour ne plus dépendre d'une phrase :
   trois appuis et me lit la ligne : c'est le chemin le plus court vers la cause, sans câble et
   sans Mac
 
+### Un titre trop long disparaît sans rien dire
+
+Trouvé le 27 septembre 2026, en **rendant le ruban à la largeur d'un iPhone SE et en le
+regardant**. « The Entertainer » y perdait son `r` final, et « Cinquième Symphonie (thème) »
+perdait son `nie` **depuis sa livraison**, sans que personne le voie.
+
+La cause est banale et c'est ce qui la rend dangereuse : `.morceau` est en `overflow: hidden`,
+et un mot plus large que le jeton est simplement rogné. Mesuré au canvas avec la vraie police :
+le jeton fait 64 px sur un SE, soit **48 px utiles**, quand « Symphonie » en fait 56,4 et
+« Entertainer » 57,8. Aucune erreur, aucune trace, un JSON parfaitement valide.
+
+Deux règles en sortent, et la seconde vient d'une correction qui a cassé autre chose :
+
+1. **`overflow-wrap: anywhere`**, pour couper le mot au lieu de l'escamoter. Une coupure se voit
+   et se comprend, un texte tronqué ressemble à un bug.
+2. **La taille du texte suit celle du jeton** (`max(8px, calc(var(--jeton) * .125))`). Couper
+   ajoute des lignes : à 9 px fixes, la Cinquième passait à **cinq lignes** et sortait par le
+   **haut**, parce que le jeton est aligné en bas. Réparer la largeur avait créé un
+   débordement en hauteur, que seul un contrôle des **deux** dimensions attrape.
+
+Le contrôle est maintenant dans les bancs (`titres.js`) : pour chacun des 14 titres et sur
+trois écrans, la boîte réelle du texte doit tenir dans la boîte utile du jeton, en largeur
+**et** en hauteur. 42 contrôles.
+
+**Et ce que je n'ai pas fait :** `hyphens: auto` donnerait une césure lisible plutôt qu'une
+coupure sèche, mais il ne fait **rien** dans le navigateur sans tête, qui n'a pas le
+dictionnaire de césure. Je ne peux donc pas mesurer ce qu'il ferait sur le Safari de l'iPad,
+où il changerait le nombre de lignes sans que mon contrôle de hauteur l'ait vu. Une règle dont
+je ne peux pas éprouver l'effet ne part pas en ligne.
+
+### Une palette se mesure, elle ne se choisit pas à l'œil
+
+Même jour, même méthode. Les couleurs des deux Joplin avaient été choisies en calculant leur
+écart de teinte aux douze existantes, et elles passaient le seuil. Le rendu du ruban a montré
+autre chose : **j'avais fabriqué un troisième rose**, à 17 degrés de Mary Had a Little Lamb,
+alors que la palette avait deux vrais creux inoccupés.
+
+Le bon critère n'est pas « assez loin de la plus proche », c'est **« dans le plus grand creux
+disponible »**. Mesure faite sur les quatorze teintes triées, avec l'écart de chacune à la
+suivante : creux de 63 degrés entre 97 et 160, creux de 55 degrés entre 262 et 334. Les deux
+couleurs y sont placées (140 et 290), ce qui porte leur écart minimum de 15 et 17 degrés à
+**28**.
+
+À savoir pour la suite : la pire paire de la palette reste **Mary Had a Little Lamb et Frère
+Jacques, à 4 degrés l'une de l'autre**. Elle existait avant, elle n'est pas corrigée ici parce
+que la couleur est du domaine de Mathieu, mais elle est signalée.
+
 ### `hidden` en CSS, et `hidden` sur un SVG
 
 **L'attribut `hidden` n'est qu'un `display: none` de la feuille du navigateur : la moindre
@@ -620,8 +727,8 @@ Trois zones : contrôles en haut (sélecteur de morceau, play/pause, tempo, volu
 - Changement de morceau : les instruments restent en place, le nouveau morceau repart du début dans le même état de lecture.
 - **Scène en demi-cercle en paysage**, tranché le 15 septembre 2026 contre une grille 3x2 : six emplacements en arc face au public, extrémités basses et milieu haut. Coût mesuré, l'emplacement passe de 275 px à 129 px sur l'iPad. La grille 3x2 reste en portrait, faute de largeur.
 - **Réserve portrait à cinq colonnes**, pas les quatre du cadrage. Mesuré : en quatre colonnes les 13 jetons prennent une rangée de plus, soit 148 px pris à la scène, et l'emplacement tombe à 67 px sur un iPhone 390 et à 16 px sur un SE. La cible tactile de 64 px gagne contre le nombre de colonnes.
-- **Le ruban de morceaux défile, et deux choses en découlent, mesurées à neuf morceaux.**
-  Sur un iPhone SE, neuf vignettes font 624 px pour 193 px visibles : la sélection sortait de
+- **Le ruban de morceaux défile, et deux choses en découlent, mesurées à neuf morceaux puis revérifiées à quatorze.**
+  Sur un iPhone SE, neuf vignettes faisaient 624 px pour 193 px visibles, et quatorze en font 974 pour les mêmes 193 : la sélection sortait de
   l'écran dès le quatrième morceau enchaîné avec la flèche, et plus rien ne disait où on en
   était. Le ruban **recentre donc la vignette choisie** (`montreChoisi()`), et seulement quand
   le rang change : `rend()` est appelé à chaque instrument posé, recentrer sous les doigts de
@@ -789,7 +896,7 @@ pas de persistance des données (voir piège iOS n° 4).
 - **Phase 0** : choix du kit de percussion, écoute comparée des timbres, maquette fixe des deux mises en page, chaîne de déploiement vérifiée de bout en bout. Fait : le son sur iOS, le kit (FluidR3_GM), le déploiement en HTTPS, le nom, les 13 illustrations et les deux maquettes fixes. **Reste le jugement de Mathieu**, sur les illustrations (`test/svg.html`) et sur les maquettes (`test/maquette.html`).
 - **Phase 1** : **finie**, reste à la tester avec Grégoire et Louis. Ordre fixé par Mathieu : le son d'abord (moteur dans `src/`, 13 instruments échantillonnés, trois morceaux en 13 parties, arrangements validés à l'oreille le 15 septembre 2026), puis l'interaction (l'app à la racine, les deux gestes, le minimum vivant). Deux écarts au tableau des phases, tranchés par Mathieu : le **glisser-déposer** et les **animations** sont montés en phase 1 au lieu de la 2, parce que l'objectif de la phase est de valider la sensation de jeu et qu'une interface figée la sous-vend.
 - **Phase 2** : **finie.** Mise en page adaptative, glisser-déposer, animations, illustrations, crédits (règle dure n° 3, exigés dès que l'app est la porte d'entrée), **hors ligne** (manifeste, service worker, icônes, installation, persistance de la scène, du morceau, du tempo et du volume) et **zone parent complète** : bibliothèque (masquer, réordonner, supprimer), import d'un fichier du projet ou d'un MIDI avec écran de correspondance des pistes, export par la feuille de partage. Voir « Hors ligne et installation » et « La bibliothèque, l'import et l'export ».
-- **Phase 3** : en cours. Six morceaux ajoutés, **neuf en tout** : Au clair de la lune, La Lettre à Élise et Cinquième Symphonie de mémoire, puis Berceuse de Brahms, Pop! Goes the Weasel et Arkansas Traveler depuis une source lue. Restent **cinq** morceaux du tableau 7.4 dont aucune source atteignable ne me donne la mélodie (Alouette, B-I-N-G-O, L'araignée Gipsy, Le Cancan, l'Entrée des gladiateurs) et la deuxième série du 7.5, que Mathieu doit cocher. Voir `docs/points-ouverts.md`.
+- **Phase 3** : en cours. **Quatorze morceaux** : Au clair de la lune, La Lettre à Élise et Cinquième Symphonie de mémoire, Dans la ferme de Mathurin, Mary Had a Little Lamb et Three Blind Mice de mémoire aussi, puis Berceuse de Brahms, Pop! Goes the Weasel, Arkansas Traveler, The Entertainer et Maple Leaf Rag depuis une source lue. Restent **cinq** morceaux du tableau 7.4 dont aucune source atteignable ne me donne la mélodie (Alouette, B-I-N-G-O, L'araignée Gipsy, Le Cancan, l'Entrée des gladiateurs) et la deuxième série du 7.5, que Mathieu doit cocher. Voir `docs/points-ouverts.md`.
 - **Phase 4** : réglage des mixages morceau par morceau, retours des enfants.
 
 Chaque phase se termine par une version en ligne testable.

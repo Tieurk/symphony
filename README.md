@@ -19,7 +19,7 @@ Fait :
 
 - le **moteur audio** dans `src/moteur.js`, une horloge, 13 canaux, anticipation à 20 ms
 - les **13 instruments échantillonnés**, 2,6 Mo, banque FluidR3_GM
-- **douze morceaux** en 13 parties pleines, dont trois validés à l'écoute par Mathieu
+- **quatorze morceaux** en 13 parties pleines, dont trois validés à l'écoute par Mathieu
 - les **13 illustrations** et les **deux mises en page**, validées
 - l'**interaction** : appui simple et glisser-déposer, échange sur emplacement occupé, scène
   pleine qui refuse sans remplacer
@@ -32,15 +32,19 @@ Fait :
   projet ou d'un **MIDI** avec écran de correspondance des pistes, export par la feuille de
   partage, crédits des banques de sons
 
-Phase 3 en cours : **douze morceaux**. Berceuse de Brahms, Pop! Goes the Weasel et Arkansas
-Traveler sont écrits depuis une source vérifiable, et leur champ `source` dit laquelle. Dans
-la ferme de Mathurin, Mary Had a Little Lamb et Three Blind Mice se sont ajoutées le
-20 septembre.
+Phase 3 en cours : **quatorze morceaux**. Cinq sont écrits depuis une source vérifiable, et
+leur champ `source` dit laquelle : Berceuse de Brahms, Pop! Goes the Weasel, Arkansas
+Traveler, puis **The Entertainer** et **Maple Leaf Rag**, relevés le 27 septembre sur le
+corpus Humdrum de `craigsapp/joplin`, dont l'en-tête porte les dates du compositeur et de
+publication. Dans la ferme de Mathurin, Mary Had a Little Lamb et Three Blind Mice se sont
+ajoutées le 20 septembre.
 
-Ce qui manque encore manque **faute de partition accessible, pas faute de droits** : tous les
-sites de partitions sont bloqués depuis le conteneur de développement, et je n'écris pas une
-mélodie dont je ne suis pas sûr. Le chemin pour débloquer un morceau est l'import MIDI,
-documenté dans `docs/importer-un-morceau.md`. Voir aussi `docs/points-ouverts.md`.
+Ce qui manque encore manque **faute de partition accessible, pas faute de droits** : presque
+tous les sites de partitions sont bloqués depuis le conteneur de développement, et je n'écris
+pas une mélodie dont je ne suis pas sûr. Deux chemins pour débloquer un morceau, tous les deux
+documentés dans `docs/importer-un-morceau.md` : l'import MIDI dans la zone parent, et
+`scripts/melodie.py`, qui tire une ligne de chant d'un enregistrement audio. Voir aussi
+`docs/points-ouverts.md`.
 Et pour la phase 4, le réglage des mixages morceau par morceau, à l'oreille.
 
 ## Où regarder
@@ -70,7 +74,8 @@ songs/                un JSON par morceau, plus index.json qui donne l'ordre
 assets/samples/       les sons, 2,9 Mo pour les 13 instruments
 assets/silence.mp3    le contournement du bouton silencieux d'iOS
 assets/img/           les 4 PNG de l'icone, rendus de ICONE dans src/instruments.js
-scripts/              outillage (téléchargement des samples, extraction du kit)
+scripts/              outillage : samples, kit de percussion, audio vers MIDI
+scripts/melodie.py    d'un enregistrement vers un MIDI d'une seule ligne de chant
 test/                 bancs d'essai et maquettes
 docs/                 cadrage et spécifications
 ```

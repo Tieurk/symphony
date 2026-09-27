@@ -58,7 +58,7 @@ La zone parent réordonne et masque cette liste par appareil, sans toucher au fi
 | `compositeur`, `source` | Affichés dans la page « à propos », servent à tracer les droits |
 | `couleur` | Couleur de la vignette du morceau |
 | `bpm` | Tempo d'origine, celui du repère « normal » du curseur |
-| `mesure` | Signature rythmique, `4/4`, `3/4`, `6/8` |
+| `mesure` | Signature rythmique, `4/4`, `3/4`, `2/4`, `6/8` |
 | `longueur` | Longueur de la boucle en mesures, typiquement 8 à 16 |
 | `mix` | Niveau en décibels par instrument, valeurs négatives, 0 par défaut. **À renseigner pour tout instrument qui joue** : 0 dB veut dire plus fort que tout le reste, et le validateur le signale en réserve |
 | `parties` | Les 13 clés, toujours présentes, éventuellement vides |
