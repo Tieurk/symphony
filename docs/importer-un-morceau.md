@@ -64,11 +64,11 @@ tout l'orchestre ne lui sert à rien.
 
 Il tourne sur ton Mac, jamais dans l'app. Aucune dépendance n'entre dans le dépôt.
 
-**Les commandes ci-dessous supposent que tu es dans le dossier du dépôt.** Sinon, donne le
-chemin complet du script, il marche depuis n'importe où :
+**Les commandes ci-dessous supposent que tu es dans le dossier du dépôt.** Cette commande l'y
+amène sans que tu aies à savoir où il est :
 
 ```bash
-cd ~/le/chemin/vers/symphony
+cd "$(find ~ -maxdepth 6 -type d -name symphony 2>/dev/null | head -1)" && pwd
 ```
 
 **Installation, une seule fois :**
