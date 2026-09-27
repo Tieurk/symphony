@@ -62,6 +62,41 @@ class SansBavardage(io.TextIOBase):
     def flush(self):
         self.vers.flush()
 
+def verifie_dependances():
+    """Dit CE QU'IL FAUT FAIRE au lieu de jeter une trace Python.
+
+    Le cas qui arrive vraiment : un nouveau terminal, l'environnement n'est plus
+    actif, « python3 » est celui du systeme, et l'import echoue sur une trace de
+    dix lignes qui ne dit nulle part qu'il manque un « source ». Une erreur qui
+    ne s'explique pas est une erreur qu'on ne peut pas diagnostiquer a distance.
+    """
+    manquants = []
+    for mod in ("basic_pitch", "pretty_midi", "librosa", "numpy"):
+        try:
+            __import__(mod)
+        except ImportError:
+            manquants.append(mod)
+    if not manquants:
+        return
+    venv = Path.home() / "basic-pitch"
+    print(f"Il manque a ce python3 : {', '.join(manquants)}.", file=sys.stderr)
+    print(f"Python utilise : {sys.executable}", file=sys.stderr)
+    if (venv / "bin" / "python3").exists():
+        print("\nL'environnement existe mais n'est pas actif. Le plus court, sans "
+              "rien activer :", file=sys.stderr)
+        print(f"\n    {venv}/bin/python3 {sys.argv[0]} {' '.join(sys.argv[1:])}\n",
+              file=sys.stderr)
+        print("Ou bien active-le, et l'invite affichera « (basic-pitch) » :",
+              file=sys.stderr)
+        print(f"\n    source {venv}/bin/activate\n", file=sys.stderr)
+    else:
+        print("\nL'environnement n'existe pas encore. Une seule fois :",
+              file=sys.stderr)
+        print("\n    python3 -m venv ~/basic-pitch"
+              "\n    source ~/basic-pitch/bin/activate"
+              "\n    pip install basic-pitch\n", file=sys.stderr)
+    sys.exit(2)
+
 def monophonique(notes):
     """Une seule note a la fois : la plus haute gagne, la plus basse est
     coupee. Sans ca, Basic Pitch rend aussi les harmoniques et les voix
@@ -159,6 +194,7 @@ def fabrique_essai(dest):
     return len(ech) / SR
 
 def essai():
+    verifie_dependances()
     import pretty_midi
     from basic_pitch import (TF_PRESENT, CT_PRESENT, TFLITE_PRESENT,
                              ONNX_PRESENT, ICASSP_2022_MODEL_PATH)
@@ -193,6 +229,7 @@ def essai():
     return 1
 
 def main(chemin):
+    verifie_dependances()
     src = Path(chemin)
     if not src.exists():
         sys.exit(f"fichier introuvable : {src}")

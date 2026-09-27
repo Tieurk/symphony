@@ -266,6 +266,13 @@ l'exécution. Trois choses à savoir :
 - **Le chemin CoreML écrit trois lignes de débogage par fenêtre audio**, en dur dans
   `inference.py`. Le script les retire de l'affichage, et rien d'autre : un vrai message doit
   passer
+- **La panne la plus fréquente est un terminal neuf**, où l'environnement n'est plus actif et
+  où `python3` est celui du système. Deux réponses, et il a fallu les deux : les commandes du
+  guide appellent `~/basic-pitch/bin/python3` **par son chemin complet**, donc elles ne
+  dépendent d'aucun `source` ; et le script vérifie ses dépendances au démarrage et **affiche
+  la commande à coller** au lieu de jeter une trace Python de dix lignes qui ne dit nulle part
+  qu'il manque un `source`. Une erreur qui ne s'explique pas est une erreur qu'on ne peut pas
+  diagnostiquer à distance, et c'est toute la différence entre un aller-retour et cinq
 - **Ce qui sort d'un enregistrement sous droits reste sur sa machine.** Jamais dans le dépôt,
   jamais en ligne. Pour un morceau du domaine public, au contraire, il me le renvoie et je
   l'écris en arrangement à 13 parties

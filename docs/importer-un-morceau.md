@@ -68,8 +68,12 @@ Il tourne sur ton Mac, jamais dans l'app. Aucune dépendance n'entre dans le dé
 lance, depuis n'importe quel dossier :
 
 ```bash
-curl -fsSL -o ~/melodie.py https://raw.githubusercontent.com/Tieurk/symphony/main/scripts/melodie.py && python3 ~/melodie.py --essai
+curl -fsSL -o ~/melodie.py https://raw.githubusercontent.com/Tieurk/symphony/main/scripts/melodie.py && ~/basic-pitch/bin/python3 ~/melodie.py --essai
 ```
+
+**Elle appelle le python de l'environnement par son chemin complet**, donc elle marche dans un
+terminal neuf, sans `source` et sans que l'invite affiche `(basic-pitch)`. Un simple `python3`
+serait celui du système, qui ne connaît pas basic-pitch.
 
 Si tu as le dépôt en local et que tu préfères y aller, cette commande le trouve **et échoue
 bruyamment** s'il n'est pas là, au lieu de te laisser croire que tu y es :
@@ -112,8 +116,7 @@ une petite montée et descente que j'ai écrite pour la mesure, et le supprimer 
 **Sur un vrai fichier :**
 
 ```bash
-source ~/basic-pitch/bin/activate
-python3 scripts/melodie.py ~/Downloads/le-fichier.mp3
+~/basic-pitch/bin/python3 ~/melodie.py ~/Downloads/le-fichier.mp3
 ```
 
 Le MIDI est écrit à côté du fichier source, avec `-melodie.mid` à la fin. Tu l'amènes ensuite
@@ -121,8 +124,11 @@ sur l'iPad et tu l'importes comme n'importe quel MIDI, en suivant les étapes ci
 
 ### Quatre choses mesurées, pour ne pas t'inquiéter pour rien
 
-- **L'environnement se réactive à chaque nouveau terminal.** Sans `source`, `python3` est celui
-  du système et ne connaît pas basic-pitch. Ton invite affiche `(basic-pitch)` quand c'est bon
+- **L'environnement se réactive à chaque nouveau terminal**, et c'est la panne la plus
+  fréquente : sans `source`, `python3` est celui du système et ne connaît pas basic-pitch. Ton
+  invite affiche `(basic-pitch)` quand c'est bon. Les commandes ci-dessus évitent la question
+  en appelant `~/basic-pitch/bin/python3` directement, et **le script le dit lui-même** s'il
+  tombe sur le mauvais python : il affiche la commande à coller au lieu d'une trace Python
 - **basic-pitch a quatre moteurs** et prend celui qui est installé : TensorFlow s'il est là,
   sinon CoreML, sinon tflite, sinon ONNX. Sur un Mac sans TensorFlow c'est CoreML, et le
   modèle est livré avec le paquet, donc il n'y a rien à télécharger. Le mode `--essai` affiche
