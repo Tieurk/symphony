@@ -64,12 +64,26 @@ tout l'orchestre ne lui sert à rien.
 
 Il tourne sur ton Mac, jamais dans l'app. Aucune dépendance n'entre dans le dépôt.
 
-**Les commandes ci-dessous supposent que tu es dans le dossier du dépôt.** Cette commande l'y
-amène sans que tu aies à savoir où il est :
+**Tu n'as pas besoin du dépôt pour t'en servir.** Cette commande récupère le script et le
+lance, depuis n'importe quel dossier :
 
 ```bash
-cd "$(find ~ -maxdepth 6 -type d -name symphony 2>/dev/null | head -1)" && pwd
+curl -fsSL -o ~/melodie.py https://raw.githubusercontent.com/Tieurk/symphony/main/scripts/melodie.py && python3 ~/melodie.py --essai
 ```
+
+Si tu as le dépôt en local et que tu préfères y aller, cette commande le trouve **et échoue
+bruyamment** s'il n'est pas là, au lieu de te laisser croire que tu y es :
+
+```bash
+D=$(find ~ -maxdepth 8 -type d -name .git 2>/dev/null | while read g; do case "$(git --git-dir="$g" remote get-url origin 2>/dev/null)" in *symphony*) dirname "$g";; esac; done | head -1); [ -n "$D" ] && cd "$D" && pwd || echo "depot symphony introuvable, utilise la commande curl ci-dessus"
+```
+
+Elle cherche par l'**adresse du dépôt distant** et non par le nom du dossier : un dossier
+renommé, ou écrit avec une majuscule, ne se retrouve pas par son nom. Et elle commence par
+vérifier que le chemin n'est pas vide, parce que **`cd ""` ne fait rien du tout en zsh au lieu
+d'échouer** : une chaîne `cd "$(...)" && commande` exécute alors la commande dans le dossier où
+tu étais déjà, et tout a l'air de marcher. Les deux branches sont vérifiées, en bash seulement,
+zsh n'étant pas installé sur ma machine.
 
 **Installation, une seule fois :**
 
@@ -119,9 +133,10 @@ sur l'iPad et tu l'importes comme n'importe quel MIDI, en suivant les étapes ci
 - **Si la lecture d'un MP3 coince**, convertis-le en WAV avec `afconvert`, qui est déjà dans
   macOS :
   `afconvert -f WAVE -d LEI16@44100 -c 1 fichier.mp3 fichier.wav`
-- **Attention au glob dans zsh** : `ls *.mp3` fait échouer toute la ligne quand rien ne
-  correspond, et `2>/dev/null` ne rattrape pas ça. `find ~/Downloads -iname '*.mp3'` n'a pas ce
-  défaut
+- **Deux pièges de zsh qui font croire que ça marche.** `ls *.mp3` fait échouer toute la ligne
+  quand rien ne correspond, et `2>/dev/null` ne rattrape pas ça : utilise
+  `find ~/Downloads -iname '*.mp3'`. Et `cd ""` ne fait **rien**, il n'échoue pas : une
+  commande enchaînée derrière s'exécute alors là où tu étais déjà
 
 ### Ce que ça ne fait pas
 
